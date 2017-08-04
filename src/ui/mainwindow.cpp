@@ -1,14 +1,7 @@
-#include "../../../../common/iface/DataDictionary.h"
+#include "../../../common/lang/dstrings.h"
 
 #include "mainwindow.h"
-#include "patientlist.h"
-#include "generalinfowindow.h"
-#include "measuredvalueswindow.h"
-#include "exportstatswindow.h"
-#include "../lang/dstrings.h"
-#include "../misc/help.h"
 
-#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QList>
 #include <QtWidgets/QApplication>
@@ -19,30 +12,18 @@
 #include <QtWidgets/QMdiSubWindow>
 
 #ifndef MOC_DIR
-  #include "moc_mainwindow.cc"
+  #include "moc_mainwindow.cpp"
 #endif
 
-MainWindow::MainWindow(QSqlDatabase *db, QWidget *parent) : mDb(db),
-    QMainWindow(parent) {
-	SetupUI();
-
-    
-    mSubjectDbId = InvalidDbId;
-
-    this->showMaximized();
-
-    CPatientList::Instance(this, mDb);
+CMain_Window::CMain_Window(QWidget *parent) : QMainWindow(parent) {
+	Setup_UI();
+      
+	this->showMaximized();
 }
 
-MainWindow::~MainWindow() {    
-}
-
-void MainWindow::SetupUI() {		
+void CMain_Window::Setup_UI() {
 	QAction *actionClose;
 	QAction *actionQuit;
-	QAction *action_Patients;
-	QAction *action_General;
-	QAction *action_Measured_Values;
 	QWidget *centralWidget;
 	QVBoxLayout *verticalLayout;
 	QMenuBar *menuBar;
@@ -50,16 +31,8 @@ void MainWindow::SetupUI() {
 	QMenu *menu_Tools;
 	QToolBar *mainToolBar;
 	QStatusBar *statusBar;
-
-
-	resize(640, 480);
-	actionClose = new QAction(tr(dsClose), this);
+		
 	actionQuit = new QAction(tr(dsQuit), this);
-	action_Patients = new QAction(tr(dsPatients), this);
-	action_General = new QAction(tr(dsGeneralInfo), this);
-	action_Measured_Values = new QAction(tr(dsMeasuredValues), this);
-
-	QAction *actExportStatistics = new QAction(tr(dsExportStatistics), this);
 
 	centralWidget = new QWidget(this);
 	verticalLayout = new QVBoxLayout(centralWidget);
@@ -77,7 +50,6 @@ void MainWindow::SetupUI() {
 	menuBar = new QMenuBar(this);
 	menuBar->setGeometry(QRect(0, 0, 640, 21));
 	menu_File = new QMenu(tr(dsFile), menuBar);
-	menu_Tools = new QMenu(tr(dsTools), menuBar);	
 	setMenuBar(menuBar);
 	mainToolBar = new QToolBar();
 	addToolBar(Qt::TopToolBarArea, mainToolBar);
@@ -86,18 +58,11 @@ void MainWindow::SetupUI() {
 
 	menuBar->addAction(menu_File->menuAction());
 	menuBar->addAction(menu_Tools->menuAction());
-	menu_File->addAction(actionClose);
-	menu_File->addSeparator();
 	menu_File->addAction(actionQuit);
 
-	menu_Tools->addAction(action_General);
-	menu_Tools->addAction(action_Measured_Values);
-	menu_Tools->addAction(actExportStatistics);
-	menu_Tools->addSeparator();
-	menu_Tools->addAction(action_Patients);
 
 	mCloseMDIChildAction = new QAction(tr(dsClose), this);
-	mCloseAllAction = new QAction(tr(dsCloseAll), this);
+	mCloseAllAction = new QAction(tr(dsClose_All), this);
 	mTileActionVertically = new QAction(tr(dsTileVertically), this);
 	mTileActionHorizontally = new QAction(tr(dsTileHorizontally), this);
 	mCascadeAction = new QAction(tr(dsCascade), this);
@@ -112,23 +77,15 @@ void MainWindow::SetupUI() {
 	OnUpdateWindowMenu();
 		
 	QMenu *mnuHelp = menuBar->addMenu(tr(dsHelp));
-	QAction *actViewHelp = new QAction(tr(dsViewHelp), this);
-	actViewHelp->setShortcut(QKeySequence::HelpContents);
-	mnuHelp->addAction(actViewHelp);
 	QAction *actHelpAbout = new QAction(tr(dsAboutWAmp), this);
 	mnuHelp->addAction(actHelpAbout);
 
 	mWindowMapper = new QSignalMapper(this);
 
-	setWindowTitle(tr(dsGlucosePrediction).arg(mDb->databaseName()));
+	setWindowTitle(tr(dsGlucosePrediction));
 
 	//and connect the actions
 	connect(actionQuit, SIGNAL(triggered()), this, SLOT(on_actionQuit_triggered()));
-	connect(actionClose, SIGNAL(triggered()), this, SLOT(OnFileClose()));
-	connect(action_Patients, SIGNAL(triggered()), this, SLOT(on_action_Patients_triggered()));
-	connect(action_General, SIGNAL(triggered()), this, SLOT(on_action_General_triggered()));
-	connect(action_Measured_Values, SIGNAL(triggered()), this, SLOT(on_action_Measured_Values_triggered()));
-	connect(actExportStatistics, SIGNAL(triggered()), this, SLOT(OnExportStatistics()));
 	connect(mMdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(OnUpdateActions()));
 	connect(mCloseMDIChildAction, SIGNAL(triggered()), mMdiArea, SLOT(closeActiveSubWindow()));
 	connect(mCloseAllAction, SIGNAL(triggered()), this, SLOT(OnCloseAll()));
@@ -138,13 +95,12 @@ void MainWindow::SetupUI() {
 	connect(mNextAction, SIGNAL(triggered()), mMdiArea, SLOT(activateNextSubWindow()));
 	connect(mPreviousAction, SIGNAL(triggered()),mMdiArea, SLOT(activatePreviousSubWindow()));
 	connect(mWindowMenu, SIGNAL(aboutToShow()), this, SLOT(OnUpdateWindowMenu()));
-	connect(actViewHelp, SIGNAL(triggered()), this, SLOT(OnViewHelp()));
 	connect(actHelpAbout, SIGNAL(triggered()), this, SLOT(OnHelpAbout()));
 
 	connect(mWindowMapper, SIGNAL(mapped(QWidget*)), this, SLOT(setActiveSubWindow(QWidget*)));
 }
 
-void MainWindow::closeEvent(QCloseEvent *event) {
+void CMain_Window::closeEvent(QCloseEvent *event) {
 	mMdiArea->closeAllSubWindows();
 
 	if (mMdiArea->currentSubWindow())  {
@@ -155,7 +111,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 	}
 }
 
-void MainWindow::OnUpdateActions() {
+void CMain_Window::OnUpdateActions() {
 	bool hasMdiChild = !mMdiArea->subWindowList().isEmpty();
 	
 
@@ -169,76 +125,17 @@ void MainWindow::OnUpdateActions() {
 
 }
 
-void MainWindow::CloseCurrentSubject() {
-    mMdiArea->closeAllSubWindows();
 
-    mSubjectDbId = InvalidDbId;
-}
-
-void MainWindow::OpenSubject(int dbid) {
-    if (mSubjectDbId != InvalidDbId) {
-        CloseCurrentSubject();
-        qApp->processEvents();
-    }
-
-    mSubjectDbId = dbid;
-   
-	ShowMDISubWindow<CMeasuredValues>();
-}
-
-void MainWindow::DeletingSubject(int dbid) {
-    if (dbid == mSubjectDbId) {
-        CloseCurrentSubject();
-    }
-}
-
-void MainWindow::OnFileClose() {
-	CloseCurrentSubject();
-}
-
-void MainWindow::on_actionQuit_triggered()
-{
+void CMain_Window::On_Quit() {
     qApp->quit();
 }
 
-void MainWindow::on_action_Patients_triggered() {
-    CPatientList::Instance(this, mDb);
-}
 
-void MainWindow::on_action_General_triggered() {
-    //let's show a general information about the current subject
-    //http://symfony-world.blogspot.cz/2013/02/qt-menu-mdi-child-window-example.html
-    ShowMDISubWindow<CGeneralInfo>();
-}
-
-
-void MainWindow::on_action_Measured_Values_triggered() {
-    ShowMDISubWindow<CMeasuredValues>();
-}
-
-
-template <typename WIDGET>
-void MainWindow::ShowMDISubWindow() {
-    if (mSubjectDbId == InvalidDbId) {
-        QMessageBox::information(this, tr(dsError), tr(dsOpenSubjectFirst));
-        return;
-    }
-
-
-    bool created;
-	WIDGET* wnd = WIDGET::Instance(mMdiArea, &created, mDb, mSubjectDbId);		
-
-    if (created) {
-        wnd->show();
-    }
-}
-
-
-void MainWindow::OnCloseAll() {
+void CMain_Window::OnCloseAll() {
 	CloseCurrentSubject();
 }
 
-void MainWindow::OnTileHorizontally() {
+void CMain_Window::OnTileHorizontally() {
 	if (mMdiArea->subWindowList().isEmpty())
 		return;
 
@@ -252,7 +149,7 @@ void MainWindow::OnTileHorizontally() {
 	}
 
 }
-void MainWindow::OnTileVertically() {
+void CMain_Window::OnTileVertically() {
 	if (mMdiArea->subWindowList().isEmpty())
 		return;
 
@@ -267,7 +164,7 @@ void MainWindow::OnTileVertically() {
 
 }
 
-void MainWindow::OnUpdateWindowMenu() {
+void CMain_Window::OnUpdateWindowMenu() {
 	mWindowMenu->clear();
 	mWindowMenu->addAction(mCloseMDIChildAction);
 	mWindowMenu->addAction(mCloseAllAction);
@@ -303,21 +200,12 @@ void MainWindow::OnUpdateWindowMenu() {
 	}
 }
 
-void MainWindow::setActiveSubWindow(QWidget *window) {
+void CMain_Window::setActiveSubWindow(QWidget *window) {
 	if (!window)
 		return;
 	mMdiArea->setActiveSubWindow(qobject_cast<QMdiSubWindow *>(window));
 }
 
-void MainWindow::OnHelpAbout() {
+void CMain_Window::OnHelpAbout() {
 	QMessageBox::about(this, tr(dsAbout), QString::fromUtf8(rsAboutText));
-}
-
-void MainWindow::OnViewHelp() {
-	Help.ShowHelp();
-}
-
-void MainWindow::OnExportStatistics() {
-	CExportStatsWindow *wnd = new CExportStatsWindow(mDb, 0);
-	wnd->show();
 }

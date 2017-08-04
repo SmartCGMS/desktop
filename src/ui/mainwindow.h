@@ -18,26 +18,19 @@ private:
 			*mPreviousAction, *mWindowMenuseparatorAction;
 	QSignalMapper *mWindowMapper;
 	
-	void SetupUI();
+	void Setup_UI();
 	
-	void closeEvent(QCloseEvent *event);
+	void Close_Event(QCloseEvent *event);
 private slots:
-	void On_actQuit();
+	void On_Quit();
+	void On_Update_Actions();
+	void On_Close_All();
+	void On_Tile_Vertically();
+	void On_Tile_Horizontally();	
+	void On_Update_Window_Menu();	
+	void On_Help_About();
 
-	void OnExportStatistics();
-
-	void OnFileClose();	
-	void OnUpdateActions();
-	void OnCloseAll();
-	void OnTileVertically();
-	void OnTileHorizontally();	
-	void OnUpdateWindowMenu();
-
-	void OnViewHelp();
-	void OnHelpAbout();
-
-	void setActiveSubWindow(QWidget *window);
+	void Set_Active_Sub_Window(QWidget *window);
 public:
-    CMain_Window (QWidget *parent = nullptr);
-    ~CMain_Window ();
+    CMain_Window (QWidget *parent = nullptr);  
 };
