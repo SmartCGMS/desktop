@@ -18,9 +18,6 @@ private:
 			*actPrevious_Window, *actWindow_Menu_Separator;
 	QSignalMapper *mWindowMapper;
 	
-	template <typename CWindow, typename... Args>
-	void Show_Window(Args... args);
-
 	void Setup_UI();	
 	void Close_Event(QCloseEvent *event);
 protected:
@@ -33,6 +30,7 @@ private slots:
 	void On_Tile_Horizontally();	
 	void On_Update_Window_Menu();	
 	void On_Help_About();
+	void On_Filters_Window();
 
 	void Set_Active_Sub_Window(QWidget *window);
 public:

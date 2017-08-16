@@ -1,6 +1,7 @@
 #include "../../../common/lang/dstrings.h"
 
-#include "mainwindow.h"
+#include "main_window.h"
+#include "filters_window.h"
 
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QList>
@@ -12,7 +13,7 @@
 #include <QtWidgets/QMdiSubWindow>
 
 #ifndef MOC_DIR
-  #include "moc_mainwindow.cpp"
+  #include "moc_main_window.cpp"
 #endif
 
 CMain_Window::CMain_Window(QWidget *parent) : QMainWindow(parent) {
@@ -21,8 +22,10 @@ CMain_Window::CMain_Window(QWidget *parent) : QMainWindow(parent) {
 	this->showMaximized();
 }
 
-void CMain_Window::Setup_UI() {	
-	QAction *actionQuit;
+void CMain_Window::Setup_UI() {
+	QAction *actionQuit = new QAction{tr(dsQuit), this };
+	QAction* act_filters = new QAction{ tr(dsFilters), this };
+
 	QWidget *centralWidget;
 	QVBoxLayout *verticalLayout;
 	QMenuBar *menuBar;
@@ -30,8 +33,9 @@ void CMain_Window::Setup_UI() {
 	QMenu *menu_Tools;
 	QToolBar *mainToolBar;
 	QStatusBar *statusBar;
+
+	
 		
-	actionQuit = new QAction(tr(dsQuit), this);
 
 	centralWidget = new QWidget(this);
 	verticalLayout = new QVBoxLayout(centralWidget);
@@ -50,6 +54,8 @@ void CMain_Window::Setup_UI() {
 	menuBar->setGeometry(QRect(0, 0, 640, 21));
 	menu_File = new QMenu(tr(dsFile), menuBar);
 	menu_Tools = new QMenu(tr(dsTools), menuBar);
+
+	menu_Tools->addAction(act_filters);
 
 	setMenuBar(menuBar);
 	mainToolBar = new QToolBar();
@@ -96,8 +102,10 @@ void CMain_Window::Setup_UI() {
 	connect(actPrevious_Window, SIGNAL(triggered()),pnlMDI_Content, SLOT(activatePreviousSubWindow()));
 	connect(mniWindow, SIGNAL(aboutToShow()), this, SLOT(On_Update_Window_Menu()));
 	connect(actHelpAbout, SIGNAL(triggered()), this, SLOT(On_Help_About()));
+	connect(act_filters, SIGNAL(triggered()), this, SLOT(On_Filters_Window()));
 
-	connect(mWindowMapper, SIGNAL(mapped(QWidget*)), this, SLOT(setActiveSubWindow(QWidget*)));
+
+	connect(mWindowMapper, SIGNAL(mapped(QWidget*)), this, SLOT(Set_Active_Sub_Window(QWidget*)));
 }
 
 void CMain_Window::Close_Event(QCloseEvent *event) {
@@ -128,17 +136,6 @@ void CMain_Window::On_Update_Actions() {
 
 void CMain_Window::On_Quit() {
     qApp->quit();
-}
-
-template <typename CWindow, typename... Args>
-void CMain_Window::Show_Window(Args... args) {
-	
-	bool created;
-	CWindow* wnd = CWindow::Instance(pnlMDI_Content, &created, args);
-
-	if (created) {
-		wnd->show();
-	}
 }
 
 
@@ -211,4 +208,8 @@ void CMain_Window::Set_Active_Sub_Window(QWidget *window) {
 
 void CMain_Window::On_Help_About() {
 	QMessageBox::about(this, tr(dsAbout), QString::fromUtf8(rsAbout_Text));
+}
+
+void CMain_Window::On_Filters_Window() {
+	CFilters_Window::Show_Instance(pnlMDI_Content);
 }
