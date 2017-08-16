@@ -10,17 +10,21 @@
 class CMain_Window : public QMainWindow {
     Q_OBJECT
 private:    
-	QMdiArea *mMdiArea;
-	QMenu* mWindowMenu;
-	QAction *mCloseMDIChildAction, *mCloseAllAction,
-	        *mTileActionVertically, *mTileActionHorizontally,
-	        *mCascadeAction, *mNextAction, 
-			*mPreviousAction, *mWindowMenuseparatorAction;
+	QMdiArea *pnlMDI_Content;
+	QMenu* mniWindow;
+	QAction *actClose_Window, *actClose_All_Windows,
+	        *actTile_Vertically, *actTile_Horizontally,
+	        *actCascade, *actNext_Window, 
+			*actPrevious_Window, *actWindow_Menu_Separator;
 	QSignalMapper *mWindowMapper;
 	
-	void Setup_UI();
-	
+	template <typename CWindow, typename... Args>
+	void Show_Window(Args... args);
+
+	void Setup_UI();	
 	void Close_Event(QCloseEvent *event);
+protected:
+	void Tile_Window(std::function<QRect()> rect_fnc);
 private slots:
 	void On_Quit();
 	void On_Update_Actions();
