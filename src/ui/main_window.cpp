@@ -1,6 +1,6 @@
-#include "../../../common/lang/dstrings.h"
-
 #include "main_window.h"
+
+#include "../../../common/lang/dstrings.h"
 #include "filters_window.h"
 
 #include <QtWidgets/QMessageBox>
