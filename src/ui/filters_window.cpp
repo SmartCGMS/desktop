@@ -1,6 +1,9 @@
 #include "filters_window.h"
 
 #include "../../../common/lang/dstrings.h"
+#include "../../../common/rtl/FilterLib.h"
+
+#include "helpers/FilterListItem.h"
 
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QSplitter>
@@ -47,13 +50,13 @@ void CFilters_Window::Setup_UI() {
 
 	QPushButton *btnUp_Filter = new QPushButton{tr(dsMove_Up)};
 	QPushButton *btnDown_Filter = new QPushButton{tr(dsMove_Down)};
-	QPushButton *btnDel_Filter = new QPushButton{tr(dsDelete)};
+	QPushButton *btnRemove_Filter = new QPushButton{tr(dsRemove)};
 
 	QHBoxLayout *lotApplied_Buttons = new QHBoxLayout{ this };
 	QWidget *wgtApplied_Buttons = new QWidget{this};
 	lotApplied_Buttons->addWidget(btnUp_Filter);
 	lotApplied_Buttons->addWidget(btnDown_Filter);
-	lotApplied_Buttons->addWidget(btnDel_Filter);
+	lotApplied_Buttons->addWidget(btnRemove_Filter);
 	wgtApplied_Buttons->setLayout(lotApplied_Buttons);
 	lotApplied_Filters->addWidget(wgtApplied_Buttons);
 	
@@ -63,6 +66,17 @@ void CFilters_Window::Setup_UI() {
 
 	QVBoxLayout *lotAvailable_Filters = new QVBoxLayout{ this };
 	QListWidget *lbxAvailable_Filters = new QListWidget{ this };	
+
+	//add the widgets
+	{
+		const auto &filters = glucose::get_filter_factories();
+		for (const auto &filter : filters) {
+			CFilter_List_Item *tmp = new CFilter_List_Item(filter);
+			lbxAvailable_Filters->addItem(tmp);
+		}
+	}
+
+
 	QPushButton *btnAdd_Filter = new QPushButton{tr(dsAdd)};
 
 	lotAvailable_Filters->addWidget(new QLabel{ tr(dsAvailable_Filters), this });
