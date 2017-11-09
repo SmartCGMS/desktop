@@ -73,9 +73,9 @@ void CFilters_Window::Setup_UI() {
 		for (const auto &filter : filters) {
 			CFilter_List_Item *tmp = new CFilter_List_Item(filter);
 			lbxAvailable_Filters->addItem(tmp);
-		}
+		}		
 	}
-
+	
 
 	QPushButton *btnAdd_Filter = new QPushButton{tr(dsAdd)};
 
