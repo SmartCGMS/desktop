@@ -69,7 +69,7 @@ void CFilters_Window::Setup_UI() {
 
 	//add the widgets
 	{
-		const auto &filters = glucose::get_filter_factories();
+		const auto &filters = glucose::get_filter_descriptors();
 		for (const auto &filter : filters) {
 			CFilter_List_Item *tmp = new CFilter_List_Item(filter);
 			lbxAvailable_Filters->addItem(tmp);

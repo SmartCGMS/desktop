@@ -2,10 +2,10 @@
 
 #include <QtCore/QObject>
 
-CFilter_List_Item::CFilter_List_Item(const glucose::SFilter_Factory &factory) :
-	mFactory(factory), QListWidgetItem() {
+CFilter_List_Item::CFilter_List_Item(const glucose::TFilter_Descriptor &descriptor) :
+	mDescriptor(descriptor), QListWidgetItem() {
 
-	setText(QString::fromWCharArray(mFactory.description()));
+	setText(QString::fromWCharArray(mDescriptor.description));
 }
 
 CFilter_List_Item::~CFilter_List_Item() {

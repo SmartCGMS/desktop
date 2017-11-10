@@ -7,9 +7,9 @@
 
 class CFilter_List_Item : public QListWidgetItem {	
 protected:
-	const glucose::SFilter_Factory &mFactory;
+	const glucose::TFilter_Descriptor &mDescriptor;
 	
 public:
-	explicit CFilter_List_Item(const glucose::SFilter_Factory &factory);
+	explicit CFilter_List_Item(const glucose::TFilter_Descriptor &descriptor);
 	virtual ~CFilter_List_Item();
 };
