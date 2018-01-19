@@ -5,7 +5,6 @@
 
 #include "helpers/FilterListItem.h"
 
-#include <QtWidgets/QListWidget>
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QVBoxLayout> 
 #include <QtWidgets/QHBoxLayout> 
@@ -42,21 +41,23 @@ void CFilters_Window::Setup_UI() {
 	setWindowTitle(tr(dsFilters_Window));
 
 	QWidget* wgtApplied_Filters = new QWidget(this);
-	QVBoxLayout *lotApplied_Filters = new QVBoxLayout{ this };
+	QVBoxLayout *lotApplied_Filters = new QVBoxLayout{  };
 	lotApplied_Filters->addWidget(new QLabel{ tr(dsApplied_Filters), this });
 
-	QListWidget *lbxApplied_Filters = new QListWidget{ this };		
+	lbxApplied_Filters = new QListWidget{ this };		
 	lotApplied_Filters->addWidget(lbxApplied_Filters);
 
 	QPushButton *btnUp_Filter = new QPushButton{tr(dsMove_Up)};
 	QPushButton *btnDown_Filter = new QPushButton{tr(dsMove_Down)};
 	QPushButton *btnRemove_Filter = new QPushButton{tr(dsRemove)};
+	QPushButton *btnConfigure_Filter = new QPushButton{ tr(dsConfigure) };
 
-	QHBoxLayout *lotApplied_Buttons = new QHBoxLayout{ this };
+	QHBoxLayout *lotApplied_Buttons = new QHBoxLayout{  };
 	QWidget *wgtApplied_Buttons = new QWidget{this};
 	lotApplied_Buttons->addWidget(btnUp_Filter);
 	lotApplied_Buttons->addWidget(btnDown_Filter);
 	lotApplied_Buttons->addWidget(btnRemove_Filter);
+	lotApplied_Buttons->addWidget(btnConfigure_Filter);
 	wgtApplied_Buttons->setLayout(lotApplied_Buttons);
 	lotApplied_Filters->addWidget(wgtApplied_Buttons);
 	
@@ -64,8 +65,8 @@ void CFilters_Window::Setup_UI() {
 
 	QWidget* wgtAvailable_Filters = new QWidget(this);
 
-	QVBoxLayout *lotAvailable_Filters = new QVBoxLayout{ this };
-	QListWidget *lbxAvailable_Filters = new QListWidget{ this };	
+	QVBoxLayout *lotAvailable_Filters = new QVBoxLayout{  };
+	QListWidget *lbxAvailable_Filters = new QListWidget{  };	
 
 	//add the widgets
 	{
@@ -82,7 +83,7 @@ void CFilters_Window::Setup_UI() {
 	lotAvailable_Filters->addWidget(new QLabel{ tr(dsAvailable_Filters), this });
 	lotAvailable_Filters->addWidget(lbxAvailable_Filters);
 	
-	QHBoxLayout *lotAvailable_Buttons = new QHBoxLayout{ this };
+	QHBoxLayout *lotAvailable_Buttons = new QHBoxLayout{  };
 	QWidget *wgtAvailable_Buttons = new QWidget{ this };
 	lotAvailable_Buttons->addWidget(btnAdd_Filter);
 	wgtAvailable_Buttons->setLayout(lotAvailable_Buttons);
@@ -99,4 +100,18 @@ void CFilters_Window::Setup_UI() {
 	splitter->addWidget(wgtAvailable_Filters);
 	
 	setWidget(splitter);
+
+
+	connect(btnConfigure_Filter, SIGNAL(clicked()), this, SLOT(On_Configure_Filter()));
+}
+
+void CFilters_Window::On_Configure_Filter() {
+	const auto selection = lbxApplied_Filters->selectedItems();
+	bool success = selection.size() == 1;
+	if (success) {
+		auto *filter = static_cast<CFilter_List_Item*>(selection[0]);
+		
+		success
+
+	}
 }
