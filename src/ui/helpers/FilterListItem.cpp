@@ -15,10 +15,6 @@ CFilter_List_Item::~CFilter_List_Item() {
 
 
 bool CFilter_List_Item::Configure() {
-	if (mDescriptor.configurator == nullptr) return false;
-	return SuCCEEDED(mDescriptor.configurator(mConfiguration));
-}
-
-std::string CFilter_List_Item::Configuration() {
-	return mConfiguration;
+	return false;
+//	return SuCCEEDED(mDescriptor.configurator(mConfiguration));
 }

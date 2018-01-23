@@ -66,7 +66,7 @@ void CFilters_Window::Setup_UI() {
 	QWidget* wgtAvailable_Filters = new QWidget(this);
 
 	QVBoxLayout *lotAvailable_Filters = new QVBoxLayout{  };
-	QListWidget *lbxAvailable_Filters = new QListWidget{  };	
+	lbxAvailable_Filters = new QListWidget{  };	
 
 	//add the widgets
 	{
@@ -102,7 +102,18 @@ void CFilters_Window::Setup_UI() {
 	setWidget(splitter);
 
 
+	connect(btnAdd_Filter, SIGNAL(clicked()), this, SLOT(On_Add_Filter()));
 	connect(btnConfigure_Filter, SIGNAL(clicked()), this, SLOT(On_Configure_Filter()));
+}
+
+void CFilters_Window::On_Add_Filter() {
+	const auto selection = lbxAvailable_Filters->selectedItems();
+	for (const auto &selected : selection) {
+		CFilter_List_Item *tmp = new CFilter_List_Item(*reinterpret_cast<CFilter_List_Item*>(selected));
+		lbxApplied_Filters->addItem(tmp);
+	}
+
+	
 }
 
 void CFilters_Window::On_Configure_Filter() {
@@ -111,7 +122,7 @@ void CFilters_Window::On_Configure_Filter() {
 	if (success) {
 		auto *filter = static_cast<CFilter_List_Item*>(selection[0]);
 		
-		success
+	//	success
 
 	}
 }

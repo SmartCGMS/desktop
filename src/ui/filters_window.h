@@ -11,9 +11,10 @@ class CFilters_Window : public QMdiSubWindow {
 private:
 	static std::atomic<CFilters_Window*> mInstance;
 protected:
+	QListWidget *lbxApplied_Filters, *lbxAvailable_Filters;
 	void Setup_UI();
-protected slots:
-	QListWidget *lbxApplied_Filters;
+protected slots:	
+	void On_Add_Filter();
 	void On_Configure_Filter();
 public:
 	static CFilters_Window* Show_Instance(QWidget *owner);
