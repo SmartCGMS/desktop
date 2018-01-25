@@ -7,8 +7,12 @@
 #include <QtWidgets/QMenu>
 #include <QtCore/QSignalMapper>
 
+#include "../executive/filter_chain.h"
+
 class CMain_Window : public QMainWindow {
     Q_OBJECT
+protected:
+	CFilter_Chain mFilter_Configuration;
 private:    
 	QMdiArea *pnlMDI_Content;
 	QMenu* mniWindow;
@@ -23,6 +27,7 @@ private:
 protected:
 	void Tile_Window(std::function<QRect()> rect_fnc);
 private slots:
+	void On_Save_Configuration();
 	void On_Quit();
 	void On_Update_Actions();
 	void On_Close_All();

@@ -8,13 +8,10 @@ CFilter_List_Item::CFilter_List_Item(const glucose::TFilter_Descriptor &descript
 	setText(QString::fromWCharArray(mDescriptor.description));
 }
 
-CFilter_List_Item::~CFilter_List_Item() {
-
-
+std::vector<glucose::TFilter_Parameter>& CFilter_List_Item::configuration() {
+	return mConfiguration;
 }
 
-
-bool CFilter_List_Item::Configure() {
-	return false;
-//	return SuCCEEDED(mDescriptor.configurator(mConfiguration));
+const glucose::TFilter_Descriptor& CFilter_List_Item::description() const {
+	return mDescriptor;
 }

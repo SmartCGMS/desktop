@@ -3,6 +3,9 @@
 #include <QtWidgets/QApplication>
 
 
+
+
+
 int __cdecl main(int argc, char *argv[]) {
 
 	QApplication application(argc, argv);

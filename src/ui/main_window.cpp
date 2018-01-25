@@ -1,5 +1,6 @@
 #include "main_window.h"
 
+#include "../misc/config.h"
 #include "../../../common/lang/dstrings.h"
 #include "filters_window.h"
 
@@ -17,12 +18,16 @@
 #endif
 
 CMain_Window::CMain_Window(QWidget *parent) : QMainWindow(parent) {
+	Configuration.Load(mFilter_Configuration);
+
+
 	Setup_UI();
       
 	this->showMaximized();
 }
 
 void CMain_Window::Setup_UI() {
+	QAction *act_Save_Configuration = new QAction { tr(dsSave_Configuration), this };
 	QAction *actionQuit = new QAction{tr(dsQuit), this };
 	QAction* act_filters = new QAction{ tr(dsFilters), this };
 
@@ -65,6 +70,10 @@ void CMain_Window::Setup_UI() {
 
 	menuBar->addAction(menu_File->menuAction());
 	menuBar->addAction(menu_Tools->menuAction());
+
+
+	menu_File->addAction(act_Save_Configuration);
+	menu_File->addSeparator();
 	menu_File->addAction(actionQuit);
 
 
@@ -92,6 +101,7 @@ void CMain_Window::Setup_UI() {
 	setWindowTitle(tr(dsGlucose_Prediction));
 
 	//and connect the actions
+	connect(act_Save_Configuration, SIGNAL(triggered()), this, SLOT(On_Save_Configuration()));
 	connect(actionQuit, SIGNAL(triggered()), this, SLOT(On_Quit()));
 	connect(pnlMDI_Content, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(On_Update_Actions()));
 	connect(actClose_All_Windows, SIGNAL(triggered()), this, SLOT(On_Close_All()));
@@ -135,7 +145,7 @@ void CMain_Window::On_Update_Actions() {
 
 
 void CMain_Window::On_Quit() {
-    qApp->quit();
+    QApplication::instance()->quit();
 }
 
 
@@ -148,8 +158,8 @@ void CMain_Window::Tile_Window(std::function<QRect()> rect_fnc) {
 		return;
 
 	QPoint position(0, 0);
-
-	foreach(QMdiSubWindow *window, pnlMDI_Content->subWindowList()) {		
+	
+	for (auto window : pnlMDI_Content->subWindowList()) {
 		window->setGeometry(rect_fnc());
 		window->move(position);
 		position.setY(position.y() + window->height());
@@ -211,5 +221,9 @@ void CMain_Window::On_Help_About() {
 }
 
 void CMain_Window::On_Filters_Window() {
-	CFilters_Window::Show_Instance(pnlMDI_Content);
+	CFilters_Window::Show_Instance(mFilter_Configuration, pnlMDI_Content);
+}
+
+void CMain_Window::On_Save_Configuration() {
+	Configuration.Save(mFilter_Configuration);
 }
