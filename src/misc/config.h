@@ -9,7 +9,7 @@ protected:
 	std::wstring mFile_Path;
 	CSimpleIniW mIni;
 public:
-	CConfig();
+	void Resolve_And_Load_Config_File();
 
 	void Load(CFilter_Chain &filter_chain);
 	void Save(const CFilter_Chain &filter_chain);

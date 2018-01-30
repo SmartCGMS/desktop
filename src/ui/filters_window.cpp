@@ -148,7 +148,7 @@ void CFilters_Window::On_Configure_Filter() {
 
 void CFilters_Window::On_Commit_Filters() {
 	CFilter_Chain new_chain;
-	for (int i = 0; lbxApplied_Filters->count(); i++) {
+	for (int i = 0; i<lbxApplied_Filters->count(); i++) {
 		auto item = reinterpret_cast<CFilter_List_Item*>(lbxApplied_Filters->item(i));
 
 		new_chain.push_back(TFilter_Chain_Link { item->description(), item->configuration() });

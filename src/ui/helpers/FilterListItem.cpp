@@ -8,7 +8,7 @@ CFilter_List_Item::CFilter_List_Item(const glucose::TFilter_Descriptor &descript
 	setText(QString::fromWCharArray(mDescriptor.description));
 }
 
-std::vector<glucose::TFilter_Parameter>& CFilter_List_Item::configuration() {
+CFilter_Configuration& CFilter_List_Item::configuration() {
 	return mConfiguration;
 }
 

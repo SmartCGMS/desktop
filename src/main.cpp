@@ -1,14 +1,15 @@
 #include "ui/main_window.h"
 
+#include "misc/config.h"
+
 #include <QtWidgets/QApplication>
-
-
 
 
 
 int __cdecl main(int argc, char *argv[]) {
 
 	QApplication application(argc, argv);
+	Configuration.Resolve_And_Load_Config_File();	//config uses QApp to determine the file path (to be platorm indepenedent) and it has to be initialized first
 
 	//create the GUI
 	CMain_Window main_window{};
