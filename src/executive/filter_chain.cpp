@@ -2,7 +2,7 @@
 
 
 CFilter_Configuration::~CFilter_Configuration() {
-	Traverse_Configuration([](refcnt::IReferenced *obj) { obj->Release(); });
+	Traverse_Configuration([](refcnt::IReferenced *obj) { obj->Release(); });	
 }
 
 void CFilter_Configuration::Traverse_Configuration(std::function<void(refcnt::IReferenced *obj)> func) {

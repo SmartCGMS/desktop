@@ -9,6 +9,7 @@ class CFilter_Configuration : public std::vector<glucose::TFilter_Parameter> {
 protected:
 	void Traverse_Configuration(std::function<void(refcnt::IReferenced *obj)> func);
 public:
+	CFilter_Configuration(const CFilter_Configuration& other) {};
 	~CFilter_Configuration();
 
 	CFilter_Configuration& operator=(const CFilter_Configuration& other);

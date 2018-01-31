@@ -151,7 +151,10 @@ void CFilters_Window::On_Commit_Filters() {
 	for (int i = 0; i<lbxApplied_Filters->count(); i++) {
 		auto item = reinterpret_cast<CFilter_List_Item*>(lbxApplied_Filters->item(i));
 
-		new_chain.push_back(TFilter_Chain_Link { item->description(), item->configuration() });
+		const CFilter_Configuration config{ item->configuration() };
+		const TFilter_Chain_Link link{ item->description(), config };		
+
+		new_chain.push_back(link);
 	}
 
 	//and replace the current one

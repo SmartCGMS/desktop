@@ -22,6 +22,10 @@ class CWChar_Container_Edit : public QLineEdit, public virtual filter_config_win
 		container->AddRef();
 		return result;
 	}
+
+	void set_parameter(const glucose::TFilter_Parameter &param) {
+		setText(QString::fromStdWString(WChar_Container_To_WString(param.wstr)));
+	}
 };
 
 
@@ -33,6 +37,12 @@ CFilter_Config_Window::CFilter_Config_Window(const glucose::TFilter_Descriptor &
 
 
 	Setup_UI();
+
+	//Load configuration, i.e., parameters
+	for (auto &parameter : configuration) {
+		auto edit = mContainer_Edits.find(WChar_Container_To_WString(parameter.config_name));
+		if (edit != mContainer_Edits.end()) edit->second->set_parameter(parameter);
+	}
 }
 
 void CFilter_Config_Window::Setup_UI() {
@@ -61,7 +71,7 @@ void CFilter_Config_Window::Setup_UI() {
 				}
 
 				if (container != nullptr) {
-					mContainer_Edits[parameter_idx] = container;
+					mContainer_Edits[mDescription.ui_parameter_name[i]] = container;
 					main_layout->addWidget(dynamic_cast<QWidget*>(container), i, idxEdit_col);
 				}
 			};
@@ -103,8 +113,21 @@ void CFilter_Config_Window::Setup_UI() {
 	setAttribute(Qt::WA_DeleteOnClose, true);
 }
 
-void CFilter_Config_Window::On_OK() {
+void CFilter_Config_Window::Apply_Parameters() {
+	std::vector<glucose::TFilter_Parameter> new_parameters;
+	for (auto &edit : mContainer_Edits) {
+		glucose::TFilter_Parameter param = edit.second->get_parameter();
+		param.config_name = WString_To_WChar_Container(edit.first.c_str());
 
+		new_parameters.push_back(param);
+	}
+
+	mConfiguration = std::move(new_parameters);
+}
+
+void CFilter_Config_Window::On_OK() {
+	Apply_Parameters();
+	close();
 }
 
 void CFilter_Config_Window::On_Cancel() {
@@ -112,5 +135,5 @@ void CFilter_Config_Window::On_Cancel() {
 }
 
 void CFilter_Config_Window::On_Apply() {
-
+	Apply_Parameters();
 }
