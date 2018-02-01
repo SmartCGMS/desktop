@@ -2,18 +2,13 @@
 
 #include "../../../common/rtl/FilterLib.h"
 
+#include "helpers/general_container_edit.h"
+
 #include <map>
 
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QLineEdit>
 
-namespace filter_config_window {
-	class CContainer_Edit {
-	public:
-		virtual glucose::TFilter_Parameter get_parameter() = 0;
-		virtual void set_parameter(const glucose::TFilter_Parameter &param) = 0;
-	};
-}
 
 class CFilter_Config_Window : public QWidget{
 	Q_OBJECT

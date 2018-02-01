@@ -20,7 +20,7 @@ void CFilter_Configuration::Traverse_Configuration(std::function<void(refcnt::IR
 		switch (param.type) {
 			case glucose::NParameter_Type::ptWChar_Container: func(param.wstr);
 				break;
-			case glucose::NParameter_Type::ptInt64_Container: func(param.vec_int64);
+			case glucose::NParameter_Type::ptSelect_Time_Segment_ID: func(param.select_time_segment_id);
 				break;
 		}
 	}

@@ -3,6 +3,8 @@
 #include "../../../common/lang/dstrings.h"
 #include "../../../common/rtl/manufactory.h"
 
+#include "helpers/Select_Time_Segment_Id_Panel.h"
+
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QPushButton>
@@ -19,7 +21,7 @@ class CWChar_Container_Edit : public QLineEdit, public virtual filter_config_win
 		const std::wstring str = text().toStdWString();
 		auto container = glucose::Create_Parameter_Container<wchar_t>(str.data(), str.data() + str.size());
 		result.wstr = container.get();
-		container->AddRef();
+		result.wstr->AddRef();
 		return result;
 	}
 
@@ -59,6 +61,7 @@ void CFilter_Config_Window::Setup_UI() {
 		const int idxEdit_col = 1;
 
 		QGridLayout *main_layout = new QGridLayout();
+		int ui_row = 0;
 		for (int i = 0; i < static_cast<int>(mDescription.parameters_count); i++) {
 			QLabel *label = new QLabel{ QString::fromWCharArray(mDescription.ui_parameter_name[i]) };
 			main_layout->addWidget(label, i, idxName_col);
@@ -68,11 +71,25 @@ void CFilter_Config_Window::Setup_UI() {
 
 				switch (mDescription.parameter_type[i]) {
 					case glucose::NParameter_Type::ptWChar_Container: container = new CWChar_Container_Edit{};
+																		break;
+					
+					case glucose::NParameter_Type::ptSelect_Time_Segment_ID: container = new CSelect_Time_Segment_Id_Panel{};
+																			 break;
 				}
 
 				if (container != nullptr) {
 					mContainer_Edits[mDescription.ui_parameter_name[i]] = container;
-					main_layout->addWidget(dynamic_cast<QWidget*>(container), i, idxEdit_col);
+					switch (mDescription.parameter_type[i]) {
+						case glucose::NParameter_Type::ptSelect_Time_Segment_ID:
+								//special widget, let's add it as a standalone tab
+							main_tab->addAction widget container via layout
+							break;
+
+						default: main_layout->addWidget(dynamic_cast<QWidget*>(container), ui_row, idxEdit_col);
+							ui_row++;
+							break;
+					}
+					
 				}
 			};
 			
