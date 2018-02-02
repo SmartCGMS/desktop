@@ -5,7 +5,7 @@
 
 #include "moc_Select_Time_Segment_Id_Panel.cpp"
 
-CSelect_Time_Segment_Id_Panel::CSelect_Time_Segment_Id_Panel(const std::map<std::wstring, filter_config_window::CContainer_Edit*>& container_edits, QWidget * parent) : QTableView(parent), mContainer_Edits(container_edits) {	
+CSelect_Time_Segment_Id_Panel::CSelect_Time_Segment_Id_Panel(const std::vector<glucose::TFilter_Parameter>& configuration, QWidget * parent) : QTableView(parent), mConfiguration(configuration) {
 }
 
 
@@ -39,6 +39,8 @@ glucose::TFilter_Parameter CSelect_Time_Segment_Id_Panel::get_parameter() {
 }
 
 void CSelect_Time_Segment_Id_Panel::set_parameter(const glucose::TFilter_Parameter &param) {
+	if (!mDb) apply(); //try to connect first
+
 	int64_t *begin, *end;
 	if (param.select_time_segment_id->get(&begin, &end) == S_OK) {
 		auto is_in_selection = [begin, end](const int id)->bool {
@@ -47,12 +49,11 @@ void CSelect_Time_Segment_Id_Panel::set_parameter(const glucose::TFilter_Paramet
 			return false;
 		};
 
-
-		for (int data_row = 0;  data_row<mSegmentsModel->rowCount(); data_row++) {
-			if (is_in_selection(mSegmentsModel->data(mSegmentsModel->index(data_row, 0)).toInt()))
-				//		selectionModel()->select(mSegmentsModel->index(data_row, 0), QItemSelectionModel::Select);
-				selectRow(data_row);
-		}
+		if (mSegmentsModel)
+			for (int data_row = 0;  data_row<mSegmentsModel->rowCount(); data_row++) {
+				if (is_in_selection(mSegmentsModel->data(mSegmentsModel->index(data_row, 0)).toInt()))
+					selectRow(data_row);
+			}
 		
 		
 	}
@@ -62,22 +63,29 @@ void CSelect_Time_Segment_Id_Panel::apply() {
 	auto current_selection = get_parameter();
 
 	auto get_attr = [this](const wchar_t* attr_name)->std::wstring {
-		const auto iter = mContainer_Edits.find(attr_name);
-		if (iter != mContainer_Edits.end()) {
-			auto val = iter->second->get_parameter();
-			return WChar_Container_To_WString(val.wstr);
+
+		for (const auto &param : mConfiguration) {
+			if (WChar_Container_Equals_WString(param.config_name, attr_name)) {				
+				return WChar_Container_To_WString(param.wstr);
+			}
 		}
-		else return
-			std::wstring{};
+
+		return std::wstring{};	
 	};
 
 	if (mSegmentsModel) mSegmentsModel->clear();
 	mSegmentsModel.release();
-	if (mSegmentsQuery) mSegmentsQuery->clear();
+	if (mSegmentsQuery) mSegmentsQuery->finish();
 	mSegmentsQuery.release();	
-	if (mDb) mDb->close();
+	if (mDb) {
+		QString connection;
+		connection = mDb->connectionName();		
+		mDb->close();		
+		QSqlDatabase::removeDatabase(connection);
 
-	mDb = std::make_unique<QSqlDatabase>(QSqlDatabase::addDatabase(QString::fromStdWString(get_attr(rsDb_Provider))));
+	}
+
+	mDb = std::make_unique<QSqlDatabase>(QSqlDatabase::addDatabase(QString::fromStdWString(get_attr(rsDb_Provider)), mDb_Connection_Name));
 	mDb->setHostName(QString::fromStdWString(get_attr(rsDb_Host)));
 	mDb->setDatabaseName(QString::fromStdWString(get_attr(rsDb_Name)));
 	mDb->setUserName(QString::fromStdWString(get_attr(rsDb_User_Name)));
@@ -101,7 +109,6 @@ void CSelect_Time_Segment_Id_Panel::apply() {
 		mSegmentsModel->setHeaderData(1, Qt::Horizontal, tr(dsSubject));
 		mSegmentsModel->setHeaderData(2, Qt::Horizontal, tr(dsSegment));
 
-		set_parameter(current_selection);
-		update();
+		set_parameter(current_selection);		
 	}
 }

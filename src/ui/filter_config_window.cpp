@@ -76,11 +76,11 @@ void CFilter_Config_Window::Setup_UI() {
 					case glucose::NParameter_Type::ptWChar_Container: container = new CWChar_Container_Edit{};
 																		break;
 					
-					case glucose::NParameter_Type::ptSelect_Time_Segment_ID: container = new CSelect_Time_Segment_Id_Panel{ mContainer_Edits, nullptr };
+					case glucose::NParameter_Type::ptSelect_Time_Segment_ID: container = new CSelect_Time_Segment_Id_Panel{ mConfiguration, nullptr };
 																			 break;
 				}
 
-				mContainer_Edits[mDescription.ui_parameter_name[i]] = container;
+				mContainer_Edits[mDescription.config_parameter_name[i]] = container;
 				switch (mDescription.parameter_type[i]) {
 					case glucose::NParameter_Type::ptSelect_Time_Segment_ID:
 							//special widget, let's add it as a standalone tab
