@@ -63,7 +63,7 @@ void CSelect_Time_Segment_Id_Panel::qt_static_metacall(QObject *_o, QMetaObject:
 }
 
 const QMetaObject CSelect_Time_Segment_Id_Panel::staticMetaObject = {
-    { &QWidget::staticMetaObject, qt_meta_stringdata_CSelect_Time_Segment_Id_Panel.data,
+    { &QTableView::staticMetaObject, qt_meta_stringdata_CSelect_Time_Segment_Id_Panel.data,
       qt_meta_data_CSelect_Time_Segment_Id_Panel,  qt_static_metacall, nullptr, nullptr}
 };
 
@@ -80,12 +80,12 @@ void *CSelect_Time_Segment_Id_Panel::qt_metacast(const char *_clname)
         return static_cast<void*>(this);
     if (!strcmp(_clname, "filter_config_window::CContainer_Edit"))
         return static_cast< filter_config_window::CContainer_Edit*>(this);
-    return QWidget::qt_metacast(_clname);
+    return QTableView::qt_metacast(_clname);
 }
 
 int CSelect_Time_Segment_Id_Panel::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    _id = QWidget::qt_metacall(_c, _id, _a);
+    _id = QTableView::qt_metacall(_c, _id, _a);
     return _id;
 }
 QT_WARNING_POP

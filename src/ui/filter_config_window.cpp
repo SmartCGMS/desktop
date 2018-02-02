@@ -45,6 +45,11 @@ CFilter_Config_Window::CFilter_Config_Window(const glucose::TFilter_Descriptor &
 		auto edit = mContainer_Edits.find(WChar_Container_To_WString(parameter.config_name));
 		if (edit != mContainer_Edits.end()) edit->second->set_parameter(parameter);
 	}
+
+	//and apply the loaded parameters
+	for (auto &edit : mContainer_Edits)
+		edit.second->apply();
+
 }
 
 void CFilter_Config_Window::Setup_UI() {
@@ -60,44 +65,43 @@ void CFilter_Config_Window::Setup_UI() {
 		const int idxName_col = 0;
 		const int idxEdit_col = 1;
 
-		QGridLayout *main_layout = new QGridLayout();
+		QGridLayout *main_layout = new QGridLayout();		
 		int ui_row = 0;
 		for (int i = 0; i < static_cast<int>(mDescription.parameters_count); i++) {
-			QLabel *label = new QLabel{ QString::fromWCharArray(mDescription.ui_parameter_name[i]) };
-			main_layout->addWidget(label, i, idxName_col);
-
-			auto add_edit_control = [&](const size_t parameter_idx) {
+			
+			auto add_edit_control = [&]() {
 				filter_config_window::CContainer_Edit *container = nullptr;
 
 				switch (mDescription.parameter_type[i]) {
 					case glucose::NParameter_Type::ptWChar_Container: container = new CWChar_Container_Edit{};
 																		break;
 					
-					case glucose::NParameter_Type::ptSelect_Time_Segment_ID: container = new CSelect_Time_Segment_Id_Panel{};
+					case glucose::NParameter_Type::ptSelect_Time_Segment_ID: container = new CSelect_Time_Segment_Id_Panel{ mContainer_Edits, nullptr };
 																			 break;
 				}
 
-				if (container != nullptr) {
-					mContainer_Edits[mDescription.ui_parameter_name[i]] = container;
-					switch (mDescription.parameter_type[i]) {
-						case glucose::NParameter_Type::ptSelect_Time_Segment_ID:
-								//special widget, let's add it as a standalone tab
-							main_tab->addAction widget container via layout
-							break;
+				mContainer_Edits[mDescription.ui_parameter_name[i]] = container;
+				switch (mDescription.parameter_type[i]) {
+					case glucose::NParameter_Type::ptSelect_Time_Segment_ID:
+							//special widget, let's add it as a standalone tab
+						tabs->addTab(dynamic_cast<QWidget*>(container), QString::fromWCharArray(mDescription.ui_parameter_name[i]));
+						break;
 
-						default: main_layout->addWidget(dynamic_cast<QWidget*>(container), ui_row, idxEdit_col);
-							ui_row++;
-							break;
-					}
-					
+					default: 
+						QLabel * label = new QLabel{ QString::fromWCharArray(mDescription.ui_parameter_name[i]) };
+						main_layout->addWidget(label, ui_row, idxName_col);
+						main_layout->addWidget(dynamic_cast<QWidget*>(container), ui_row, idxEdit_col);
+						ui_row++;
+						break;
 				}
-			};
+					
+			};			
 			
-			add_edit_control(i);
-		}
-
+			add_edit_control();
+		}		
 		main_tab->setLayout(main_layout);
-		tabs->addTab(main_tab, tr(dsMain_Parameters));
+		tabs->insertTab(0, main_tab, tr(dsMain_Parameters));	//insert makes the main edits to be first
+		tabs->setCurrentIndex(0);
 	}
 
 	QHBoxLayout *button_layout = new QHBoxLayout{};
@@ -130,7 +134,7 @@ void CFilter_Config_Window::Setup_UI() {
 	setAttribute(Qt::WA_DeleteOnClose, true);
 }
 
-void CFilter_Config_Window::Apply_Parameters() {
+void CFilter_Config_Window::Commit_Parameters() {
 	std::vector<glucose::TFilter_Parameter> new_parameters;
 	for (auto &edit : mContainer_Edits) {
 		glucose::TFilter_Parameter param = edit.second->get_parameter();
@@ -143,7 +147,7 @@ void CFilter_Config_Window::Apply_Parameters() {
 }
 
 void CFilter_Config_Window::On_OK() {
-	Apply_Parameters();
+	Commit_Parameters();
 	close();
 }
 
@@ -152,5 +156,8 @@ void CFilter_Config_Window::On_Cancel() {
 }
 
 void CFilter_Config_Window::On_Apply() {
-	Apply_Parameters();
+	Commit_Parameters();
+	//and apply the commited parameters
+	for (auto &edit : mContainer_Edits)
+		edit.second->apply();
 }

@@ -6,7 +6,6 @@
 
 #include <map>
 
-#include <QtWidgets/QWidget>
 #include <QtWidgets/QLineEdit>
 
 
@@ -18,7 +17,7 @@ protected:
 	std::map<std::wstring, filter_config_window::CContainer_Edit*> mContainer_Edits;
 
 	void Setup_UI();
-	void Apply_Parameters();
+	void Commit_Parameters();	//from controls to configuration
 protected slots:
 	void On_OK();
 	void On_Cancel();

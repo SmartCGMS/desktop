@@ -67,16 +67,22 @@ void CConfig::Load(CFilter_Chain &filter_chain) {
 					if (str_value) {
 						//yes, there is somethign stored under this key
 						switch (filter_parameter.type) {
-						case glucose::NParameter_Type::ptWChar_Container:
-							filter_parameter.wstr = WString_To_WChar_Container(str_value);
-							filter_config.push_back(filter_parameter);
-							break;
+							case glucose::NParameter_Type::ptWChar_Container:
+								filter_parameter.wstr = WString_To_WChar_Container(str_value);
+								filter_config.push_back(filter_parameter);
+								break;
 
-						case glucose::NParameter_Type::ptDouble:
-							filter_parameter.dbl = mIni.GetDoubleValue(section_name.pItem, desc.config_parameter_name[i]);
-							filter_config.push_back(filter_parameter);
-							break;
-						}
+
+							case glucose::NParameter_Type::ptSelect_Time_Segment_ID:
+								filter_parameter.select_time_segment_id = WString_To_Select_Time_Segments_Id(str_value);
+								filter_config.push_back(filter_parameter);
+								break;
+
+							case glucose::NParameter_Type::ptDouble:
+								filter_parameter.dbl = mIni.GetDoubleValue(section_name.pItem, desc.config_parameter_name[i]);
+								filter_config.push_back(filter_parameter);
+								break;
+							}
 					}
 				}
 			}
@@ -92,6 +98,7 @@ void CConfig::Load(CFilter_Chain &filter_chain) {
 }
 
 void CConfig::Save(const CFilter_Chain &filter_chain) {
+	
 	for (auto &link : filter_chain) {
 		const std::wstring id_str = rs_Filter_Section_Prefix +GUID_To_WString(link.descriptor.id);
 		auto section = mIni.GetSection(id_str.c_str());
@@ -104,6 +111,10 @@ void CConfig::Save(const CFilter_Chain &filter_chain) {
 			switch (param.type) {
 				case glucose::NParameter_Type::ptWChar_Container: 
 					mIni.SetValue(id_str.c_str(), WChar_Container_To_WString(param.config_name).c_str(), WChar_Container_To_WString(param.wstr).c_str());
+					break;
+
+				case glucose::NParameter_Type::ptSelect_Time_Segment_ID:
+					mIni.SetValue(id_str.c_str(), WChar_Container_To_WString(param.config_name).c_str(), Select_Time_Segments_Id_To_WString(param.select_time_segment_id).c_str());
 					break;
 
 				case glucose::NParameter_Type::ptDouble: 
