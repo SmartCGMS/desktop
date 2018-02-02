@@ -73,14 +73,12 @@ void CSelect_Time_Segment_Id_Panel::apply() {
 		return std::wstring{};	
 	};
 
-	if (mSegmentsModel) mSegmentsModel->clear();
-	mSegmentsModel.release();
-	if (mSegmentsQuery) mSegmentsQuery->finish();
-	mSegmentsQuery.release();	
+	mSegmentsModel.reset(nullptr);
+	mSegmentsQuery.reset(nullptr);
 	if (mDb) {
 		QString connection;
 		connection = mDb->connectionName();		
-		mDb->close();		
+		mDb.reset(nullptr);
 		QSqlDatabase::removeDatabase(connection);
 
 	}
