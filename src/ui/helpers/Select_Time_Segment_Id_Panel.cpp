@@ -35,9 +35,7 @@ glucose::TFilter_Parameter CSelect_Time_Segment_Id_Panel::get_parameter() {
 
 	glucose::TFilter_Parameter result;
 	result.type = glucose::NParameter_Type::ptSelect_Time_Segment_ID;	
-	auto container = glucose::Create_Parameter_Container<int64_t>(segment_ids.data(), segment_ids.data() + segment_ids.size());
-	result.select_time_segment_id = container.get();
-	result.select_time_segment_id->AddRef();
+	result.select_time_segment_id = refcnt::Create_Container<int64_t>(segment_ids.data(), segment_ids.data() + segment_ids.size());
 	return result;
 }
 

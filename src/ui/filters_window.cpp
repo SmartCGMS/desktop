@@ -87,7 +87,7 @@ void CFilters_Window::Setup_UI() {
 		for (size_t i = 0; i < mFilter_Chain.size(); i++) {
 			CFilter_List_Item *tmp = new CFilter_List_Item(mFilter_Chain[i].descriptor);						
 			tmp->configuration() = mFilter_Chain[i].configuration;
-			lbxApplied_Filters->addItem(tmp);
+			lbxApplied_Filters->addItem(tmp);			
 		}
 	}
 
@@ -119,6 +119,7 @@ void CFilters_Window::Setup_UI() {
 	connect(btnAdd_Filter, SIGNAL(clicked()), this, SLOT(On_Add_Filter()));
 	connect(btnConfigure_Filter, SIGNAL(clicked()), this, SLOT(On_Configure_Filter()));
 	connect(btnCommit_Filters, SIGNAL(clicked()), this, SLOT(On_Commit_Filters()));
+	connect(lbxApplied_Filters, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(On_Applied_Filter_Dbl_Click(QListWidgetItem*)));
 }
 
 void CFilters_Window::On_Add_Filter() {
@@ -127,19 +128,25 @@ void CFilters_Window::On_Add_Filter() {
 		const auto &desc = reinterpret_cast<CFilter_List_Item*>(selected)->description();
 		CFilter_List_Item *tmp = new CFilter_List_Item{ desc};
 		lbxApplied_Filters->addItem(tmp);		
-	}
+	}	
+}
 
-	
+void CFilters_Window::Configure_Filter(QListWidgetItem *item) {
+	CFilter_List_Item* filter = static_cast<CFilter_List_Item*>(item);
+
+	CFilter_Config_Window *config_wnd = new CFilter_Config_Window{ filter->description(), filter->configuration(), nullptr };
+	config_wnd->show();
+}
+
+void CFilters_Window::On_Applied_Filter_Dbl_Click(QListWidgetItem* item) {
+	Configure_Filter(item);
 }
 
 void CFilters_Window::On_Configure_Filter() {
 	const auto selection = lbxApplied_Filters->selectedItems();
 	bool success = selection.size() == 1;
 	if (success) {
-		auto *filter = static_cast<CFilter_List_Item*>(selection[0]);
-
-		CFilter_Config_Window *config_wnd = new CFilter_Config_Window{filter->description(), filter->configuration(), nullptr};
-		config_wnd->show();
+		Configure_Filter(selection[0]);
 
 	//	success
 	} else 

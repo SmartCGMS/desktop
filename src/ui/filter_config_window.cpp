@@ -2,6 +2,7 @@
 
 #include "../../../common/lang/dstrings.h"
 #include "../../../common/rtl/manufactory.h"
+#include "../../../common/rtl/referencedImpl.h"
 
 #include "helpers/Select_Time_Segment_Id_Panel.h"
 
@@ -21,10 +22,8 @@ class CWChar_Container_Edit : public QLineEdit, public virtual filter_config_win
 	glucose::TFilter_Parameter get_parameter() {
 		glucose::TFilter_Parameter result;
 		result.type = glucose::NParameter_Type::ptWChar_Container;
-		const std::wstring str = text().toStdWString();
-		auto container = glucose::Create_Parameter_Container<wchar_t>(str.data(), str.data() + str.size());
-		result.wstr = container.get();
-		result.wstr->AddRef();
+		const std::wstring str = text().toStdWString();		
+		result.wstr = refcnt::WString_To_WChar_Container(str.c_str());
 		return result;
 	}
 
@@ -211,7 +210,7 @@ void CFilter_Config_Window::Commit_Parameters() {
 	std::vector<glucose::TFilter_Parameter> new_parameters;
 	for (auto &edit : mContainer_Edits) {
 		glucose::TFilter_Parameter param = edit.second->get_parameter();
-		param.config_name = WString_To_WChar_Container(edit.first.c_str());
+		param.config_name = refcnt::WString_To_WChar_Container(edit.first.c_str());
 
 		new_parameters.push_back(param);
 	}
