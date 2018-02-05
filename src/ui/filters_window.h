@@ -5,7 +5,7 @@
 #include <QtWidgets/QMdiSubWindow>
 #include <QtWidgets/QListWidget>
 
-#include "../executive/filter_chain.h" 
+#include "../../../common/desktop-console/filter_chain.h"
 
 
 class CFilters_Window : public QMdiSubWindow {

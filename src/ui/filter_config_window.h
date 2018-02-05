@@ -6,10 +6,9 @@
 
 #include <map>
 
-#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QWidget>
 
-
-class CFilter_Config_Window : public QWidget{
+class CFilter_Config_Window : public QWidget {
 	Q_OBJECT
 protected:
 	std::vector<glucose::TFilter_Parameter> &mConfiguration;

@@ -9,13 +9,16 @@
 #include <QtWidgets/QTabWidget>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QGridLayout>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QLineEdit>
+#include <QtGui/QValidator>
 
 #include "moc_filter_config_window.cpp"
 
 
 	
 class CWChar_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
-	glucose::TFilter_Parameter CWChar_Container_Edit::get_parameter() {
+	glucose::TFilter_Parameter get_parameter() {
 		glucose::TFilter_Parameter result;
 		result.type = glucose::NParameter_Type::ptWChar_Container;
 		const std::wstring str = text().toStdWString();
@@ -27,6 +30,61 @@ class CWChar_Container_Edit : public QLineEdit, public virtual filter_config_win
 
 	void set_parameter(const glucose::TFilter_Parameter &param) {
 		setText(QString::fromStdWString(WChar_Container_To_WString(param.wstr)));
+	}
+};
+
+class CDouble_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {	
+public:
+	CDouble_Container_Edit(QWidget *parent) : QLineEdit(parent) {
+		setValidator(new QDoubleValidator());
+	}
+
+	glucose::TFilter_Parameter get_parameter() {
+		glucose::TFilter_Parameter result;
+		result.type = glucose::NParameter_Type::ptDouble;
+		bool ok;
+		result.dbl = text().toDouble(&ok);
+		if (!ok)
+			result.dbl = 0;
+		return result;
+	}
+
+	void set_parameter(const glucose::TFilter_Parameter &param) {
+		setText(QString::number(param.dbl));
+	}
+};
+
+class CInteger_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
+public:
+	CInteger_Container_Edit(QWidget *parent) : QLineEdit(parent) {
+		setValidator(new QIntValidator());
+	}
+
+	glucose::TFilter_Parameter get_parameter() {
+		glucose::TFilter_Parameter result;
+		result.type = glucose::NParameter_Type::ptInt64;
+		bool ok;
+		result.int64 = text().toLongLong(&ok);
+		if (!ok)
+			result.int64 = 0;
+		return result;
+	}
+
+	void set_parameter(const glucose::TFilter_Parameter &param) {
+		setText(QString::number(param.int64));
+	}
+};
+
+class CBoolean_Container_Edit : public QCheckBox, public virtual filter_config_window::CContainer_Edit {
+	glucose::TFilter_Parameter get_parameter() {
+		glucose::TFilter_Parameter result;
+		result.type = glucose::NParameter_Type::ptBool;
+		result.boolean = (checkState() == Qt::Checked);
+		return result;
+	}
+
+	void set_parameter(const glucose::TFilter_Parameter &param) {
+		setCheckState(param.boolean ? Qt::Checked : Qt::Unchecked);
 	}
 };
 
@@ -72,12 +130,27 @@ void CFilter_Config_Window::Setup_UI() {
 			auto add_edit_control = [&]() {
 				filter_config_window::CContainer_Edit *container = nullptr;
 
-				switch (mDescription.parameter_type[i]) {
-					case glucose::NParameter_Type::ptWChar_Container: container = new CWChar_Container_Edit{};
-																		break;
+				switch (mDescription.parameter_type[i])
+				{
+					case glucose::NParameter_Type::ptWChar_Container:
+						container = new CWChar_Container_Edit{};
+						break;
+
+					case glucose::NParameter_Type::ptDouble:
+						container = new CDouble_Container_Edit{ nullptr};
+						break;
+
+					case glucose::NParameter_Type::ptInt64:
+						container = new CInteger_Container_Edit{ nullptr};
+						break;
+
+					case glucose::NParameter_Type::ptBool:
+						container = new CBoolean_Container_Edit{};
+						break;
 					
-					case glucose::NParameter_Type::ptSelect_Time_Segment_ID: container = new CSelect_Time_Segment_Id_Panel{ mConfiguration, nullptr };
-																			 break;
+					case glucose::NParameter_Type::ptSelect_Time_Segment_ID:
+						container = new CSelect_Time_Segment_Id_Panel{ mConfiguration, nullptr };
+						break;
 				}
 
 				mContainer_Edits[mDescription.config_parameter_name[i]] = container;

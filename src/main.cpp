@@ -1,6 +1,6 @@
 #include "ui/main_window.h"
 
-#include "misc/config.h"
+#include "../../common/desktop-console/config.h"
 
 #include <QtWidgets/QApplication>
 

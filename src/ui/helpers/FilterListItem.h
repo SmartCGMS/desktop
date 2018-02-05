@@ -3,7 +3,7 @@
 
 #include <QtWidgets/QListWidgetItem >
 
-#include "../../executive/filter_chain.h"
+#include "../../../../common/desktop-console/filter_chain.h"
 
 #include "../../../../common/rtl/FilterLib.h"
 

@@ -15,15 +15,18 @@ glucose::TFilter_Parameter CSelect_Time_Segment_Id_Panel::get_parameter() {
 	if (mDb && mDb->isOpen()) {
 		//prepare Qt iterators
 		auto selindexes = selectionModel()->selectedIndexes();
-		auto iterend = selindexes.end();
-		auto iterbegin = selindexes.begin();
-		auto selcol = iterbegin->column();
 
+		if (selindexes.size() != 0) {
+		
+			auto iterend = selindexes.end();
+			auto iterbegin = selindexes.begin();
+			auto selcol = iterbegin->column();
 
-		//and get all selected time segment ids
-		for (auto iter = iterbegin; iter < iterend; iter++) {
-			if (iter->column() == selcol) {
-				segment_ids.push_back(mSegmentsModel->data(mSegmentsModel->index(iter->row(), 0)).toInt());
+			//and get all selected time segment ids
+			for (auto iter = iterbegin; iter < iterend; iter++) {
+				if (iter->column() == selcol) {
+					segment_ids.push_back(mSegmentsModel->data(mSegmentsModel->index(iter->row(), 0)).toInt());
+				}
 			}
 		}
 	}
