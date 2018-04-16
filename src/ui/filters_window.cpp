@@ -6,6 +6,7 @@
 
 #include "filter_config_window.h"
 #include "helpers/FilterListItem.h"
+#include "simulation_window.h"
 
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QMessageBox>
@@ -13,6 +14,8 @@
 #include <QtWidgets/QHBoxLayout> 
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QLabel>
+
+#include <QtCore/QEventLoop>
 
 #ifndef MOC_DIR
 	#include "moc_filters_window.cpp"
@@ -22,17 +25,22 @@ std::atomic<CFilters_Window*> CFilters_Window::mInstance = nullptr;
 
 CFilters_Window* CFilters_Window::Show_Instance(CFilter_Chain &filter_chain, QWidget *owner) {
 
+	if (mInstance) {
+		mInstance.load()->showMaximized();
+		return mInstance;
+	}
+
 	CFilters_Window* tmp = nullptr;
 	bool created = mInstance.compare_exchange_strong(tmp, new CFilters_Window(filter_chain, owner));
 
-	if (created) {		
-		mInstance.load()->showMaximized();		
+	if (created) {
+		mInstance.load()->showMaximized();
 	}
 
 	return mInstance;
 }
 
-CFilters_Window::CFilters_Window(CFilter_Chain &filter_chain, QWidget *owner) : mFilter_Chain(filter_chain), QMdiSubWindow{ owner } {
+CFilters_Window::CFilters_Window(CFilter_Chain &filter_chain, QWidget *owner) : mFilter_Chain(filter_chain), QMdiSubWindow(owner) {
 	Setup_UI();
 }
 
@@ -71,7 +79,7 @@ void CFilters_Window::Setup_UI() {
 	QWidget* wgtAvailable_Filters = new QWidget(this);
 
 	QVBoxLayout *lotAvailable_Filters = new QVBoxLayout{  };
-	lbxAvailable_Filters = new QListWidget{  };	
+	lbxAvailable_Filters = new QListWidget{  };
 
 	//add the available filters
 	{
@@ -79,18 +87,18 @@ void CFilters_Window::Setup_UI() {
 		for (const auto &filter : filters) {
 			CFilter_List_Item *tmp = new CFilter_List_Item(filter);
 			lbxAvailable_Filters->addItem(tmp);
-		}		
-	}
-	
-	//add the  applied filters
-	{
-		for (size_t i = 0; i < mFilter_Chain.size(); i++) {
-			CFilter_List_Item *tmp = new CFilter_List_Item(mFilter_Chain[i].descriptor);						
-			tmp->configuration() = mFilter_Chain[i].configuration;
-			lbxApplied_Filters->addItem(tmp);			
 		}
 	}
 
+	//add the  applied filters
+	{
+		for (size_t i = 0; i < mFilter_Chain.size(); i++) {
+			CFilter_List_Item *tmp = new CFilter_List_Item(mFilter_Chain[i].descriptor);
+			tmp->configuration() = mFilter_Chain[i].configuration;
+			tmp->Refresh();
+			lbxApplied_Filters->addItem(tmp);
+		}
+	}
 
 	QPushButton *btnAdd_Filter = new QPushButton{tr(dsAdd)};
 
@@ -117,6 +125,9 @@ void CFilters_Window::Setup_UI() {
 
 
 	connect(btnAdd_Filter, SIGNAL(clicked()), this, SLOT(On_Add_Filter()));
+	connect(btnUp_Filter, SIGNAL(clicked()), this, SLOT(On_Move_Filter_Up()));
+	connect(btnDown_Filter, SIGNAL(clicked()), this, SLOT(On_Move_Filter_Down()));
+	connect(btnRemove_Filter, SIGNAL(clicked()), this, SLOT(On_Remove_Filter()));
 	connect(btnConfigure_Filter, SIGNAL(clicked()), this, SLOT(On_Configure_Filter()));
 	connect(btnCommit_Filters, SIGNAL(clicked()), this, SLOT(On_Commit_Filters()));
 	connect(lbxApplied_Filters, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(On_Applied_Filter_Dbl_Click(QListWidgetItem*)));
@@ -127,14 +138,40 @@ void CFilters_Window::On_Add_Filter() {
 	for (const auto &selected : selection) {
 		const auto &desc = reinterpret_cast<CFilter_List_Item*>(selected)->description();
 		CFilter_List_Item *tmp = new CFilter_List_Item{ desc};
-		lbxApplied_Filters->addItem(tmp);		
-	}	
+		lbxApplied_Filters->addItem(tmp);
+	}
+}
+
+void CFilters_Window::On_Move_Filter_Up()
+{
+	for (int i = 1; i < lbxApplied_Filters->count(); i++)
+	{
+		if (lbxApplied_Filters->item(i)->isSelected())
+			lbxApplied_Filters->insertItem(i, lbxApplied_Filters->takeItem(i - 1));
+	}
+}
+
+void CFilters_Window::On_Move_Filter_Down()
+{
+	for (int i = lbxApplied_Filters->count() - 2; i >= 0; i--)
+	{
+		if (lbxApplied_Filters->item(i)->isSelected())
+			lbxApplied_Filters->insertItem(i, lbxApplied_Filters->takeItem(i + 1));
+	}
+}
+
+void CFilters_Window::On_Remove_Filter()
+{
+	const auto selection = lbxApplied_Filters->selectedItems();
+	for (auto* item : selection)
+		delete lbxApplied_Filters->takeItem(lbxApplied_Filters->row(item));
 }
 
 void CFilters_Window::Configure_Filter(QListWidgetItem *item) {
 	CFilter_List_Item* filter = static_cast<CFilter_List_Item*>(item);
 
 	CFilter_Config_Window *config_wnd = new CFilter_Config_Window{ filter->description(), filter->configuration(), nullptr };
+	connect(config_wnd, SIGNAL(destroyed()), this, SLOT(On_Filter_Configure_Complete()));
 	config_wnd->show();
 }
 
@@ -144,27 +181,50 @@ void CFilters_Window::On_Applied_Filter_Dbl_Click(QListWidgetItem* item) {
 
 void CFilters_Window::On_Configure_Filter() {
 	const auto selection = lbxApplied_Filters->selectedItems();
-	bool success = selection.size() == 1;
-	if (success) {
-		Configure_Filter(selection[0]);
+	bool success = (selection.size() == 1);
 
 	//	success
-	} else 
-			QMessageBox::information(this, tr(dsInformation), tr(dsSelect_Just_One_Item));
+	if (success)
+		Configure_Filter(selection[0]);
+	else
+		QMessageBox::information(this, tr(dsInformation), tr(dsSelect_Just_One_Item));
 }
 
 void CFilters_Window::On_Commit_Filters() {
+
+	CSimulation_Window* simWindow = CSimulation_Window::Get_Instance();
+
+	// disallow commit when simulation is in progress
+	if (simWindow && simWindow->Is_Simulation_In_Progress())
+	{
+		QMessageBox::information(this, tr(dsInformation), tr(dsSimulation_Is_In_Progress));
+		return;
+	}
+
 	CFilter_Chain new_chain;
-	for (int i = 0; i<lbxApplied_Filters->count(); i++) {
+	for (int i = 0; i < lbxApplied_Filters->count(); i++) {
 		auto item = reinterpret_cast<CFilter_List_Item*>(lbxApplied_Filters->item(i));
 
-		CFilter_Configuration config;//;{ item->configuration() };
+		CFilter_Configuration config;
 		config.operator=(item->configuration());
-		const TFilter_Chain_Link link{ item->description(), config };		
+		const TFilter_Chain_Link link{ item->description(), config };
 
 		new_chain.push_back(link);
 	}
 
 	//and replace the current one
 	mFilter_Chain = std::move(new_chain);
+
+	if (simWindow)
+		simWindow->Update_Filter_Chain(mFilter_Chain);
+}
+
+void CFilters_Window::On_Filter_Configure_Complete()
+{
+	for (int i = 0; i < lbxApplied_Filters->count(); i++)
+	{
+		auto item = reinterpret_cast<CFilter_List_Item*>(lbxApplied_Filters->item(i));
+
+		item->Refresh();
+	}
 }

@@ -4,7 +4,7 @@
 
 #include "helpers/general_container_edit.h"
 
-#include <map>
+#include <vector>
 
 #include <QtWidgets/QWidget>
 
@@ -13,7 +13,10 @@ class CFilter_Config_Window : public QWidget {
 protected:
 	std::vector<glucose::TFilter_Parameter> &mConfiguration;
 	const glucose::TFilter_Descriptor &mDescription;
-	std::map<std::wstring, filter_config_window::CContainer_Edit*> mContainer_Edits;
+
+	using TName_Container_Pair = std::pair<std::wstring, filter_config_window::CContainer_Edit*>;
+
+	std::vector<TName_Container_Pair> mContainer_Edits;
 
 	void Setup_UI();
 	void Commit_Parameters();	//from controls to configuration

@@ -107,6 +107,7 @@ void CSelect_Time_Segment_Id_Panel::apply() {
 		hideColumn(0); //segment it id
 		mSegmentsModel->setHeaderData(1, Qt::Horizontal, tr(dsSubject));
 		mSegmentsModel->setHeaderData(2, Qt::Horizontal, tr(dsSegment));
+		mSegmentsModel->setHeaderData(3, Qt::Horizontal, tr(dsValue_Count));
 
 		set_parameter(current_selection);		
 	}

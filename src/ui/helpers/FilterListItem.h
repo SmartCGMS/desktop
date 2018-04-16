@@ -16,4 +16,5 @@ public:
 	CFilter_Configuration& configuration();
 	const glucose::TFilter_Descriptor& description() const;
 
+	void Refresh();
 };

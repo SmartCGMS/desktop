@@ -36,6 +36,7 @@ private slots:
 	void On_Update_Window_Menu();	
 	void On_Help_About();
 	void On_Filters_Window();
+	void On_Simulation_Window();
 
 	void Set_Active_Sub_Window(QWidget *window);
 public:

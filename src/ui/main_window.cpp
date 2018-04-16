@@ -2,7 +2,9 @@
 
 #include "../../../common/desktop-console/config.h"
 #include "../../../common/lang/dstrings.h"
+#include "../../../../common/QtUtils.h"
 #include "filters_window.h"
+#include "simulation_window.h"
 
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QList>
@@ -22,7 +24,7 @@ CMain_Window::CMain_Window(QWidget *parent) : QMainWindow(parent) {
 
 
 	Setup_UI();
-      
+
 	this->showMaximized();
 }
 
@@ -30,6 +32,7 @@ void CMain_Window::Setup_UI() {
 	QAction *act_Save_Configuration = new QAction { tr(dsSave_Configuration), this };
 	QAction *actionQuit = new QAction{tr(dsQuit), this };
 	QAction* act_filters = new QAction{ tr(dsFilters), this };
+	QAction* act_simulation = new QAction{ tr(dsSimulation), this };
 
 	QWidget *centralWidget;
 	QVBoxLayout *verticalLayout;
@@ -61,6 +64,7 @@ void CMain_Window::Setup_UI() {
 	menu_Tools = new QMenu(tr(dsTools), menuBar);
 
 	menu_Tools->addAction(act_filters);
+	menu_Tools->addAction(act_simulation);
 
 	setMenuBar(menuBar);
 	mainToolBar = new QToolBar();
@@ -98,7 +102,7 @@ void CMain_Window::Setup_UI() {
 
 	mWindowMapper = new QSignalMapper(this);
 
-	setWindowTitle(tr(dsGlucose_Prediction));
+	setWindowTitle(tr(dsGlucose_Prediction).arg(StdWStringToQString(Configuration.Get_Config_File_Name())));
 
 	//and connect the actions
 	connect(act_Save_Configuration, SIGNAL(triggered()), this, SLOT(On_Save_Configuration()));
@@ -113,7 +117,7 @@ void CMain_Window::Setup_UI() {
 	connect(mniWindow, SIGNAL(aboutToShow()), this, SLOT(On_Update_Window_Menu()));
 	connect(actHelpAbout, SIGNAL(triggered()), this, SLOT(On_Help_About()));
 	connect(act_filters, SIGNAL(triggered()), this, SLOT(On_Filters_Window()));
-
+	connect(act_simulation, SIGNAL(triggered()), this, SLOT(On_Simulation_Window()));
 
 	connect(mWindowMapper, SIGNAL(mapped(QWidget*)), this, SLOT(Set_Active_Sub_Window(QWidget*)));
 }
@@ -222,6 +226,10 @@ void CMain_Window::On_Help_About() {
 
 void CMain_Window::On_Filters_Window() {
 	CFilters_Window::Show_Instance(mFilter_Configuration, pnlMDI_Content);
+}
+
+void CMain_Window::On_Simulation_Window() {
+	CSimulation_Window::Show_Instance(mFilter_Configuration, pnlMDI_Content);
 }
 
 void CMain_Window::On_Save_Configuration() {

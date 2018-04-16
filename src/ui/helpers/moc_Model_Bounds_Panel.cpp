@@ -1,18 +1,18 @@
 /****************************************************************************
-** Meta object code from reading C++ file 'filter_config_window.h'
+** Meta object code from reading C++ file 'Model_Bounds_Panel.h'
 **
-** Created by: The Qt Meta Object Compiler version 67 (Qt 5.10.1)
+** Created by: The Qt Meta Object Compiler version 67 (Qt 5.10.0)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
 
-#include "filter_config_window.h"
+#include "Model_Bounds_Panel.h"
 #include <QtCore/qbytearray.h>
 #include <QtCore/qmetatype.h>
 #if !defined(Q_MOC_OUTPUT_REVISION)
-#error "The header file 'filter_config_window.h' doesn't include <QObject>."
+#error "The header file 'Model_Bounds_Panel.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
-#error "This file was generated using the moc from 5.10.1. It"
+#error "This file was generated using the moc from 5.10.0. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
@@ -20,30 +20,30 @@
 QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
-struct qt_meta_stringdata_CFilter_Config_Window_t {
+struct qt_meta_stringdata_CModel_Bounds_Panel_t {
     QByteArrayData data[5];
-    char stringdata0[48];
+    char stringdata0[69];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
-    qptrdiff(offsetof(qt_meta_stringdata_CFilter_Config_Window_t, stringdata0) + ofs \
+    qptrdiff(offsetof(qt_meta_stringdata_CModel_Bounds_Panel_t, stringdata0) + ofs \
         - idx * sizeof(QByteArrayData)) \
     )
-static const qt_meta_stringdata_CFilter_Config_Window_t qt_meta_stringdata_CFilter_Config_Window = {
+static const qt_meta_stringdata_CModel_Bounds_Panel_t qt_meta_stringdata_CModel_Bounds_Panel = {
     {
-QT_MOC_LITERAL(0, 0, 21), // "CFilter_Config_Window"
-QT_MOC_LITERAL(1, 22, 5), // "On_OK"
-QT_MOC_LITERAL(2, 28, 0), // ""
-QT_MOC_LITERAL(3, 29, 9), // "On_Cancel"
-QT_MOC_LITERAL(4, 39, 8) // "On_Apply"
+QT_MOC_LITERAL(0, 0, 19), // "CModel_Bounds_Panel"
+QT_MOC_LITERAL(1, 20, 14), // "On_Reset_Lower"
+QT_MOC_LITERAL(2, 35, 0), // ""
+QT_MOC_LITERAL(3, 36, 17), // "On_Reset_Defaults"
+QT_MOC_LITERAL(4, 54, 14) // "On_Reset_Upper"
 
     },
-    "CFilter_Config_Window\0On_OK\0\0On_Cancel\0"
-    "On_Apply"
+    "CModel_Bounds_Panel\0On_Reset_Lower\0\0"
+    "On_Reset_Defaults\0On_Reset_Upper"
 };
 #undef QT_MOC_LITERAL
 
-static const uint qt_meta_data_CFilter_Config_Window[] = {
+static const uint qt_meta_data_CModel_Bounds_Panel[] = {
 
  // content:
        7,       // revision
@@ -69,41 +69,43 @@ static const uint qt_meta_data_CFilter_Config_Window[] = {
        0        // eod
 };
 
-void CFilter_Config_Window::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+void CModel_Bounds_Panel::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
 {
     if (_c == QMetaObject::InvokeMetaMethod) {
-        CFilter_Config_Window *_t = static_cast<CFilter_Config_Window *>(_o);
+        CModel_Bounds_Panel *_t = static_cast<CModel_Bounds_Panel *>(_o);
         Q_UNUSED(_t)
         switch (_id) {
-        case 0: _t->On_OK(); break;
-        case 1: _t->On_Cancel(); break;
-        case 2: _t->On_Apply(); break;
+        case 0: _t->On_Reset_Lower(); break;
+        case 1: _t->On_Reset_Defaults(); break;
+        case 2: _t->On_Reset_Upper(); break;
         default: ;
         }
     }
     Q_UNUSED(_a);
 }
 
-QT_INIT_METAOBJECT const QMetaObject CFilter_Config_Window::staticMetaObject = {
-    { &QWidget::staticMetaObject, qt_meta_stringdata_CFilter_Config_Window.data,
-      qt_meta_data_CFilter_Config_Window,  qt_static_metacall, nullptr, nullptr}
+const QMetaObject CModel_Bounds_Panel::staticMetaObject = {
+    { &QWidget::staticMetaObject, qt_meta_stringdata_CModel_Bounds_Panel.data,
+      qt_meta_data_CModel_Bounds_Panel,  qt_static_metacall, nullptr, nullptr}
 };
 
 
-const QMetaObject *CFilter_Config_Window::metaObject() const
+const QMetaObject *CModel_Bounds_Panel::metaObject() const
 {
     return QObject::d_ptr->metaObject ? QObject::d_ptr->dynamicMetaObject() : &staticMetaObject;
 }
 
-void *CFilter_Config_Window::qt_metacast(const char *_clname)
+void *CModel_Bounds_Panel::qt_metacast(const char *_clname)
 {
     if (!_clname) return nullptr;
-    if (!strcmp(_clname, qt_meta_stringdata_CFilter_Config_Window.stringdata0))
+    if (!strcmp(_clname, qt_meta_stringdata_CModel_Bounds_Panel.stringdata0))
         return static_cast<void*>(this);
+    if (!strcmp(_clname, "filter_config_window::CContainer_Edit"))
+        return static_cast< filter_config_window::CContainer_Edit*>(this);
     return QWidget::qt_metacast(_clname);
 }
 
-int CFilter_Config_Window::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
+int CModel_Bounds_Panel::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
     _id = QWidget::qt_metacall(_c, _id, _a);
     if (_id < 0)
