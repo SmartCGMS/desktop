@@ -14,9 +14,9 @@ void CInput_Filter::Send_Event(glucose::NDevice_Event_Code code, GUID* signal_id
 
 	evt.device_id = { 0 };
 	evt.device_time = Unix_Time_To_Rat_Time(time(nullptr));
-	evt.logical_time = 0; // this is probably not right in the bigger scale, but since we don't use logical time at this time,
+	//evt.logical_time = 0; // this is probably not right in the bigger scale, but since we don't use logical time at this time,
 						  // let's solve this later and mark it as TODO
-	evt.signal_id = signal_id ? (*signal_id) : GUID{0};
+	evt.signal_id = signal_id ? (*signal_id) : Invalid_GUID;
 	evt.event_code = code;
 	evt.segment_id = 0; // TODO: support more segments
 	if (info)

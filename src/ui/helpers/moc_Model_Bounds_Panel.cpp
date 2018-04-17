@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'Model_Bounds_Panel.h'
 **
-** Created by: The Qt Meta Object Compiler version 67 (Qt 5.10.0)
+** Created by: The Qt Meta Object Compiler version 67 (Qt 5.10.1)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -12,7 +12,7 @@
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'Model_Bounds_Panel.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
-#error "This file was generated using the moc from 5.10.0. It"
+#error "This file was generated using the moc from 5.10.1. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
@@ -84,7 +84,7 @@ void CModel_Bounds_Panel::qt_static_metacall(QObject *_o, QMetaObject::Call _c, 
     Q_UNUSED(_a);
 }
 
-const QMetaObject CModel_Bounds_Panel::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject CModel_Bounds_Panel::staticMetaObject = {
     { &QWidget::staticMetaObject, qt_meta_stringdata_CModel_Bounds_Panel.data,
       qt_meta_data_CModel_Bounds_Panel,  qt_static_metacall, nullptr, nullptr}
 };

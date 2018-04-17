@@ -21,7 +21,7 @@
 
 #include "moc_filter_config_window.cpp"
 
-#include "filter_config_widgets.h"
+#include "helpers/filter_config_widgets.h"
 
 	
 class CWChar_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {

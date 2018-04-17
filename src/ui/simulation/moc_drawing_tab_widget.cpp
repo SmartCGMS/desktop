@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'drawing_tab_widget.h'
 **
-** Created by: The Qt Meta Object Compiler version 67 (Qt 5.10.0)
+** Created by: The Qt Meta Object Compiler version 67 (Qt 5.10.1)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -12,7 +12,7 @@
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'drawing_tab_widget.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
-#error "This file was generated using the moc from 5.10.0. It"
+#error "This file was generated using the moc from 5.10.1. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
@@ -62,8 +62,8 @@ void CDrawing_Tab_Widget::qt_static_metacall(QObject *_o, QMetaObject::Call _c, 
     Q_UNUSED(_a);
 }
 
-const QMetaObject CDrawing_Tab_Widget::staticMetaObject = {
-    { &QWidget::staticMetaObject, qt_meta_stringdata_CDrawing_Tab_Widget.data,
+QT_INIT_METAOBJECT const QMetaObject CDrawing_Tab_Widget::staticMetaObject = {
+    { &CAbstract_Simulation_Tab_Widget::staticMetaObject, qt_meta_stringdata_CDrawing_Tab_Widget.data,
       qt_meta_data_CDrawing_Tab_Widget,  qt_static_metacall, nullptr, nullptr}
 };
 
@@ -78,12 +78,12 @@ void *CDrawing_Tab_Widget::qt_metacast(const char *_clname)
     if (!_clname) return nullptr;
     if (!strcmp(_clname, qt_meta_stringdata_CDrawing_Tab_Widget.stringdata0))
         return static_cast<void*>(this);
-    return QWidget::qt_metacast(_clname);
+    return CAbstract_Simulation_Tab_Widget::qt_metacast(_clname);
 }
 
 int CDrawing_Tab_Widget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
 {
-    _id = QWidget::qt_metacall(_c, _id, _a);
+    _id = CAbstract_Simulation_Tab_Widget::qt_metacall(_c, _id, _a);
     return _id;
 }
 QT_WARNING_POP

@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'errors_tab_widget.h'
 **
-** Created by: The Qt Meta Object Compiler version 67 (Qt 5.10.0)
+** Created by: The Qt Meta Object Compiler version 67 (Qt 5.10.1)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
@@ -12,7 +12,7 @@
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'errors_tab_widget.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
-#error "This file was generated using the moc from 5.10.0. It"
+#error "This file was generated using the moc from 5.10.1. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
@@ -62,7 +62,7 @@ void CError_Table_Model::qt_static_metacall(QObject *_o, QMetaObject::Call _c, i
     Q_UNUSED(_a);
 }
 
-const QMetaObject CError_Table_Model::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject CError_Table_Model::staticMetaObject = {
     { &QAbstractTableModel::staticMetaObject, qt_meta_stringdata_CError_Table_Model.data,
       qt_meta_data_CError_Table_Model,  qt_static_metacall, nullptr, nullptr}
 };
@@ -128,7 +128,7 @@ void CErrors_Tab_Widget::qt_static_metacall(QObject *_o, QMetaObject::Call _c, i
     Q_UNUSED(_a);
 }
 
-const QMetaObject CErrors_Tab_Widget::staticMetaObject = {
+QT_INIT_METAOBJECT const QMetaObject CErrors_Tab_Widget::staticMetaObject = {
     { &CAbstract_Simulation_Tab_Widget::staticMetaObject, qt_meta_stringdata_CErrors_Tab_Widget.data,
       qt_meta_data_CErrors_Tab_Widget,  qt_static_metacall, nullptr, nullptr}
 };

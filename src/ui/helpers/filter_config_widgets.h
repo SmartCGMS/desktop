@@ -1,13 +1,13 @@
 #pragma once
 
-#include "filter_config_window.h"
+#include "../filter_config_window.h"
 
-#include "../../../common/lang/dstrings.h"
-#include "../../../common/rtl/manufactory.h"
-#include "../../../common/rtl/referencedImpl.h"
-#include "../../../common/rtl/FilterLib.h"
-#include "../../../common/rtl/UILib.h"
-#include "../../../../common/QtUtils.h"
+#include "../../../../common/lang/dstrings.h"
+#include "../../../../common/rtl/manufactory.h"
+#include "../../../../common/rtl/referencedImpl.h"
+#include "../../../../common/rtl/FilterLib.h"
+#include "../../../../common/rtl/UILib.h"
+#include "../../../../../common/QtUtils.h"
 
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QComboBox>
