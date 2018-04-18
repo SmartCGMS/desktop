@@ -15,7 +15,7 @@
 
 #include "../../../core/drawing/src/drawing.h"
 #include "../../../core/log/src/log.h"
-#include "../../../core/errors/src/errors.h"
+#include "../../../common/desktop-console/errors.h"
 
 #pragma warning( push )
 #pragma warning( disable : 4250 ) // C4250 - 'class1' : inherits 'class2::member' via dominance
@@ -53,8 +53,10 @@ class CGUI_Filter : public glucose::IFilter, public virtual refcnt::CReferenced
 		TGet_SVG Get_SVG_Day;
 		// summary graph image data getter
 		TGet_SVG Get_SVG_Graph;
-		// parkes error grid image data getter
+		// parkes error grid image data getter (type 1 diabetes)
 		TGet_SVG Get_SVG_Parkes;
+		// parkes error grid image data getter (type 2 diabetes)
+		TGet_SVG Get_SVG_Parkes_Type2;
 
 		// set of all GUIDs of calculated signals that came through pipe
 		std::set<GUID> mCalculatedSignalGUIDs;

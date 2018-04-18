@@ -61,6 +61,7 @@ CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(QWidget *pa
 	std::wstring measSuffix = dsSignal_Suffix_Measured;
 	measSuffix = L" (" + measSuffix + L")";
 
+	//TO DO: enumerate input known signals in some global header
 	mSignalVector.push_back({ glucose::signal_BG, dsSignal_Measured_BG + measSuffix });
 	mSignalVector.push_back({ glucose::signal_IG, dsSignal_Measured_IG + measSuffix });
 	mSignalVector.push_back({ glucose::signal_ISIG, dsSignal_Measured_ISIG + measSuffix });
@@ -80,16 +81,9 @@ CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(QWidget *pa
 			mSignalVector.push_back({ model.calculated_signal_ids[i], model.description + std::wstring(L" - ") + model.calculated_signal_names[i] + calcSuffix });
 	}
 
-	// append dummy signals
-	std::wstring virtSuffix = dsSignal_Suffix_Virtual;
-	virtSuffix = L" (" + virtSuffix + L")";
-
-	GUID curVirtId = glucose::signal_Dummy_Base;
-	for (size_t i = 0; i < glucose::Dummy_Signal_Count; i++)
-	{
-		mSignalVector.push_back({ curVirtId, dsSignal_Virtual_Base + std::wstring(L" ") + std::to_wstring(i) + virtSuffix });
-		curVirtId.Data4[7]++;
-	}
+	// append virtual signals
+	for (size_t i=0; i<glucose::signal_Virtual.size(); i++)
+		mSignalVector.push_back({ glucose::signal_Virtual[i], dsSignal_Prefix_Virtual + std::wstring(L" ") + std::to_wstring(i) });
 
 	// add all signals to combobox
 

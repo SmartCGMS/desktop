@@ -59,12 +59,9 @@ CSimulation_Window::CSimulation_Window(CFilter_Chain &filter_chain, QWidget *own
 			mSignalNames[model.calculated_signal_ids[i]] = model.description + std::wstring(L" - ") + model.calculated_signal_names[i];
 	}
 
-	GUID curVirtId = glucose::signal_Dummy_Base;
-	for (size_t i = 0; i < glucose::Dummy_Signal_Count; i++)
-	{
-		mSignalNames[curVirtId] = dsSignal_Virtual_Base + std::wstring(L" ") + std::to_wstring(i);
-		curVirtId.Data4[7]++;
-	}
+	for (size_t i = 0; i<glucose::signal_Virtual.size(); i++)
+		mSignalNames[glucose::signal_Virtual[i]] = dsSignal_Prefix_Virtual + std::wstring(L" ") + std::to_wstring(i);
+
 }
 
 CSimulation_Window::~CSimulation_Window()
@@ -292,21 +289,21 @@ CSimulation_Window* CSimulation_Window::Get_Instance()
 
 void CSimulation_Window::Drawing_Callback(const wchar_t* type, const wchar_t* image_data)
 {
-	auto drawingCallback = [&](TDrawing_Tab_Type type, const wchar_t* str) {
+	auto drawingCallback = [&](TDrawing_Tab_Type type, const wchar_t* str, bool type2) {
 		for (CDrawing_Tab_Widget* wg : mDrawingWidgets)
-			wg->Drawing_Callback(type, str);
+			wg->Drawing_Callback(type, str, type2);
 	};
 
 	if (type == rsCallback_Drawing_Graph)
-		drawingCallback(TDrawing_Tab_Type::Graph, image_data);
+		drawingCallback(TDrawing_Tab_Type::Graph, image_data, false);
 	else if (type == rsCallback_Drawing_Day)
-		drawingCallback(TDrawing_Tab_Type::Day, image_data);
+		drawingCallback(TDrawing_Tab_Type::Day, image_data, false);
 	else if (type == rsCallback_Drawing_Clark)
-		drawingCallback(TDrawing_Tab_Type::Clark, image_data);
-	else if (type == rsCallback_Drawing_Parkes)
-		drawingCallback(TDrawing_Tab_Type::Parkes, image_data);
+		drawingCallback(TDrawing_Tab_Type::Clark, image_data, false);
+	else if (type == rsCallback_Drawing_Parkes || type == rsCallback_Drawing_Parkes_Type2)
+		drawingCallback(TDrawing_Tab_Type::Parkes, image_data, (type == rsCallback_Drawing_Parkes_Type2));
 	else if (type == rsCallback_Drawing_AGP)
-		drawingCallback(TDrawing_Tab_Type::Agp, image_data);
+		drawingCallback(TDrawing_Tab_Type::Agp, image_data, false);
 }
 
 void CSimulation_Window::Log_Callback(const wchar_t* message)

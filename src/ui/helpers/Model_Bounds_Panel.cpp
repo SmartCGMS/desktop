@@ -91,7 +91,9 @@ void CModel_Bounds_Panel::Reset_UI(const size_t parameter_count, const wchar_t**
 
 	auto create_edit = [](double val) -> QLineEdit* {
 		QLineEdit* fld = new QLineEdit(QString::number(val, 'f'));
-		fld->setValidator(new QDoubleValidator());
+		auto validator = new QDoubleValidator();
+		validator->setLocale(QLocale(QLocale::English));
+		fld->setValidator(validator);
 		return fld;
 	};
 

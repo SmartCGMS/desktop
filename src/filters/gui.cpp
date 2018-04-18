@@ -85,6 +85,9 @@ void CGUI_Filter::Run_Output()
 					Get_SVG_Parkes(target);
 					simwin->Drawing_Callback(rsCallback_Drawing_Parkes, refcnt::WChar_Container_To_WString(target).c_str());
 
+					Get_SVG_Parkes_Type2(target);
+					simwin->Drawing_Callback(rsCallback_Drawing_Parkes_Type2, refcnt::WChar_Container_To_WString(target).c_str());
+
 					Get_SVG_AGP(target);
 					simwin->Drawing_Callback(rsCallback_Drawing_AGP, refcnt::WChar_Container_To_WString(target).c_str());
 
@@ -212,7 +215,8 @@ HRESULT CGUI_Filter::Run(const refcnt::IVector_Container<glucose::TFilter_Parame
 		{ Get_SVG_Clark, rsFilter_Get_SVG_Clark },
 		{ Get_SVG_Day, rsFilter_Get_SVG_Day },
 		{ Get_SVG_Graph, rsFilter_Get_SVG_Graph },
-		{ Get_SVG_Parkes, rsFilter_Get_SVG_Parkes }
+		{ Get_SVG_Parkes, rsFilter_Get_SVG_Parkes },
+		{ Get_SVG_Parkes_Type2, rsFilter_Get_SVG_Parkes_Type2 }
 	};
 
 	const std::vector<std::pair<TGet_Errors&, const char*>> errorsResolvMap = {

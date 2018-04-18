@@ -198,12 +198,9 @@ CErrors_Tab_Widget::CErrors_Tab_Widget(QWidget *parent)
 			mSignalNames[model.calculated_signal_ids[i]] = model.description + std::wstring(L" - ") + model.calculated_signal_names[i];
 	}
 
-	GUID curVirtId = glucose::signal_Dummy_Base;
-	for (size_t i = 0; i < glucose::Dummy_Signal_Count; i++)
-	{
-		mSignalNames[curVirtId] = dsSignal_Virtual_Base + std::wstring(L" ") + std::to_wstring(i);
-		curVirtId.Data4[7]++;
-	}
+	for (size_t i = 0; i<glucose::signal_Virtual.size(); i++)		
+		mSignalNames[glucose::signal_Virtual[i]] = dsSignal_Prefix_Virtual + std::wstring(L" ") + std::to_wstring(i);
+
 
 	setLayout(mainLayout);
 }

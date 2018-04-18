@@ -49,7 +49,7 @@ void CDrawing_Tab_Widget::Update_View_Size()
 		mView->fitInView(mItem, Qt::AspectRatioMode::KeepAspectRatio);
 }
 
-void CDrawing_Tab_Widget::Drawing_Callback(const TDrawing_Tab_Type type, const wchar_t* svg)
+void CDrawing_Tab_Widget::Drawing_Callback(const TDrawing_Tab_Type type, const wchar_t* svg, bool type2)
 {
 	if (type != mType)
 		return;
