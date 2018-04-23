@@ -173,7 +173,7 @@ bool CModel_Bounds_Panel::Get_Current_Selected_Model(glucose::TModel_Descriptor&
 		// get selected model GUID
 		const GUID selectedModelGUID = *reinterpret_cast<const GUID*>(mModelSelector->currentData().toByteArray().constData());
 
-		if (glucose::get_model_descriptors_by_id(selectedModelGUID, model))
+		if (glucose::get_model_descriptor_by_id(selectedModelGUID, model))
 			return true;
 	}
 

@@ -59,9 +59,8 @@ CSimulation_Window::CSimulation_Window(CFilter_Chain &filter_chain, QWidget *own
 			mSignalNames[model.calculated_signal_ids[i]] = model.description + std::wstring(L" - ") + model.calculated_signal_names[i];
 	}
 
-	for (size_t i = 0; i<glucose::signal_Virtual.size(); i++)
+	for (size_t i = 0; i < glucose::signal_Virtual.size(); i++)
 		mSignalNames[glucose::signal_Virtual[i]] = dsSignal_Prefix_Virtual + std::wstring(L" ") + std::to_wstring(i);
-
 }
 
 CSimulation_Window::~CSimulation_Window()

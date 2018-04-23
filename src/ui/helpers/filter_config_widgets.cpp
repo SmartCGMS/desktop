@@ -35,7 +35,7 @@ void CModel_Signal_Select_ComboBox::Refresh_Contents()
 		const GUID selectedModelGUID = *reinterpret_cast<const GUID*>(mModelSelector->currentData().toByteArray().constData());
 
 		// retrieve proper model
-		if (glucose::get_model_descriptors_by_id(selectedModelGUID, model))
+		if (glucose::get_model_descriptor_by_id(selectedModelGUID, model))
 		{
 			// add model signals to combobox
 			for (size_t i = 0; i < model.number_of_calculated_signals; i++)

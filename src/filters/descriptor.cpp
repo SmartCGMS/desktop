@@ -7,6 +7,7 @@
 #include "../../../common/lang/dstrings.h"
 #include "../../../common/rtl/manufactory.h"
 #include "../../../common/rtl/FilterLib.h"
+#include "../../../common/desktop-console/errors.h"
 
 #include <vector>
 
@@ -33,6 +34,12 @@ namespace gui
 		nullptr
 	};
 
+	const std::array<GUID, 3> gui_filters = {
+		drawing_filter_guid,
+		errors::Errors_Descriptor.id,
+		log_filter_guid
+	};
+
 	// lazy-loaded config param types
 	std::vector<glucose::NParameter_Type> config_param_types;
 	// lazy-loaded config param names
@@ -50,11 +57,10 @@ namespace gui
 	{
 		// load filters from gui_filters array
 		glucose::TFilter_Descriptor desc{ 0 };
-
-		for (size_t i = 0; i < gui_filters_count; i++)
-		{
+		
+		for (const auto &gui_filter : gui_filters) 	{
 			// if the filter fails to load, fail whole GUI filter loading routine
-			if (!glucose::get_filter_descriptors_by_id(gui_filters[i], desc))
+			if (!glucose::get_filter_descriptors_by_id(gui_filter, desc))
 				return false;
 
 			// append filter name as null parameter if there are some parameters - it will split configuration options in config window
