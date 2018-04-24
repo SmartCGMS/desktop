@@ -11,12 +11,5 @@ namespace gui
 	extern "C" HRESULT IfaceCalling do_get_filter_descriptors(glucose::TFilter_Descriptor **begin, glucose::TFilter_Descriptor **end);
 	extern "C" HRESULT IfaceCalling do_create_filter(const GUID *id, glucose::IFilter_Pipe *input, glucose::IFilter_Pipe *output, glucose::IFilter **filter);
 
-	/* GUI filter has full knowledge of what filters we may want to use; if some of filters is not available, then it's simply skipped and not used.
-	 * To add a new filter, simply copy its GUID here, increase gui_filters_count constant and add it to gui_filters array */	
-
-	constexpr GUID drawing_filter_guid = { 0x850a122c, 0x8943, 0xa211,{ 0xc5, 0x14, 0x25, 0xba, 0xa9, 0x14, 0x35, 0x74 } };
-	constexpr GUID errors_filter_guid = { 0x4a125499, 0x5dc8, 0x128e,{ 0xa5, 0x5c, 0x14, 0x22, 0xbc, 0xac, 0x10, 0x74 } };
-	constexpr GUID log_filter_guid = { 0xc0e942b9, 0x3928, 0x4b81,{ 0x9b, 0x43, 0xa3, 0x47, 0x66, 0x82, 0x0, 0xBA } };	
-
 	extern const std::array<GUID, 3> gui_filters;
 }

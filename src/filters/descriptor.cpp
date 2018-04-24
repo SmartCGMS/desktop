@@ -7,7 +7,8 @@
 #include "../../../common/lang/dstrings.h"
 #include "../../../common/rtl/manufactory.h"
 #include "../../../common/rtl/FilterLib.h"
-#include "../../../common/desktop-console/errors.h"
+#include "../../../common/rtl/SolverLib.h"
+#include "../../../common/rtl/UILib.h"
 
 #include <vector>
 
@@ -35,9 +36,9 @@ namespace gui
 	};
 
 	const std::array<GUID, 3> gui_filters = {
-		drawing_filter_guid,
-		errors::Errors_Descriptor.id,
-		log_filter_guid
+		glucose::Drawing_Filter,
+		glucose::Errors_Filter,
+		glucose::Log_Filter
 	};
 
 	// lazy-loaded config param types

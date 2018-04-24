@@ -4,6 +4,7 @@
 #include "../../../common/iface/UIIface.h"
 #include "../../../common/rtl/referencedImpl.h"
 #include "../../../common/rtl/FilterLib.h"
+#include "../../../common/rtl/SolverLib.h"
 #include "../../../common/rtl/guid.h"
 
 #include <memory>
@@ -15,7 +16,6 @@
 
 #include "../../../core/drawing/src/drawing.h"
 #include "../../../core/log/src/log.h"
-#include "../../../common/desktop-console/errors.h"
 
 #pragma warning( push )
 #pragma warning( disable : 4250 ) // C4250 - 'class1' : inherits 'class2::member' via dominance

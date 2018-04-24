@@ -1,7 +1,6 @@
 #include "ui/main_window.h"
 
 #include "../../common/desktop-console/config.h"
-#include "../../common/desktop-console/errors.h"
 #include "../../common/rtl/FilterLib.h"
 #include "filters/descriptor.h"
 
