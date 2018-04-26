@@ -38,13 +38,7 @@ class CGUI_Filter : public glucose::IFilter, public virtual refcnt::CReferenced
 		// vector of filter threads
 		std::vector<std::unique_ptr<std::thread>> mFilter_Threads;
 
-		// instance of drawing filter
-		std::shared_ptr<CDrawing_Filter> mDrawing_Filter;
-		// instance of log filter
-		std::shared_ptr<CLog_Filter> mLog_Filter;
-		// instance of error metrics filter
-		std::shared_ptr<CErrors_Filter> mErrors_Filter;
-
+		
 		// AGP image data getter
 		TGet_SVG Get_SVG_AGP;
 		// clarks error grid image data getter

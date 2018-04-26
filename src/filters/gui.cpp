@@ -166,18 +166,11 @@ HRESULT CGUI_Filter::Run(const refcnt::IVector_Container<glucose::TFilter_Parame
 		auto filter = glucose::create_filter(filt, mFilter_Pipes[i], mFilter_Pipes[i + 1]);
 		if (!filter)
 		{
-			std::wcerr << "ERROR: could not create filter " << desc.description << std::endl;
+	//		std::wcerr << "ERROR: could not create filter " << desc.description << std::endl;
 			return ENODEV;
 		}
 
-		// store filter instance for future work
-		if (filt == gui::drawing_filter_guid)
-			mDrawing_Filter = std::dynamic_pointer_cast<CDrawing_Filter>(filter);
-		else if (filt == gui::log_filter_guid)
-			mLog_Filter = std::dynamic_pointer_cast<CLog_Filter>(filter);
-		else if (filt == gui::errors_filter_guid)
-			mErrors_Filter = std::dynamic_pointer_cast<CErrors_Filter>(filter);
-
+	
 		// skip null parameters (config headers)
 		while (param_begin != param_end && param_begin->type == glucose::NParameter_Type::ptNull)
 			param_begin += 1;
