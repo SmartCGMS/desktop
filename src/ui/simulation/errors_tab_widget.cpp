@@ -15,15 +15,15 @@
 
 #include "moc_errors_tab_widget.cpp"
 
-constexpr int Error_Column_Count = glucose::Error_Misc_Count /* misc info */ + glucose::Error_Quantile_Count /* quantiles */;
+constexpr int Error_Column_Count = static_cast<int>(glucose::NError_Marker::count) + static_cast<int>(glucose::NError_Percentile::count);
 
 // names of error types
-const wchar_t* gError_Names[glucose::Error_Type_Count] = {
+const wchar_t* gError_Names[static_cast<size_t>(glucose::NError_Type::count)] = {
 	dsError_Absolute,
 	dsError_Relative
 };
 // ensure array length
-static_assert((sizeof(gError_Names) / sizeof(const wchar_t*)) == glucose::Error_Type_Count, "Error type names count does not match error types defined");
+static_assert((sizeof(gError_Names) / sizeof(const wchar_t*)) == static_cast<size_t>(glucose::NError_Type::count), "Error type names count does not match error types defined");
 
 // names of columns in table
 const wchar_t* gError_Column_Names[] = {
@@ -48,7 +48,7 @@ CError_Table_Model::CError_Table_Model(QObject *parent)
 
 int CError_Table_Model::rowCount(const QModelIndex &idx) const
 {
-	return mMaxSignalRow * glucose::Error_Type_Count;
+	return mMaxSignalRow * static_cast<int>(glucose::NError_Type::count);
 }
 
 int CError_Table_Model::columnCount(const QModelIndex &idx) const
@@ -82,17 +82,17 @@ QVariant CError_Table_Model::data(const QModelIndex &index, int role) const
 		const int row = index.row();
 		double val;
 
-		if (index.column() < glucose::Error_Misc_Count)
-			val = mErrors[row / glucose::Error_Type_Count][row % glucose::Error_Type_Count].misc[index.column()];
+		if (index.column() <static_cast<int>(glucose::NError_Marker::count))
+			val = mErrors[row /static_cast<int>(glucose::NError_Type::count)][row %static_cast<int>(glucose::NError_Type::count)].markers[index.column()];
 		else
-			val = mErrors[row / glucose::Error_Type_Count][row % glucose::Error_Type_Count].q[index.column() - glucose::Error_Misc_Count];
+			val = mErrors[row /static_cast<int>(glucose::NError_Type::count)][row %static_cast<int>(glucose::NError_Type::count)].percentile[index.column() - static_cast<int>(glucose::NError_Marker::count)];
 
-		return Format_Error_String((glucose::NError_Type)(row % glucose::Error_Type_Count), val);
+		return Format_Error_String((glucose::NError_Type)(row %static_cast<int>(glucose::NError_Type::count)), val);
 	}
 	else if (role == Qt::BackgroundRole)
 	{
 		// use gray background for "average" column
-		if (index.column() >= glucose::Error_Misc_Count)
+		if (index.column() >= static_cast<int>(glucose::NError_Marker::count))
 			return QBrush(QColor(224, 224, 224));
 	}
 	return QVariant();
@@ -110,7 +110,7 @@ QVariant CError_Table_Model::headerData(int section, Qt::Orientation orientation
 		}
 		// vertical - use signal names and error type names
 		else if (orientation == Qt::Vertical)
-			return StdWStringToQString(mSignalNameList[section / glucose::Error_Type_Count] + L" (" + gError_Names[section % glucose::Error_Type_Count] + L")");
+			return StdWStringToQString(mSignalNameList[section / static_cast<int>(glucose::NError_Type::count)] + L" (" + gError_Names[section % static_cast<int>(glucose::NError_Type::count)] + L")");
 	}
 
 	return QVariant();
@@ -133,10 +133,10 @@ bool CError_Table_Model::setData(const QModelIndex &index, const QVariant &value
 	{
 		int row = index.row();
 
-		if (index.column() < glucose::Error_Misc_Count)
-			mErrors[row / glucose::Error_Type_Count][row % glucose::Error_Type_Count].misc[index.column()] = value.toDouble();
+		if (index.column() < static_cast<int>(glucose::NError_Marker::count))
+			mErrors[row /static_cast<int>(glucose::NError_Type::count)][row %static_cast<int>(glucose::NError_Type::count)].markers[index.column()] = value.toDouble();
 		else if (index.column() < Error_Column_Count)
-			mErrors[row / glucose::Error_Type_Count][row % glucose::Error_Type_Count].q[index.column() - glucose::Error_Misc_Count] = value.toDouble();
+			mErrors[row /static_cast<int>(glucose::NError_Type::count)][row %static_cast<int>(glucose::NError_Type::count)].percentile[index.column() - static_cast<int>(glucose::NError_Marker::count)] = value.toDouble();
 
 		emit(dataChanged(index, index));
 
@@ -146,7 +146,7 @@ bool CError_Table_Model::setData(const QModelIndex &index, const QVariant &value
 	return false;
 }
 
-void CError_Table_Model::Set_Error(const GUID& signal_id, std::wstring signal_name, const glucose::TError_Container& errors, const glucose::NError_Type type)
+void CError_Table_Model::Set_Error(const GUID& signal_id, std::wstring signal_name, const glucose::TError_Markers& errors, const glucose::NError_Type type)
 {
 	bool added = false;
 	int row;
@@ -158,23 +158,23 @@ void CError_Table_Model::Set_Error(const GUID& signal_id, std::wstring signal_na
 		mSignalRow[signal_id] = row;
 		mSignalNameList.push_back(signal_name);
 
-		insertRows(row, glucose::Error_Type_Count, QModelIndex());
+		insertRows(row,static_cast<int>(glucose::NError_Type::count), QModelIndex());
 	}
 	else
 		row = mSignalRow[signal_id];
 
 	int offset = (int)type;
 
-	QModelIndex idx = index(row*glucose::Error_Type_Count + offset, 0, QModelIndex());
-	for (int i = 0; i < glucose::Error_Misc_Count; i++)
+	QModelIndex idx = index(row*static_cast<size_t>(glucose::NError_Type::count) + offset, 0, QModelIndex());
+	for (int i = 0; i < static_cast<int>(glucose::NError_Marker::count); i++)
 	{
-		idx = index(row*glucose::Error_Type_Count + offset, i, QModelIndex());
-		setData(idx, errors.misc[i], Qt::EditRole);
+		idx = index(row*static_cast<size_t>(glucose::NError_Type::count) + offset, i, QModelIndex());
+		setData(idx, errors.markers[i], Qt::EditRole);
 	}
-	for (int i = 0; i < glucose::Error_Quantile_Count; i++)
+	for (int i = 0; i < static_cast<size_t>(glucose::NError_Percentile::count); i++)
 	{
-		idx = index(row*glucose::Error_Type_Count + offset, i + glucose::Error_Misc_Count, QModelIndex());
-		setData(idx, errors.q[i], Qt::EditRole);
+		idx = index(row*static_cast<size_t>(glucose::NError_Type::count) + offset, i + static_cast<int>(glucose::NError_Marker::count), QModelIndex());
+		setData(idx, errors.percentile[i], Qt::EditRole);
 	}
 }
 
@@ -204,7 +204,7 @@ CErrors_Tab_Widget::CErrors_Tab_Widget(QWidget *parent)
 	setLayout(mainLayout);
 }
 
-void CErrors_Tab_Widget::Update_Error_Metrics(const GUID& signal_id, glucose::TError_Container& container, glucose::NError_Type type)
+void CErrors_Tab_Widget::Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type)
 {
 	QEventLoop loop;
 	Q_UNUSED(loop);

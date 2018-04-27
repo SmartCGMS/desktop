@@ -37,7 +37,7 @@ namespace gui
 
 	const std::array<GUID, 3> gui_filters = {
 		glucose::Drawing_Filter,
-		glucose::Errors_Filter,
+		glucose::Error_Filter,
 		glucose::Log_Filter
 	};
 
@@ -111,7 +111,7 @@ namespace gui
 	extern "C" HRESULT IfaceCalling do_create_filter(const GUID *id, glucose::IFilter_Pipe *input, glucose::IFilter_Pipe *output, glucose::IFilter **filter)
 	{
 		if (*id == gui::GUI_Descriptor.id)
-			return Manufacture_Object<CGUI_Filter>(filter, input, output);
+			return Manufacture_Object<CGUI_Filter_Subchain>(filter, input, output);
 		else if (*id == gui::User_Input_Descriptor.id)
 			return Manufacture_Object<CInput_Filter>(filter, input, output);
 

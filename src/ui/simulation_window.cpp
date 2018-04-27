@@ -286,13 +286,14 @@ CSimulation_Window* CSimulation_Window::Get_Instance()
 	return mInstance;
 }
 
-void CSimulation_Window::Drawing_Callback(const wchar_t* type, const wchar_t* image_data)
+void CSimulation_Window::Drawing_Callback(const wchar_t* type, const std::string &image_data)
 {
-	auto drawingCallback = [&](TDrawing_Tab_Type type, const wchar_t* str, bool type2) {
+	auto drawingCallback = [&](TDrawing_Tab_Type type, const std::string &svg, bool type2) {
 		for (CDrawing_Tab_Widget* wg : mDrawingWidgets)
-			wg->Drawing_Callback(type, str, type2);
+			wg->Drawing_Callback(type, image_data, type2);
 	};
-
+	
+	//TODO:: Critical! Will break with localization!
 	if (type == rsCallback_Drawing_Graph)
 		drawingCallback(TDrawing_Tab_Type::Graph, image_data, false);
 	else if (type == rsCallback_Drawing_Day)
@@ -343,7 +344,7 @@ void CSimulation_Window::Update_Solver_Progress(GUID& solver, size_t progress)
 	});
 }
 
-void CSimulation_Window::Update_Error_Metrics(const GUID& signal_id, glucose::TError_Container& container, glucose::NError_Type type)
+void CSimulation_Window::Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type)
 {
 	mErrorsWidget->Update_Error_Metrics(signal_id, container, type);
 }

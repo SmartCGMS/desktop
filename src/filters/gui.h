@@ -1,11 +1,9 @@
 #pragma once
 
-#include "../../../common/iface/FilterIface.h"
 #include "../../../common/iface/UIIface.h"
 #include "../../../common/rtl/referencedImpl.h"
 #include "../../../common/rtl/FilterLib.h"
 #include "../../../common/rtl/SolverLib.h"
-#include "../../../common/rtl/guid.h"
 
 #include <memory>
 #include <thread>
@@ -23,7 +21,7 @@
 /*
  * Filter class for managing user interface needs
  */
-class CGUI_Filter : public glucose::IFilter, public virtual refcnt::CReferenced
+class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CReferenced
 {
 	protected:
 		// input pipe
@@ -38,24 +36,11 @@ class CGUI_Filter : public glucose::IFilter, public virtual refcnt::CReferenced
 		// vector of filter threads
 		std::vector<std::unique_ptr<std::thread>> mFilter_Threads;
 
-		
-		// AGP image data getter
-		TGet_SVG Get_SVG_AGP;
-		// clarks error grid image data getter
-		TGet_SVG Get_SVG_Clark;
-		// day image data getter
-		TGet_SVG Get_SVG_Day;
-		// summary graph image data getter
-		TGet_SVG Get_SVG_Graph;
-		// parkes error grid image data getter (type 1 diabetes)
-		TGet_SVG Get_SVG_Parkes;
-		// parkes error grid image data getter (type 2 diabetes)
-		TGet_SVG Get_SVG_Parkes_Type2;
+		glucose::SDrawing_Filter_Inspection mDrawing_Filter_Inspection{};
+		glucose::SError_Filter_Inspection mError_Filter_Inspection{};
 
 		// set of all GUIDs of calculated signals that came through pipe
 		std::set<GUID> mCalculatedSignalGUIDs;
-		// get error metrics
-		TGet_Errors Get_Errors;
 
 		// thread for managing output pipe
 		std::unique_ptr<std::thread> mOutput_Thread;
@@ -66,7 +51,7 @@ class CGUI_Filter : public glucose::IFilter, public virtual refcnt::CReferenced
 		void Run_Output();
 
 	public:
-		CGUI_Filter(glucose::IFilter_Pipe* inpipe, glucose::IFilter_Pipe* outpipe);
+		CGUI_Filter_Subchain(glucose::IFilter_Pipe* inpipe, glucose::IFilter_Pipe* outpipe);
 
 		virtual HRESULT Run(const refcnt::IVector_Container<glucose::TFilter_Parameter> *configuration) override final;
 };

@@ -4,6 +4,7 @@
 #include <QtWidgets/QTextEdit>
 
 #include "../../../../common/iface/UIIface.h"
+#include "../../../../common/iface/FilterIface.h"
 
 #include "abstract_simulation_tab.h"
 
@@ -24,7 +25,7 @@ class CError_Table_Model : public QAbstractTableModel
 		// signal name vector; the order matches with errors vector below and with display order
 		std::vector<std::wstring> mSignalNameList;
 		// errors container; the order matches with signal name list above and with display order
-		std::vector<std::array<glucose::TError_Container, glucose::Error_Type_Count>> mErrors;
+		std::vector<std::array<glucose::TError_Markers, static_cast<size_t>(glucose::NError_Type::count)>> mErrors;
 
 		// next row to be assigned to signal
 		int mMaxSignalRow;
@@ -39,7 +40,7 @@ class CError_Table_Model : public QAbstractTableModel
 		bool insertRows(int position, int rows, const QModelIndex &index);
 
 		// sets error values from given container for given signal and type
-		void Set_Error(const GUID& signal_id, std::wstring signal_name, const glucose::TError_Container& errors, const glucose::NError_Type type);
+		void Set_Error(const GUID& signal_id, std::wstring signal_name, const glucose::TError_Markers& errors, const glucose::NError_Type type);
 };
 
 /*
@@ -61,7 +62,7 @@ class CErrors_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 		explicit CErrors_Tab_Widget(QWidget *parent = 0);
 
 		// updates error metrics of given signal
-		void Update_Error_Metrics(const GUID& signal_id, glucose::TError_Container& container, glucose::NError_Type type);
+		void Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type);
 		// resets the model (i.e. on simulation start)
 		void Reset();
 };

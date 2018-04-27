@@ -49,24 +49,22 @@ void CDrawing_Tab_Widget::Update_View_Size()
 		mView->fitInView(mItem, Qt::AspectRatioMode::KeepAspectRatio);
 }
 
-void CDrawing_Tab_Widget::Drawing_Callback(const TDrawing_Tab_Type type, const wchar_t* svg, bool type2)
+void CDrawing_Tab_Widget::Drawing_Callback(const TDrawing_Tab_Type type, const std::string &svg, bool type2)
 {
 	if (type != mType)
 		return;
 
 	std::unique_lock<std::mutex> lck(mDrawMtx);
 
-	mSvgContents = std::string{ svg, svg + wcslen(svg) };
-
 	QEventLoop loop;
 	Q_UNUSED(loop);
-	QTimer::singleShot(0, this, [this]()
+	QTimer::singleShot(0, this, [this, &svg]()
 	{
 		// lock scope
 		{
 			std::unique_lock<std::mutex> lck(mDrawMtx);
 
-			mRenderer->load(QByteArray(mSvgContents.c_str()));
+			mRenderer->load(QByteArray::fromStdString(svg));
 		}
 
 		if (mItem)

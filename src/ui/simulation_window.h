@@ -92,8 +92,8 @@ class CSimulation_Window : public QMdiSubWindow
 		bool Is_Simulation_In_Progress() const;
 		void Update_Filter_Chain(CFilter_Chain& filter_chain);
 
-		void Drawing_Callback(const wchar_t* type, const wchar_t* image_data);
+		void Drawing_Callback(const wchar_t* type, const std::string &svg);
 		void Log_Callback(const wchar_t* message);
 		void Update_Solver_Progress(GUID& solver, size_t progress);
-		void Update_Error_Metrics(const GUID& signal_id, glucose::TError_Container& container, glucose::NError_Type type);
+		void Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type);
 };

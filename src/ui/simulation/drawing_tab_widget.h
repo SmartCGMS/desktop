@@ -63,5 +63,5 @@ class CDrawing_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 		void Do_Zoom(bool in);
 
 		// when a new drawing is available
-		void Drawing_Callback(const TDrawing_Tab_Type type, const wchar_t* svg, bool type2);
+		void Drawing_Callback(const TDrawing_Tab_Type type, const std::string &svg, bool type2);
 };
