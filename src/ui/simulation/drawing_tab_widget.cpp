@@ -20,7 +20,7 @@ constexpr qreal Minimum_Zoom = 1.1;
 constexpr qreal Zoom_Step = 0.5;
 constexpr qreal Maximum_Zoom = 10.0;
 
-CDrawing_Tab_Widget::CDrawing_Tab_Widget(const TDrawing_Tab_Type type, QWidget *parent)
+CDrawing_Tab_Widget::CDrawing_Tab_Widget(const glucose::TDrawing_Image_Type type, QWidget *parent)
 	: CAbstract_Simulation_Tab_Widget(parent), mType(type), mItem(nullptr)
 {
 	mView = new QGraphicsView();
@@ -49,22 +49,24 @@ void CDrawing_Tab_Widget::Update_View_Size()
 		mView->fitInView(mItem, Qt::AspectRatioMode::KeepAspectRatio);
 }
 
-void CDrawing_Tab_Widget::Drawing_Callback(const TDrawing_Tab_Type type, const std::string &svg, bool type2)
+void CDrawing_Tab_Widget::Drawing_Callback(const glucose::TDrawing_Image_Type type, const glucose::TDiagnosis diagnosis, const std::string &svg)
 {
 	if (type != mType)
 		return;
 
 	std::unique_lock<std::mutex> lck(mDrawMtx);
 
+	mSvgContents = svg;
+
 	QEventLoop loop;
 	Q_UNUSED(loop);
-	QTimer::singleShot(0, this, [this, &svg]()
+	QTimer::singleShot(0, this, [this]()
 	{
 		// lock scope
 		{
 			std::unique_lock<std::mutex> lck(mDrawMtx);
 
-			mRenderer->load(QByteArray::fromStdString(svg));
+			mRenderer->load(QByteArray::fromStdString(mSvgContents));
 		}
 
 		if (mItem)

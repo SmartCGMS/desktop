@@ -64,24 +64,16 @@ void CGUI_Filter_Subchain::Run_Output()
 				{
 					auto svg = refcnt::Create_Container_shared<char>(nullptr, nullptr);
 
-					if (mDrawing_Filter_Inspection->Draw_Graph(svg.get()) == S_OK)
-						simwin->Drawing_Callback(rsCallback_Drawing_Graph, refcnt::Char_Container_To_String(svg.get()));
+					for (size_t type = 0; type < (size_t)glucose::TDrawing_Image_Type::count; type++)
+					{
+						if (mDrawing_Filter_Inspection->Draw((glucose::TDrawing_Image_Type)type, glucose::TDiagnosis::NotSpecified, svg.get()) == S_OK)
+							simwin->Drawing_Callback((glucose::TDrawing_Image_Type)type, glucose::TDiagnosis::NotSpecified, refcnt::Char_Container_To_String(svg.get()));
+					}
 
-					if (mDrawing_Filter_Inspection->Draw_Day(svg.get()) == S_OK)
-						simwin->Drawing_Callback(rsCallback_Drawing_Day, refcnt::Char_Container_To_String(svg.get()));
+					// special drawing - e.g. Parkes' error grid for type 2 diabetes
 
-					if (mDrawing_Filter_Inspection->Draw_Clarke(svg.get()) == S_OK)
-						simwin->Drawing_Callback(rsCallback_Drawing_Clark, refcnt::Char_Container_To_String(svg.get()));
-
-					if (mDrawing_Filter_Inspection->Draw_Parkes(svg.get(), true) == S_OK)
-						simwin->Drawing_Callback(rsCallback_Drawing_Parkes, refcnt::Char_Container_To_String(svg.get()));
-
-					if (mDrawing_Filter_Inspection->Draw_Parkes(svg.get(), false) == S_OK)
-						simwin->Drawing_Callback(rsCallback_Drawing_Parkes_Type2, refcnt::Char_Container_To_String(svg.get()));
-
-					if (mDrawing_Filter_Inspection->Draw_APG(svg.get()) == S_OK)
-						simwin->Drawing_Callback(rsCallback_Drawing_AGP, refcnt::Char_Container_To_String(svg.get()));
-								
+					if (mDrawing_Filter_Inspection->Draw(glucose::TDrawing_Image_Type::Parkes, glucose::TDiagnosis::Type2, svg.get()) == S_OK)
+						simwin->Drawing_Callback(glucose::TDrawing_Image_Type::Parkes, glucose::TDiagnosis::Type2, refcnt::Char_Container_To_String(svg.get()));
 				}
 			}
 			// handle solver progress message
@@ -162,10 +154,10 @@ HRESULT CGUI_Filter_Subchain::Run(const refcnt::IVector_Container<glucose::TFilt
 		}
 
 		//we've got the filter, is it an inspectionable one?
-		if (filter_id == glucose::Drawing_Filter_Inspection)
-			mDrawing_Filter_Inspection = glucose::SDrawing_Filter_Inspection{ filter };
-			else if (filter_id == glucose::Error_Filter_Inspection)
-				mError_Filter_Inspection = glucose::SError_Filter_Inspection{ filter };
+		if (filter_id == glucose::Drawing_Filter)
+			mDrawing_Filter_Inspection = glucose::SDrawing_Filter_Inspection(filter);
+		else if (filter_id == glucose::Error_Filter)
+			mError_Filter_Inspection = glucose::SError_Filter_Inspection(filter);
 
 	
 		// skip null parameters (config headers)

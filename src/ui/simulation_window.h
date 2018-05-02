@@ -11,8 +11,9 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpinBox>
 
+#include "../../../common/iface/FilterIface.h"
 #include "../../../common/desktop-console/filter_chain.h"
-#include "../../../common/desktop-console/filter_chain_holder.h"
+#include "../../../common/desktop-console/filter_chain_manager.h"
 #include "../filters/descriptor.h"
 #include "../filters/input.h"
 
@@ -45,7 +46,7 @@ class CSimulation_Window : public QMdiSubWindow
 
 	protected:
 		// chain holder retaining filter configuration
-		std::unique_ptr<CFilter_Chain_Holder> mFilterChainHolder;
+		std::unique_ptr<CFilter_Chain_Manager> mFilterChainHolder;
 
 		// tab widget for filter outputs
 		QTabWidget* mTabWidget;
@@ -92,7 +93,7 @@ class CSimulation_Window : public QMdiSubWindow
 		bool Is_Simulation_In_Progress() const;
 		void Update_Filter_Chain(CFilter_Chain& filter_chain);
 
-		void Drawing_Callback(const wchar_t* type, const std::string &svg);
+		void Drawing_Callback(const glucose::TDrawing_Image_Type type, const glucose::TDiagnosis diagnosis, const std::string &svg);
 		void Log_Callback(const wchar_t* message);
 		void Update_Solver_Progress(GUID& solver, size_t progress);
 		void Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type);

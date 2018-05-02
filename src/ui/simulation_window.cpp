@@ -44,7 +44,7 @@ CSimulation_Window* CSimulation_Window::Show_Instance(CFilter_Chain &filter_chai
 
 CSimulation_Window::CSimulation_Window(CFilter_Chain &filter_chain, QWidget *owner) : mTabWidget(nullptr), QMdiSubWindow{ owner }
 {
-	mFilterChainHolder = std::make_unique<CFilter_Chain_Holder>(filter_chain);
+	mFilterChainHolder = std::make_unique<CFilter_Chain_Manager>(filter_chain);
 
 	Setup_UI();
 
@@ -65,6 +65,7 @@ CSimulation_Window::CSimulation_Window(CFilter_Chain &filter_chain, QWidget *own
 
 CSimulation_Window::~CSimulation_Window()
 {
+	On_Stop();
 	mInstance = nullptr;
 }
 
@@ -75,7 +76,7 @@ bool CSimulation_Window::Is_Simulation_In_Progress() const
 
 void CSimulation_Window::Update_Filter_Chain(CFilter_Chain& filter_chain)
 {
-	mFilterChainHolder = std::make_unique<CFilter_Chain_Holder>(filter_chain);
+	mFilterChainHolder = std::make_unique<CFilter_Chain_Manager>(filter_chain);
 }
 
 void CSimulation_Window::Setup_UI()
@@ -134,23 +135,23 @@ void CSimulation_Window::Setup_UI()
 
 		CDrawing_Tab_Widget* tab;
 
-		tab = new CDrawing_Tab_Widget(TDrawing_Tab_Type::Graph);
+		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Graph);
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Graph));
 
-		tab = new CDrawing_Tab_Widget(TDrawing_Tab_Type::Day);
+		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Day);
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Day));
 
-		tab = new CDrawing_Tab_Widget(TDrawing_Tab_Type::Clark);
+		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Clark);
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Clark));
 
-		tab = new CDrawing_Tab_Widget(TDrawing_Tab_Type::Parkes);
+		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Parkes);
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Parkes));
 
-		tab = new CDrawing_Tab_Widget(TDrawing_Tab_Type::Agp);
+		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Agp);
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_AGP));
 
@@ -286,24 +287,10 @@ CSimulation_Window* CSimulation_Window::Get_Instance()
 	return mInstance;
 }
 
-void CSimulation_Window::Drawing_Callback(const wchar_t* type, const std::string &image_data)
+void CSimulation_Window::Drawing_Callback(const glucose::TDrawing_Image_Type type, const glucose::TDiagnosis diagnosis, const std::string &image_data)
 {
-	auto drawingCallback = [&](TDrawing_Tab_Type type, const std::string &svg, bool type2) {
-		for (CDrawing_Tab_Widget* wg : mDrawingWidgets)
-			wg->Drawing_Callback(type, image_data, type2);
-	};
-	
-	//TODO:: Critical! Will break with localization!
-	if (type == rsCallback_Drawing_Graph)
-		drawingCallback(TDrawing_Tab_Type::Graph, image_data, false);
-	else if (type == rsCallback_Drawing_Day)
-		drawingCallback(TDrawing_Tab_Type::Day, image_data, false);
-	else if (type == rsCallback_Drawing_Clark)
-		drawingCallback(TDrawing_Tab_Type::Clark, image_data, false);
-	else if (type == rsCallback_Drawing_Parkes || type == rsCallback_Drawing_Parkes_Type2)
-		drawingCallback(TDrawing_Tab_Type::Parkes, image_data, (type == rsCallback_Drawing_Parkes_Type2));
-	else if (type == rsCallback_Drawing_AGP)
-		drawingCallback(TDrawing_Tab_Type::Agp, image_data, false);
+	for (CDrawing_Tab_Widget* wg : mDrawingWidgets)
+		wg->Drawing_Callback(type, diagnosis, image_data);
 }
 
 void CSimulation_Window::Log_Callback(const wchar_t* message)

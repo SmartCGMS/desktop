@@ -15,18 +15,6 @@
 #include <mutex>
 
 /*
- * Types of drawing widgets
- */
-enum class TDrawing_Tab_Type
-{
-	Graph,
-	Day,
-	Parkes,
-	Clark,
-	Agp
-};
-
-/*
  * Drawing widget class
  */
 class CDrawing_Tab_Widget : public CAbstract_Simulation_Tab_Widget
@@ -35,7 +23,7 @@ class CDrawing_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 
 	protected:
 		// maintained output type
-		const TDrawing_Tab_Type mType;
+		const glucose::TDrawing_Image_Type mType;
 
 		// drawn item
 		QGraphicsSvgItem* mItem;
@@ -55,7 +43,7 @@ class CDrawing_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 		qreal mCurrZoom = 1.0;
 
 	public:
-		explicit CDrawing_Tab_Widget(const TDrawing_Tab_Type type, QWidget *parent = 0);
+		explicit CDrawing_Tab_Widget(const glucose::TDrawing_Image_Type type, QWidget *parent = 0);
 		virtual ~CDrawing_Tab_Widget();
 
 		virtual void Update_View_Size() override;
@@ -63,5 +51,5 @@ class CDrawing_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 		void Do_Zoom(bool in);
 
 		// when a new drawing is available
-		void Drawing_Callback(const TDrawing_Tab_Type type, const std::string &svg, bool type2);
+		void Drawing_Callback(const glucose::TDrawing_Image_Type type, const glucose::TDiagnosis diagnosis, const std::string &svg);
 };
