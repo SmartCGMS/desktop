@@ -233,7 +233,7 @@ void CSimulation_Window::On_Start()
 	if (mErrorsWidget)
 		mErrorsWidget->Reset();
 
-	// "extract" input filter
+	// "find and remember" input filter
 	size_t filterCount = mFilterChainHolder->Get_Filter_Chain().size();
 	for (size_t i = 0; i < filterCount; i++)
 	{

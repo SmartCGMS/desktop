@@ -2,7 +2,7 @@
 
 #define GUI_IMPORT
 
-#include "gui.h"
+#include "gui_subchain.h"
 #include "descriptor.h"
 
 #include "../../../common/lang/dstrings.h"
@@ -32,8 +32,12 @@ void CGUI_Filter_Subchain::Run_Input()
 	// now we need to abort all pipes of filters inside chain
 	// this will effectively abort output thread
 
-	for (auto& pipe : mFilter_Pipes)
-		pipe->abort();
+	//for (auto& pipe : mFilter_Pipes)
+		//pipe->abort();
+	const glucose::TDevice_Event shut_down_event{ glucose::NDevice_Event_Code::Shut_Down };
+	mFilter_Pipes[0]->send(&shut_down_event);
+
+
 
 	for (auto& thread : mFilter_Threads)
 	{
@@ -137,7 +141,8 @@ HRESULT CGUI_Filter_Subchain::Run(const refcnt::IVector_Container<glucose::TFilt
 
 	// fetch configuration; the configuration is merged to one vector
 	glucose::TFilter_Parameter *param_begin, *param_end;
-	configuration->get(&param_begin, &param_end);
+	if (configuration->get(&param_begin, &param_end) != S_OK)
+		param_begin = param_end = nullptr;
 
 	mFilters.clear();
 	for (size_t i = 0; i < gui::gui_filters.size(); i++)	
@@ -154,20 +159,23 @@ HRESULT CGUI_Filter_Subchain::Run(const refcnt::IVector_Container<glucose::TFilt
 		}
 
 		//we've got the filter, is it an inspectionable one?
-		if (filter_id == glucose::Drawing_Filter)
-			mDrawing_Filter_Inspection = glucose::SDrawing_Filter_Inspection(filter);
+		if (filter_id == glucose::Drawing_Filter) 
+			mDrawing_Filter_Inspection = glucose::SDrawing_Filter_Inspection(filter);		
 		else if (filter_id == glucose::Error_Filter)
 			mError_Filter_Inspection = glucose::SError_Filter_Inspection(filter);
 
 	
-		// skip null parameters (config headers)
-		while (param_begin != param_end && param_begin->type == glucose::NParameter_Type::ptNull)
-			param_begin += 1;
+		std::shared_ptr<refcnt::IVector_Container<glucose::TFilter_Parameter>> params;
+		if (param_begin != nullptr) {
+			// skip null parameters (config headers)
+			while (param_begin != param_end && param_begin->type == glucose::NParameter_Type::ptNull)
+				param_begin += 1;
 
-		// create parameter container by copying just part of parameters given
-		auto params = refcnt::Create_Container_shared<glucose::TFilter_Parameter>(param_begin, param_begin + desc.parameters_count);
-		// move beginning by param count, so the next filter gets its own parameters
-		param_begin += desc.parameters_count;
+			// create parameter container by copying just part of parameters given
+			params = refcnt::Create_Container_shared<glucose::TFilter_Parameter>(param_begin, param_begin + desc.parameters_count);
+			// move beginning by param count, so the next filter gets its own parameters
+			param_begin += desc.parameters_count;
+		}
 
 		// configure filter using loaded configuration and start the filter thread
 		mFilter_Threads.push_back(std::make_unique<std::thread>([params, filter, desc, &filter_id]() {
@@ -181,7 +189,7 @@ HRESULT CGUI_Filter_Subchain::Run(const refcnt::IVector_Container<glucose::TFilt
 		//std::wcerr << "GUI #" << i << ": " << desc.description << std::endl;
 	}
 
-	// start filter sub-chain
+	// start filter sub-chain	
 
 	mOutput_Thread = std::make_unique<std::thread>(&CGUI_Filter_Subchain::Run_Output, this);
 	Run_Input();

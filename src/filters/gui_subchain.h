@@ -12,9 +12,6 @@
 // this is exception from filter decomposition model: this filter is special, in this context it means, it "knows" about several filters
 // typically used by GUI - drawing filter, error metrics filter, log filter
 
-#include "../../../core/drawing/src/drawing.h"
-#include "../../../core/log/src/log.h"
-
 #pragma warning( push )
 #pragma warning( disable : 4250 ) // C4250 - 'class1' : inherits 'class2::member' via dominance
 
@@ -36,8 +33,8 @@ class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CRe
 		// vector of filter threads
 		std::vector<std::unique_ptr<std::thread>> mFilter_Threads;
 
-		glucose::SDrawing_Filter_Inspection mDrawing_Filter_Inspection{};
-		glucose::SError_Filter_Inspection mError_Filter_Inspection{};
+		glucose::SDrawing_Filter_Inspection mDrawing_Filter_Inspection;
+		glucose::SError_Filter_Inspection mError_Filter_Inspection;
 
 		// set of all GUIDs of calculated signals that came through pipe
 		std::set<GUID> mCalculatedSignalGUIDs;

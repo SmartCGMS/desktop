@@ -1,7 +1,7 @@
 #pragma once
 
 #include "descriptor.h"
-#include "gui.h"
+#include "gui_subchain.h"
 #include "input.h"
 
 #include "../../../common/lang/dstrings.h"
