@@ -31,7 +31,7 @@ class CError_Table_Model : public QAbstractTableModel
 		int mMaxSignalRow;
 
 	public:
-		CError_Table_Model(QObject *parent);
+		explicit CError_Table_Model(QObject *parent = 0);
 		int rowCount(const QModelIndex &parent = QModelIndex()) const;
 		int columnCount(const QModelIndex &parent = QModelIndex()) const;
 		QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;

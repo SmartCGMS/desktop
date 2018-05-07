@@ -187,7 +187,7 @@ CErrors_Tab_Widget::CErrors_Tab_Widget(QWidget *parent)
 	QGridLayout *mainLayout = new QGridLayout();
 
 	mTableView = new QTableView();
-	mModel = new CError_Table_Model(nullptr);
+	mModel = new CError_Table_Model(this);
 	mTableView->setModel(mModel);
 	mainLayout->addWidget(mTableView);
 
@@ -222,7 +222,7 @@ void CErrors_Tab_Widget::Reset()
 	Q_UNUSED(loop);
 	QTimer::singleShot(0, this, [this]()
 	{
-		auto newModel = new CError_Table_Model(nullptr);
+		auto newModel = new CError_Table_Model(this);
 		mTableView->setModel(newModel);
 
 		delete mModel;

@@ -170,6 +170,9 @@ void CSimulation_Window::Setup_UI()
 	content->setLayout(layout);
 
 	setWidget(content);
+	
+	// set the window to be freed upon closing
+	setAttribute(Qt::WA_DeleteOnClose, true);
 
 	connect(mStartButton, SIGNAL(clicked()), this, SLOT(On_Start()));
 	connect(mStopButton, SIGNAL(clicked()), this, SLOT(On_Stop()));

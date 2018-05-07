@@ -123,6 +123,8 @@ void CFilters_Window::Setup_UI() {
 	
 	setWidget(splitter);
 
+	// set the window to be freed upon closing
+	setAttribute(Qt::WA_DeleteOnClose, true);
 
 	connect(btnAdd_Filter, SIGNAL(clicked()), this, SLOT(On_Add_Filter()));
 	connect(btnUp_Filter, SIGNAL(clicked()), this, SLOT(On_Move_Filter_Up()));
