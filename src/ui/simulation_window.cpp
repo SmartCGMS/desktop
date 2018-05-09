@@ -157,12 +157,12 @@ void CSimulation_Window::Setup_UI()
 
 		// log tab
 
-		mLogWidget = new CLog_Tab_Widget();
+		mLogWidget = new CLog_Tab_Widget(this);
 		mTabWidget->addTab(mLogWidget, tr(dsLog_Tab));
 
 		// errors tab
 
-		mErrorsWidget = new CErrors_Tab_Widget();
+		mErrorsWidget = new CErrors_Tab_Widget(this);
 		mTabWidget->addTab(mErrorsWidget, tr(dsErrors_Tab));
 	}
 

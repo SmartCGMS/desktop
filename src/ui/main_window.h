@@ -40,5 +40,5 @@ private slots:
 
 	void Set_Active_Sub_Window(QWidget *window);
 public:
-    CMain_Window (QWidget *parent = nullptr);  
+    CMain_Window (QWidget *parent = nullptr) noexcept;  
 };

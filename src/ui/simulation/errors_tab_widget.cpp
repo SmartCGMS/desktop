@@ -41,9 +41,7 @@ const wchar_t* gError_Column_Names[] = {
 // ensure array length
 static_assert((sizeof(gError_Column_Names) / sizeof(const wchar_t*)) == Error_Column_Count, "Column count does not match error columns defined");
 
-CError_Table_Model::CError_Table_Model(QObject *parent)
-	: QAbstractTableModel(parent), mMaxSignalRow(0)
-{
+CError_Table_Model::CError_Table_Model(QObject *parent) noexcept : QAbstractTableModel(parent), mMaxSignalRow(0) {
 }
 
 int CError_Table_Model::rowCount(const QModelIndex &idx) const
@@ -120,7 +118,7 @@ bool CError_Table_Model::insertRows(int position, int rows, const QModelIndex &i
 {
 	beginInsertRows(QModelIndex(), position, position + rows - 1);
 
-	mErrors.resize(position + 1);
+	mErrors.resize(static_cast<size_t>(position) + size_t(1));
 
 	endInsertRows();
 
@@ -181,9 +179,7 @@ void CError_Table_Model::Set_Error(const GUID& signal_id, std::wstring signal_na
 
 
 
-CErrors_Tab_Widget::CErrors_Tab_Widget(QWidget *parent)
-	: CAbstract_Simulation_Tab_Widget(parent)
-{
+CErrors_Tab_Widget::CErrors_Tab_Widget(QWidget *parent) noexcept: CAbstract_Simulation_Tab_Widget(parent) {
 	QGridLayout *mainLayout = new QGridLayout();
 
 	mTableView = new QTableView();

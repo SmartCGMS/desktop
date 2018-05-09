@@ -15,10 +15,8 @@
 /*
  * QTableView model for error values
  */
-class CError_Table_Model : public QAbstractTableModel
-{
+class CError_Table_Model : public QAbstractTableModel {
 		Q_OBJECT
-
 	protected:
 		// signal row mapping (for fast lookup)
 		std::map<GUID, int> mSignalRow;
@@ -31,7 +29,7 @@ class CError_Table_Model : public QAbstractTableModel
 		int mMaxSignalRow;
 
 	public:
-		explicit CError_Table_Model(QObject *parent = 0);
+		explicit CError_Table_Model(QObject *parent = 0) noexcept;
 		int rowCount(const QModelIndex &parent = QModelIndex()) const;
 		int columnCount(const QModelIndex &parent = QModelIndex()) const;
 		QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
@@ -59,7 +57,7 @@ class CErrors_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 		std::map<GUID, std::wstring> mSignalNames;
 
 	public:
-		explicit CErrors_Tab_Widget(QWidget *parent = 0);
+		explicit CErrors_Tab_Widget(QWidget *parent = 0) noexcept;
 
 		// updates error metrics of given signal
 		void Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type);

@@ -19,7 +19,7 @@
   #include "moc_main_window.cpp"
 #endif
 
-CMain_Window::CMain_Window(QWidget *parent) : QMainWindow(parent) {
+CMain_Window::CMain_Window(QWidget *parent) noexcept: QMainWindow(parent) {
 	Configuration.Load(mFilter_Configuration);
 
 

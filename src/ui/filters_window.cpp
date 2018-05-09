@@ -79,7 +79,7 @@ void CFilters_Window::Setup_UI() {
 	QWidget* wgtAvailable_Filters = new QWidget(this);
 
 	QVBoxLayout *lotAvailable_Filters = new QVBoxLayout{  };
-	lbxAvailable_Filters = new QListWidget{  };
+	lbxAvailable_Filters = new QListWidget{ this };
 
 	//add the available filters
 	{
