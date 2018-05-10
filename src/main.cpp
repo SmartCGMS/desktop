@@ -10,10 +10,11 @@
 
 int __cdecl main(int argc, char *argv[]) {
 
+	QApplication application(argc, argv);
 	// inject GUI-specific loaders to generic code
 	glucose::register_additional_filter(&gui::do_get_filter_descriptors, &gui::do_create_filter);
 
-	QApplication application(argc, argv);
+	
 	Configuration.Resolve_And_Load_Config_File();	//config uses QApp to determine the file path (to be platorm indepenedent) and it has to be initialized first
 
 	//create the GUI
