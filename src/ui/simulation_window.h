@@ -24,10 +24,8 @@
 /*
  * Simulation control and results window
  */
-class CSimulation_Window : public QMdiSubWindow
-{
+class CSimulation_Window : public QMdiSubWindow {
 		Q_OBJECT
-
 	private:
 		static std::atomic<CSimulation_Window*> mInstance;
 
@@ -38,15 +36,12 @@ class CSimulation_Window : public QMdiSubWindow
 		// stored errors widget
 		CErrors_Tab_Widget* mErrorsWidget;
 
-		// input filter in chain (if present)
-		std::shared_ptr<CInput_Filter> mInput_Filter;
-
 		// is simulation in progress?
 		bool mSimulationInProgress;
 
 	protected:
 		// chain holder retaining filter configuration
-		std::unique_ptr<CFilter_Chain_Manager> mFilterChainHolder;
+		std::unique_ptr<CFilter_Chain_Manager> mFilter_Chain_Manager;
 
 		// tab widget for filter outputs
 		QTabWidget* mTabWidget;
@@ -81,7 +76,8 @@ class CSimulation_Window : public QMdiSubWindow
 		void On_Suspend_Solve();
 		void On_Resume_Solve();
 		void On_Simulation_Step();
-
+	protected:
+		void Inject_Event(const glucose::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info);
 	public:
 		// factory method for singleton initialization
 		static CSimulation_Window* Show_Instance(CFilter_Chain &filter_chain, QWidget *owner);

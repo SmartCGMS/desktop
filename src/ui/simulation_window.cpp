@@ -5,6 +5,7 @@
 #include "../../../common/rtl/UILib.h"
 #include "../../../common/rtl/referencedImpl.h"
 #include "../../../../common/QtUtils.h"
+#include "../../../common/rtl/rattime.h"
 
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QMessageBox>
@@ -16,11 +17,13 @@
 #include <QtCore/QTimer>
 #include <QtCore/QEventLoop>
 
+
+
 #include "simulation/abstract_simulation_tab.h"
 #include "../filters/descriptor.h"
 
 #ifndef MOC_DIR
-#include "moc_simulation_window.cpp"
+	#include "moc_simulation_window.cpp"
 #endif
 
 std::atomic<CSimulation_Window*> CSimulation_Window::mInstance = nullptr;
@@ -44,7 +47,7 @@ CSimulation_Window* CSimulation_Window::Show_Instance(CFilter_Chain &filter_chai
 
 CSimulation_Window::CSimulation_Window(CFilter_Chain &filter_chain, QWidget *owner) : mTabWidget(nullptr), QMdiSubWindow{ owner }
 {
-	mFilterChainHolder = std::make_unique<CFilter_Chain_Manager>(filter_chain);
+	mFilter_Chain_Manager = std::make_unique<CFilter_Chain_Manager>(filter_chain);
 
 	Setup_UI();
 
@@ -76,7 +79,7 @@ bool CSimulation_Window::Is_Simulation_In_Progress() const
 
 void CSimulation_Window::Update_Filter_Chain(CFilter_Chain& filter_chain)
 {
-	mFilterChainHolder = std::make_unique<CFilter_Chain_Manager>(filter_chain);
+	mFilter_Chain_Manager = std::make_unique<CFilter_Chain_Manager>(filter_chain);
 }
 
 void CSimulation_Window::Setup_UI()
@@ -222,10 +225,10 @@ void CSimulation_Window::On_Start()
 		lay->addStretch();
 
 	// initialize and start filter holder, this will start filters
-	if (mFilterChainHolder->Init_And_Start_Filters() != S_OK)
+	if (mFilter_Chain_Manager->Init_And_Start_Filters() != S_OK)
 	{
 		// TODO: error message
-		mFilterChainHolder->Terminate_Filters();
+		mFilter_Chain_Manager->Terminate_Filters();
 		return;
 	}
 
@@ -235,54 +238,39 @@ void CSimulation_Window::On_Start()
 
 	if (mErrorsWidget)
 		mErrorsWidget->Reset();
-
-	// "find and remember" input filter
-	size_t filterCount = mFilterChainHolder->Get_Filter_Chain().size();
-	for (size_t i = 0; i < filterCount; i++)
-	{
-		auto filter_id = mFilterChainHolder->Get_Filter_Id(i);
-		if (filter_id == gui::input_filter_guid)
-			mInput_Filter = std::dynamic_pointer_cast<CInput_Filter>(mFilterChainHolder->Get_Filter(i));
-	}
 }
 
-void CSimulation_Window::On_Stop()
-{
-	mFilterChainHolder->Terminate_Filters();
+void CSimulation_Window::On_Stop() {
+	mFilter_Chain_Manager->Terminate_Filters();
 	mSimulationInProgress = false;
-	mInput_Filter = nullptr;
 	mStopButton->setEnabled(false);
 	mStartButton->setEnabled(true);
 }
 
-void CSimulation_Window::On_Solve_Params()
-{
-	if (mInput_Filter)
-		mInput_Filter->Send_Force_Solve_Parameters(Invalid_GUID, false);
+void CSimulation_Window::On_Solve_Params() {
+	Inject_Event(glucose::NDevice_Event_Code::Solve_Parameters, Invalid_GUID, nullptr);
 }
 
-void CSimulation_Window::On_Reset_And_Solve_Params()
-{
-	if (mInput_Filter)
-		mInput_Filter->Send_Force_Solve_Parameters(Invalid_GUID, true);
+void CSimulation_Window::On_Reset_And_Solve_Params() {
+	Inject_Event(glucose::NDevice_Event_Code::Solve_Parameters, Invalid_GUID, rsParameters_Reset_Request);
+	Inject_Event(glucose::NDevice_Event_Code::Solve_Parameters, Invalid_GUID, nullptr);
 }
 
-void CSimulation_Window::On_Suspend_Solve()
-{
-	if (mInput_Filter)
-		mInput_Filter->Send_Suspend_Solve_Parameters(Invalid_GUID);
+void CSimulation_Window::On_Suspend_Solve() {
+	Inject_Event(glucose::NDevice_Event_Code::Suspend_Parameter_Solving, Invalid_GUID, nullptr);
 }
 
-void CSimulation_Window::On_Resume_Solve()
-{
-	if (mInput_Filter)
-		mInput_Filter->Send_Resume_Solve_Parameters(Invalid_GUID);
+void CSimulation_Window::On_Resume_Solve() {
+	Inject_Event(glucose::NDevice_Event_Code::Resume_Parameter_Solving, Invalid_GUID, nullptr);
 }
 
-void CSimulation_Window::On_Simulation_Step()
-{
-	if (mInput_Filter)
-		mInput_Filter->Send_Simulation_Step((size_t)mStepAmountSpinBox->value());
+void CSimulation_Window::On_Simulation_Step() {
+
+	// TODO: find a better solution than sending amount in GUID
+	GUID amt{ 0 };
+	amt.Data1 = (unsigned long)mStepAmountSpinBox->value();
+
+	Inject_Event(glucose::NDevice_Event_Code::Simulation_Step, amt, nullptr);
 }
 
 CSimulation_Window* CSimulation_Window::Get_Instance()
@@ -337,4 +325,15 @@ void CSimulation_Window::Update_Solver_Progress(GUID& solver, size_t progress)
 void CSimulation_Window::Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type)
 {
 	mErrorsWidget->Update_Error_Metrics(signal_id, container, type);
+}
+
+void CSimulation_Window::Inject_Event(const glucose::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info) {
+	glucose::TDevice_Event evt;
+	evt.device_id = { 0 };
+	evt.device_time = Unix_Time_To_Rat_Time(time(nullptr));
+	evt.signal_id = signal_id;
+	evt.event_code = code;
+	evt.segment_id = 0; // TODO: support more segments
+	evt.info = info != nullptr ? refcnt::WString_To_WChar_Container(info) : nullptr;
+	mFilter_Chain_Manager->send(evt);
 }

@@ -25,16 +25,6 @@ namespace gui
 		nullptr
 	};
 
-	glucose::TFilter_Descriptor User_Input_Descriptor = {
-		input_filter_guid,
-		dsUser_Input_Filter,
-
-		0,
-		nullptr,
-		nullptr,
-		nullptr
-	};
-
 	const std::array<GUID, 3> gui_filters = {
 		glucose::Drawing_Filter,
 		glucose::Error_Filter,
@@ -51,7 +41,7 @@ namespace gui
 	bool gui_filter_descriptor_initialized = false;
 
 	// this will be filled after initialization of parameter arrays
-	static std::vector<glucose::TFilter_Descriptor> filter_descriptions = { User_Input_Descriptor };
+	static std::vector<glucose::TFilter_Descriptor> filter_descriptions  { };
 
 	// initializes filter descriptor and its parameters
 	bool init_filter_descriptor()
@@ -106,9 +96,7 @@ namespace gui
 	HRESULT IfaceCalling create_gui_filter(const GUID *id, glucose::IFilter_Pipe *input, glucose::IFilter_Pipe *output, glucose::IFilter **filter) {
 		if (*id == gui::GUI_Descriptor.id)
 			return Manufacture_Object<CGUI_Filter_Subchain>(filter, input, output);
-		else if (*id == gui::User_Input_Descriptor.id)
-			return Manufacture_Object<CInput_Filter>(filter, input, output);
-
+	
 		return ENOENT;
 	}
 }
