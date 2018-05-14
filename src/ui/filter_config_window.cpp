@@ -16,7 +16,6 @@
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QCheckBox>
 #include <QtWidgets/QComboBox>
-#include <QtWidgets/QLineEdit>
 #include <QtGui/QValidator>
 
 #include "moc_filter_config_window.cpp"
@@ -41,7 +40,7 @@ class CWChar_Container_Edit : public QLineEdit, public virtual filter_config_win
 class CDouble_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {	
 public:
 	CDouble_Container_Edit(QWidget *parent) : QLineEdit(parent) {
-		setValidator(new QDoubleValidator());
+		setValidator(new QDoubleValidator(this));
 	}
 
 	glucose::TFilter_Parameter get_parameter() {
@@ -59,26 +58,24 @@ public:
 	}
 };
 
-class CInteger_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
-public:
-	CInteger_Container_Edit(QWidget *parent) : QLineEdit(parent) {
-		setValidator(new QIntValidator());
-	}
 
-	glucose::TFilter_Parameter get_parameter() {
-		glucose::TFilter_Parameter result;
-		result.type = glucose::NParameter_Type::ptInt64;
-		bool ok;
-		result.int64 = text().toLongLong(&ok);
-		if (!ok)
-			result.int64 = 0;
-		return result;
-	}
+CInteger_Container_Edit::CInteger_Container_Edit(QWidget *parent) : QLineEdit(parent) {
+	setValidator(new QIntValidator(this));
+}
 
-	void set_parameter(const glucose::TFilter_Parameter &param) {
-		setText(QString::number(param.int64));
-	}
-};
+glucose::TFilter_Parameter CInteger_Container_Edit::get_parameter() {
+	glucose::TFilter_Parameter result;
+	result.type = glucose::NParameter_Type::ptInt64;
+	bool ok;
+	result.int64 = text().toLongLong(&ok);
+	if (!ok)
+		result.int64 = 0;
+	return result;
+}
+
+void CInteger_Container_Edit::set_parameter(const glucose::TFilter_Parameter &param) {
+	setText(QString::number(param.int64));
+}
 
 class CBoolean_Container_Edit : public QCheckBox, public virtual filter_config_window::CContainer_Edit {
 	glucose::TFilter_Parameter get_parameter() {
@@ -134,7 +131,7 @@ void CFilter_Config_Window::Setup_UI() {
 
 	setWindowTitle(QString::fromWCharArray(mDescription.description) + QString(" ") + tr(dsConfiguration));
 
-	QTabWidget *tabs = new QTabWidget{};
+	QTabWidget *tabs = new QTabWidget{this};
 
 	// model select combobox is directly connected with signal selector; here we store pointer to model selector to supply it to signal selector
 	filter_config_window::CContainer_Edit *model_select = nullptr;
@@ -143,7 +140,7 @@ void CFilter_Config_Window::Setup_UI() {
 		model_select = new CGUID_Entity_ComboBox<glucose::TModel_Descriptor, glucose::get_model_descriptors>(nullptr, glucose::NParameter_Type::ptModel_Id);
 	};
 	
-	QWidget *main_tab = new QWidget{};
+	QWidget *main_tab = new QWidget{this};
 	{
 		const int idxName_col = 0;
 		const int idxEdit_col = 1;
@@ -166,11 +163,11 @@ void CFilter_Config_Window::Setup_UI() {
 						break;
 
 					case glucose::NParameter_Type::ptDouble:
-						container = new CDouble_Container_Edit{ nullptr};
+						container = new CDouble_Container_Edit{ this};
 						break;
 
 					case glucose::NParameter_Type::ptInt64:
-						container = new CInteger_Container_Edit{ nullptr};
+						container = new CInteger_Container_Edit{ this };
 						break;
 
 					case glucose::NParameter_Type::ptBool:
@@ -178,7 +175,7 @@ void CFilter_Config_Window::Setup_UI() {
 						break;
 					
 					case glucose::NParameter_Type::ptSelect_Time_Segment_ID:
-						container = new CSelect_Time_Segment_Id_Panel{ mConfiguration, nullptr };
+						container = new CSelect_Time_Segment_Id_Panel{ mConfiguration, this };
 						break;
 
 					case glucose::NParameter_Type::ptModel_Id:
@@ -190,11 +187,11 @@ void CFilter_Config_Window::Setup_UI() {
 						break;
 
 					case glucose::NParameter_Type::ptMetric_Id:
-						container = new CGUID_Entity_ComboBox<glucose::TMetric_Descriptor, glucose::get_metric_descriptors>(nullptr, glucose::NParameter_Type::ptMetric_Id);
+						container = new CGUID_Entity_ComboBox<glucose::TMetric_Descriptor, glucose::get_metric_descriptors>(this, glucose::NParameter_Type::ptMetric_Id);
 						break;
 
 					case glucose::NParameter_Type::ptSolver_Id:
-						container = new CGUID_Entity_ComboBox<glucose::TSolver_Descriptor, glucose::get_solver_descriptors>(nullptr, glucose::NParameter_Type::ptSolver_Id);
+						container = new CGUID_Entity_ComboBox<glucose::TSolver_Descriptor, glucose::get_solver_descriptors>(this, glucose::NParameter_Type::ptSolver_Id);
 						break;
 
 					case glucose::NParameter_Type::ptModel_Signal_Id:
@@ -214,7 +211,7 @@ void CFilter_Config_Window::Setup_UI() {
 						if (!model_select)
 							create_model_select();
 
-						container = new CModel_Bounds_Panel(dynamic_cast<QComboBox*>(model_select), nullptr);
+						container = new CModel_Bounds_Panel(dynamic_cast<QComboBox*>(model_select), this);
 						break;
 				}
 

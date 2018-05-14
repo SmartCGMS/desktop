@@ -89,9 +89,9 @@ void CModel_Bounds_Panel::Reset_UI(const size_t parameter_count, const wchar_t**
 	mLayout->addWidget(new QLabel(dsDefault_Parameters), 0, 2);
 	mLayout->addWidget(new QLabel(dsUpper_Bounds), 0, 3);
 
-	auto create_edit = [](double val) -> QLineEdit* {
+	auto create_edit = [this](double val) -> QLineEdit* {
 		QLineEdit* fld = new QLineEdit(QString::number(val, 'f'));
-		auto validator = new QDoubleValidator();
+		auto validator = new QDoubleValidator(this);
 		validator->setLocale(QLocale(QLocale::English));
 		fld->setValidator(validator);
 		return fld;

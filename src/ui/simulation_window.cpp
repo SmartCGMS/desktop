@@ -258,25 +258,25 @@ void CSimulation_Window::On_Stop()
 void CSimulation_Window::On_Solve_Params()
 {
 	if (mInput_Filter)
-		mInput_Filter->Send_Force_Solve_Parameters(nullptr, false);
+		mInput_Filter->Send_Force_Solve_Parameters(Invalid_GUID, false);
 }
 
 void CSimulation_Window::On_Reset_And_Solve_Params()
 {
 	if (mInput_Filter)
-		mInput_Filter->Send_Force_Solve_Parameters(nullptr, true);
+		mInput_Filter->Send_Force_Solve_Parameters(Invalid_GUID, true);
 }
 
 void CSimulation_Window::On_Suspend_Solve()
 {
 	if (mInput_Filter)
-		mInput_Filter->Send_Suspend_Solve_Parameters(nullptr);
+		mInput_Filter->Send_Suspend_Solve_Parameters(Invalid_GUID);
 }
 
 void CSimulation_Window::On_Resume_Solve()
 {
 	if (mInput_Filter)
-		mInput_Filter->Send_Resume_Solve_Parameters(nullptr);
+		mInput_Filter->Send_Resume_Solve_Parameters(Invalid_GUID);
 }
 
 void CSimulation_Window::On_Simulation_Step()

@@ -93,23 +93,17 @@ namespace gui
 		return true;
 	}
 
-	extern "C" HRESULT IfaceCalling do_get_filter_descriptors(glucose::TFilter_Descriptor **begin, glucose::TFilter_Descriptor **end) {
+		const std::vector<glucose::TFilter_Descriptor> &get_gui_filter_descriptors() {
 
 		if (!gui::gui_filter_descriptor_initialized)
 		{
-			if (!gui::init_filter_descriptor())
-				return E_FAIL;
-
-			// after this, the descriptor should be fully available
+			if (!gui::init_filter_descriptor()) filter_descriptions.clear();
 		}
 
-		*begin = const_cast<glucose::TFilter_Descriptor*>(filter_descriptions.data());
-		*end = *begin + filter_descriptions.size();
-		return S_OK;
+		return filter_descriptions;
 	}
 
-	extern "C" HRESULT IfaceCalling do_create_filter(const GUID *id, glucose::IFilter_Pipe *input, glucose::IFilter_Pipe *output, glucose::IFilter **filter)
-	{
+	HRESULT IfaceCalling create_gui_filter(const GUID *id, glucose::IFilter_Pipe *input, glucose::IFilter_Pipe *output, glucose::IFilter **filter) {
 		if (*id == gui::GUI_Descriptor.id)
 			return Manufacture_Object<CGUI_Filter_Subchain>(filter, input, output);
 		else if (*id == gui::User_Input_Descriptor.id)

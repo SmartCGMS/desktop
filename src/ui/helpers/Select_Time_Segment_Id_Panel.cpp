@@ -34,6 +34,7 @@ glucose::TFilter_Parameter CSelect_Time_Segment_Id_Panel::get_parameter() {
 	//then, convert these ids into the array list
 
 	glucose::TFilter_Parameter result;
+	result.config_name = nullptr;
 	result.type = glucose::NParameter_Type::ptSelect_Time_Segment_ID;	
 	result.select_time_segment_id = refcnt::Create_Container<int64_t>(segment_ids.data(), segment_ids.data() + segment_ids.size());
 	return result;
@@ -111,4 +112,6 @@ void CSelect_Time_Segment_Id_Panel::apply() {
 
 		set_parameter(current_selection);		
 	}
+
+	Release_Filter_Parameter(current_selection);
 }
