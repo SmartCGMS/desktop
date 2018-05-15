@@ -50,7 +50,7 @@ namespace gui
 		
 		for (const auto &gui_filter : gui_filters) 	{
 			// if the filter fails to load, fail whole GUI filter loading routine
-			if (!glucose::get_filter_descriptors_by_id(gui_filter, desc))
+			if (!glucose::get_filter_descriptor_by_id(gui_filter, desc))
 				return false;
 
 			// append filter name as null parameter if there are some parameters - it will split configuration options in config window
@@ -94,7 +94,7 @@ namespace gui
 
 	HRESULT IfaceCalling create_gui_filter(const GUID *id, glucose::IFilter_Pipe *input, glucose::IFilter_Pipe *output, glucose::IFilter **filter) {
 		if (*id == gui::GUI_Descriptor.id)
-			return Manufacture_Object<CGUI_Filter_Subchain>(filter, input, output);
+			return Manufacture_Object<CGUI_Filter_Subchain>(filter, refcnt::make_shared_reference_ext<glucose::SFilter_Pipe, glucose::IFilter_Pipe>( input, true ), refcnt::make_shared_reference_ext<glucose::SFilter_Pipe, glucose::IFilter_Pipe>(output, false));
 	
 		return ENOENT;
 	}

@@ -21,10 +21,8 @@
 class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CReferenced
 {
 	protected:
-		// input pipe
-		glucose::IFilter_Pipe* mInput;
-		// output pipe
-		glucose::IFilter_Pipe* mOutput;
+		glucose::SFilter_Pipe mInput;
+		glucose::SFilter_Pipe mOutput;
 
 		// vector of additional pipes initialized for internally managed filters
 		std::vector<glucose::SFilter_Pipe> mFilter_Pipes;
@@ -48,7 +46,8 @@ class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CRe
 		void Run_Output();
 
 	public:
-		CGUI_Filter_Subchain(glucose::IFilter_Pipe* inpipe, glucose::IFilter_Pipe* outpipe);
+		CGUI_Filter_Subchain(glucose::SFilter_Pipe in_pipe, glucose::SFilter_Pipe out_pipe);
+		virtual ~CGUI_Filter_Subchain() {};
 
 		virtual HRESULT Run(const refcnt::IVector_Container<glucose::TFilter_Parameter> *configuration) override final;
 };

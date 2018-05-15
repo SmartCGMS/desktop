@@ -11,21 +11,21 @@
 
 #include <iostream>
 
-CGUI_Filter_Subchain::CGUI_Filter_Subchain(glucose::IFilter_Pipe* inpipe, glucose::IFilter_Pipe* outpipe)
-	: mInput(inpipe), mOutput(outpipe) {
+CGUI_Filter_Subchain::CGUI_Filter_Subchain(glucose::SFilter_Pipe in_pipe, glucose::SFilter_Pipe out_pipe)
+	: mInput(in_pipe), mOutput(out_pipe) {
 	//
 }
 
 void CGUI_Filter_Subchain::Run_Input()
 {
-	glucose::TDevice_Event evt;
+	glucose::SDevice_Event evt;
 
-	while (mInput->receive(&evt) == S_OK)
+	while (mInput.Receive(evt))
 	{
 		// here we may perform some input filtering, but that's not typical for filter input
 		// most of actions will be done in output handler (Run_Output)
 
-		if (mFilter_Pipes[0]->send(&evt) != S_OK)
+		if (!mFilter_Pipes[0].Send(evt))
 			break;
 	}
 
@@ -34,8 +34,8 @@ void CGUI_Filter_Subchain::Run_Input()
 
 	//for (auto& pipe : mFilter_Pipes)
 		//pipe->abort();
-	const glucose::TDevice_Event shut_down_event{ glucose::NDevice_Event_Code::Shut_Down };
-	mFilter_Pipes[0]->send(&shut_down_event);
+	glucose::SDevice_Event shut_down_event{ glucose::NDevice_Event_Code::Shut_Down };
+	mFilter_Pipes[0].Send(shut_down_event);
 
 
 
@@ -51,9 +51,9 @@ void CGUI_Filter_Subchain::Run_Input()
 
 void CGUI_Filter_Subchain::Run_Output()
 {
-	glucose::TDevice_Event evt;
+	glucose::SDevice_Event evt;
 
-	while (mFilter_Pipes[mFilter_Pipes.size() - 1]->receive(&evt) == S_OK)
+	while (mFilter_Pipes[mFilter_Pipes.size() - 1].Receive(evt))
 	{
 		// here we handle all messages that comes from last GUI-wrapped filter pipe
 		// this of course involves all messages that hasn't been dropped prior sending through last filter pipe
@@ -61,7 +61,7 @@ void CGUI_Filter_Subchain::Run_Output()
 		if (evt.event_code == glucose::NDevice_Event_Code::Information)
 		{
 			// handle redraw messages (drawing filter)
-			if (refcnt::WChar_Container_Equals_WString(evt.info, rsInfo_Redraw_Complete))
+			if (refcnt::WChar_Container_Equals_WString(evt.info.get(), rsInfo_Redraw_Complete))
 			{
 				CSimulation_Window* simwin = CSimulation_Window::Get_Instance();
 				if (simwin && mDrawing_Filter_Inspection)
@@ -81,11 +81,11 @@ void CGUI_Filter_Subchain::Run_Output()
 				}
 			}
 			// handle solver progress message
-			else if (refcnt::WChar_Container_Equals_WString(evt.info, rsInfo_Solver_Progress, 0, wcslen(rsInfo_Solver_Progress)))
+			else if (refcnt::WChar_Container_Equals_WString(evt.info.get(), rsInfo_Solver_Progress, 0, wcslen(rsInfo_Solver_Progress)))
 			{
 				size_t progress;
 
-				auto progStr = refcnt::WChar_Container_To_WString(evt.info);
+				auto progStr = refcnt::WChar_Container_To_WString(evt.info.get());
 
 				try
 				{
@@ -101,7 +101,7 @@ void CGUI_Filter_Subchain::Run_Output()
 					simwin->Update_Solver_Progress(evt.signal_id, progress);
 			}
 			// handle "error metrics ready" message
-			else if (refcnt::WChar_Container_Equals_WString(evt.info, rsInfo_Error_Metrics_Ready))
+			else if (refcnt::WChar_Container_Equals_WString(evt.info.get(), rsInfo_Error_Metrics_Ready))
 			{
 				CSimulation_Window* simwin = CSimulation_Window::Get_Instance();
 				if (simwin && mError_Filter_Inspection)
@@ -125,17 +125,22 @@ void CGUI_Filter_Subchain::Run_Output()
 
 		// TODO: log filter output to log tab
 
-		if (mOutput->send(&evt) != S_OK)
+		if (!mOutput.Send(evt))
 			break;
 	}
 }
 
 HRESULT CGUI_Filter_Subchain::Run(const refcnt::IVector_Container<glucose::TFilter_Parameter> *configuration) {
 	
+	//TODO: re-engineer not to duplicate filter chain manager's functionality - it does the same!
+
 	// initialize pipes
 	mFilter_Pipes.clear();
-	for (size_t i = 0; i < gui::gui_filters.size() + 1; i++)
-		mFilter_Pipes.push_back(glucose::create_filter_pipe());
+	for (size_t i = 0; i < gui::gui_filters.size() + 1; i++) {
+		glucose::SFilter_Pipe pipe{};
+		if (!pipe) return E_FAIL;
+		mFilter_Pipes.push_back(std::move(pipe));
+	}		
 
 	glucose::TFilter_Descriptor desc{0};
 
@@ -148,7 +153,7 @@ HRESULT CGUI_Filter_Subchain::Run(const refcnt::IVector_Container<glucose::TFilt
 	for (size_t i = 0; i < gui::gui_filters.size(); i++)	
 	{
 		const GUID &filter_id = gui::gui_filters[i];
-		glucose::get_filter_descriptors_by_id(filter_id, desc);
+		glucose::get_filter_descriptor_by_id(filter_id, desc);
 
 		// try to create filter
 		auto filter = glucose::create_filter(filter_id, mFilter_Pipes[i], mFilter_Pipes[i + 1]);
@@ -193,6 +198,6 @@ HRESULT CGUI_Filter_Subchain::Run(const refcnt::IVector_Container<glucose::TFilt
 
 	mOutput_Thread = std::make_unique<std::thread>(&CGUI_Filter_Subchain::Run_Output, this);
 	Run_Input();
-
+	
 	return S_OK;
 }
