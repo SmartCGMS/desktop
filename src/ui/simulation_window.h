@@ -15,7 +15,6 @@
 #include "../../../common/desktop-console/filter_chain.h"
 #include "../../../common/desktop-console/filter_chain_manager.h"
 #include "../filters/descriptor.h"
-#include "../filters/input.h"
 
 #include "simulation/log_tab_widget.h"
 #include "simulation/drawing_tab_widget.h"

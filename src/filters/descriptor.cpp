@@ -2,7 +2,6 @@
 
 #include "descriptor.h"
 #include "gui_subchain.h"
-#include "input.h"
 
 #include "../../../common/lang/dstrings.h"
 #include "../../../common/rtl/manufactory.h"
