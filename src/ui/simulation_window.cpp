@@ -329,10 +329,9 @@ void CSimulation_Window::Update_Error_Metrics(const GUID& signal_id, glucose::TE
 
 void CSimulation_Window::Inject_Event(const glucose::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info) {
 	glucose::SDevice_Event evt{ code };
-	evt.device_id = { 0 };
-	evt.device_time = Unix_Time_To_Rat_Time(time(nullptr));
+	evt.device_id = { 0 };	
 	evt.signal_id = signal_id;	
 	evt.segment_id = 0; // TODO: support more segments
-	evt.info = refcnt::Create_Container_shared<wchar_t>(info, info + wcslen(info));
+	evt.info = refcnt::WString_To_WChar_Container_shared(info);		
 	mFilter_Chain_Manager->Send(evt);
 }
