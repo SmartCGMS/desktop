@@ -18,7 +18,7 @@ CGUI_Filter_Subchain::CGUI_Filter_Subchain(glucose::SFilter_Pipe in_pipe, glucos
 
 void CGUI_Filter_Subchain::Run_Input()
 {
-	glucose::SDevice_Event evt;
+	glucose::UDevice_Event evt;
 
 	while (mInput.Receive(evt))
 	{
@@ -34,7 +34,7 @@ void CGUI_Filter_Subchain::Run_Input()
 
 	//for (auto& pipe : mFilter_Pipes)
 		//pipe->abort();
-	glucose::SDevice_Event shut_down_event{ glucose::NDevice_Event_Code::Shut_Down };
+	glucose::UDevice_Event shut_down_event{ glucose::NDevice_Event_Code::Shut_Down };
 	mFilter_Pipes[0].Send(shut_down_event);
 
 
@@ -51,7 +51,7 @@ void CGUI_Filter_Subchain::Run_Input()
 
 void CGUI_Filter_Subchain::Run_Output()
 {
-	glucose::SDevice_Event evt;
+	glucose::UDevice_Event evt;
 
 	while (mFilter_Pipes[mFilter_Pipes.size() - 1].Receive(evt))
 	{
@@ -61,7 +61,7 @@ void CGUI_Filter_Subchain::Run_Output()
 		if (evt.event_code == glucose::NDevice_Event_Code::Information)
 		{
 			// handle redraw messages (drawing filter)
-			if (refcnt::WChar_Container_Equals_WString(evt.info.get(), rsInfo_Redraw_Complete))
+			if (evt.info == rsInfo_Redraw_Complete)
 			{
 				CSimulation_Window* simwin = CSimulation_Window::Get_Instance();
 				if (simwin && mDrawing_Filter_Inspection)
@@ -81,7 +81,7 @@ void CGUI_Filter_Subchain::Run_Output()
 				}
 			}
 			// handle solver progress message
-			else if (refcnt::WChar_Container_Equals_WString(evt.info.get(), rsInfo_Solver_Progress, 0, wcslen(rsInfo_Solver_Progress)))
+			else if (evt.info == rsInfo_Solver_Progress)
 			{
 				size_t progress;
 
@@ -101,7 +101,7 @@ void CGUI_Filter_Subchain::Run_Output()
 					simwin->Update_Solver_Progress(evt.signal_id, progress);
 			}
 			// handle "error metrics ready" message
-			else if (refcnt::WChar_Container_Equals_WString(evt.info.get(), rsInfo_Error_Metrics_Ready))
+			else if (evt.info == rsInfo_Error_Metrics_Ready)
 			{
 				CSimulation_Window* simwin = CSimulation_Window::Get_Instance();
 				if (simwin && mError_Filter_Inspection)
