@@ -16,12 +16,9 @@ CGUI_Filter_Subchain::CGUI_Filter_Subchain(glucose::SFilter_Pipe in_pipe, glucos
 	//
 }
 
-void CGUI_Filter_Subchain::Run_Input()
-{
-	glucose::UDevice_Event evt;
+void CGUI_Filter_Subchain::Run_Input() {
 
-	while (mInput.Receive(evt))
-	{
+	for (glucose::UDevice_Event evt = mInput.Receive(); ;evt) {
 		// here we may perform some input filtering, but that's not typical for filter input
 		// most of actions will be done in output handler (Run_Output)
 
@@ -49,12 +46,9 @@ void CGUI_Filter_Subchain::Run_Input()
 		mOutput_Thread->join();
 }
 
-void CGUI_Filter_Subchain::Run_Output()
-{
-	glucose::UDevice_Event evt;
+void CGUI_Filter_Subchain::Run_Output() {
 
-	while (mFilter_Pipes[mFilter_Pipes.size() - 1].Receive(evt))
-	{
+	for (glucose::UDevice_Event evt = mFilter_Pipes[mFilter_Pipes.size() - 1].Receive(); ;evt) 	{
 		// here we handle all messages that comes from last GUI-wrapped filter pipe
 		// this of course involves all messages that hasn't been dropped prior sending through last filter pipe
 
