@@ -31,8 +31,8 @@ void CGUI_Filter_Subchain::Run_Input() {
 
 	//for (auto& pipe : mFilter_Pipes)
 		//pipe->abort();
-	glucose::UDevice_Event shut_down_event{ glucose::NDevice_Event_Code::Shut_Down };
-	mFilter_Pipes[0].Send(shut_down_event);
+	//glucose::UDevice_Event shut_down_event{ glucose::NDevice_Event_Code::Shut_Down };	-- should be already forwarded
+	//mFilter_Pipes[0].Send(shut_down_event);
 
 
 
