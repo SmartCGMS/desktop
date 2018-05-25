@@ -94,7 +94,7 @@ void CSelect_Time_Segment_Id_Panel::apply() {
 	if (mDb->open()) {
 
 		mSegmentsQuery = std::make_unique<QSqlQuery>(*mDb.get());
-		mSegmentsQuery->prepare(rsSelect_Subjects_And_Segments_For_Db_Reader_Filter);
+		mSegmentsQuery->prepare(QString::fromWCharArray(rsSelect_Subjects_And_Segments_For_Db_Reader_Filter));
 		mSegmentsQuery->exec();
 
 		mSegmentsModel = std::make_unique<QSqlQueryModel>();
