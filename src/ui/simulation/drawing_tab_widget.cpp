@@ -9,6 +9,7 @@
 #include <QtWidgets/QScrollBar>
 #include <QtGui/QWheelEvent>
 
+#include <iostream>
 #include <fstream>
 
 #include <QtCore/QTimer>
@@ -56,34 +57,41 @@ void CDrawing_Tab_Widget::Drawing_Callback(const glucose::TDrawing_Image_Type ty
 
 	std::unique_lock<std::mutex> lck(mDrawMtx);
 
+	bool startTimer = (mSvgContents.size() == 0);
+
 	mSvgContents = svg;
 
-	QEventLoop loop;
-	Q_UNUSED(loop);
-	QTimer::singleShot(0, this, [this]()
+	if (startTimer)
 	{
-		// lock scope
+		QEventLoop loop;
+		Q_UNUSED(loop);
+		QTimer::singleShot(0, this, [this]()
 		{
-			std::unique_lock<std::mutex> lck(mDrawMtx);
+			// lock scope
+			{
+				std::unique_lock<std::mutex> lck(mDrawMtx);
 
-			mRenderer->load(QByteArray::fromStdString(mSvgContents));
-		}
+				mRenderer->load(QByteArray::fromStdString(mSvgContents));
 
-		if (mItem)
-			delete mItem;
+				mSvgContents = "";
+			}
 
-		mScene->clear();
-		mView->viewport()->update();
+			if (mItem)
+				delete mItem;
 
-		mItem = new QGraphicsSvgItem();
-		mItem->setSharedRenderer(mRenderer);
-		mItem->setFlags(QGraphicsItem::ItemClipsToShape);
-		mItem->setCacheMode(QGraphicsItem::NoCache);
-		mItem->setZValue(0);
+			mScene->clear();
+			mView->viewport()->update();
 
-		mScene->addItem(mItem);
-		mView->fitInView(mItem, Qt::AspectRatioMode::KeepAspectRatio);
-	});
+			mItem = new QGraphicsSvgItem();
+			mItem->setSharedRenderer(mRenderer);
+			mItem->setFlags(QGraphicsItem::ItemClipsToShape);
+			mItem->setCacheMode(QGraphicsItem::NoCache);
+			mItem->setZValue(0);
+
+			mScene->addItem(mItem);
+			mView->fitInView(mItem, Qt::AspectRatioMode::KeepAspectRatio);
+		});
+	}
 }
 
 void CDrawing_Tab_Widget::Do_Zoom(bool in)

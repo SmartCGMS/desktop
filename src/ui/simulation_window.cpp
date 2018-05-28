@@ -154,9 +154,13 @@ void CSimulation_Window::Setup_UI()
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Parkes));
 
-		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Agp);
+		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::AGP);
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_AGP));
+
+		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::ECDF);
+		mDrawingWidgets.push_back(tab);
+		mTabWidget->addTab(tab, tr(dsDrawing_Tab_ECDF));
 
 		// log tab
 

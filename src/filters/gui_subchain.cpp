@@ -108,6 +108,14 @@ void CGUI_Filter_Subchain::Run_Output() {
 								simwin->Update_Error_Metrics(signal_id, err, static_cast<glucose::NError_Type>(i));
 						}
 					}
+
+					for (auto& signal_id : glucose::signal_Virtual)
+					{
+						for (size_t i = 0; i < static_cast<size_t>(glucose::NError_Type::count); i++) {
+							if (mError_Filter_Inspection->Get_Errors(&signal_id, static_cast<glucose::NError_Type>(i), &err) == S_OK)
+								simwin->Update_Error_Metrics(signal_id, err, static_cast<glucose::NError_Type>(i));
+						}
+					}
 				}
 			}
 		}
@@ -132,9 +140,10 @@ HRESULT CGUI_Filter_Subchain::Run(const refcnt::IVector_Container<glucose::TFilt
 	mFilter_Pipes.clear();
 	for (size_t i = 0; i < gui::gui_filters.size() + 1; i++) {
 		glucose::SFilter_Pipe pipe{};
-		if (!pipe) return E_FAIL;
+		if (!pipe)
+			return E_FAIL;
 		mFilter_Pipes.push_back(std::move(pipe));
-	}		
+	}
 
 	glucose::TFilter_Descriptor desc{0};
 
@@ -144,7 +153,7 @@ HRESULT CGUI_Filter_Subchain::Run(const refcnt::IVector_Container<glucose::TFilt
 		param_begin = param_end = nullptr;
 
 	mFilters.clear();
-	for (size_t i = 0; i < gui::gui_filters.size(); i++)	
+	for (size_t i = 0; i < gui::gui_filters.size(); i++)
 	{
 		const GUID &filter_id = gui::gui_filters[i];
 		glucose::get_filter_descriptor_by_id(filter_id, desc);
@@ -152,20 +161,18 @@ HRESULT CGUI_Filter_Subchain::Run(const refcnt::IVector_Container<glucose::TFilt
 		// try to create filter
 		auto filter = glucose::create_filter(filter_id, mFilter_Pipes[i], mFilter_Pipes[i + 1]);
 		if (!filter)
-		{
-	//		std::wcerr << "ERROR: could not create filter " << desc.description << std::endl;
 			return ENODEV;
-		}
 
 		//we've got the filter, is it an inspectionable one?
 		if (filter_id == glucose::Drawing_Filter) 
-			mDrawing_Filter_Inspection = glucose::SDrawing_Filter_Inspection(filter);		
+			mDrawing_Filter_Inspection = glucose::SDrawing_Filter_Inspection(filter);
 		else if (filter_id == glucose::Error_Filter)
 			mError_Filter_Inspection = glucose::SError_Filter_Inspection(filter);
 
 	
 		std::shared_ptr<refcnt::IVector_Container<glucose::TFilter_Parameter>> params;
-		if (param_begin != nullptr) {
+		if (param_begin != nullptr)
+		{
 			// skip null parameters (config headers)
 			while (param_begin != param_end && param_begin->type == glucose::NParameter_Type::ptNull)
 				param_begin += 1;
@@ -178,17 +185,14 @@ HRESULT CGUI_Filter_Subchain::Run(const refcnt::IVector_Container<glucose::TFilt
 
 		// configure filter using loaded configuration and start the filter thread
 		mFilter_Threads.push_back(std::make_unique<std::thread>([params, filter, desc, &filter_id]() {
-			HRESULT hres = filter->Run(params.get());
-			//if (hres != S_OK)
-				//std::wcerr << "ERROR: could not configure filter " << desc.description << ", error: " << hres << std::endl;
+			/*HRESULT hres = */filter->Run(params.get());
 		}));
 
 		// add filter to vector
 		mFilters.push_back(filter);
-		//std::wcerr << "GUI #" << i << ": " << desc.description << std::endl;
 	}
 
-	// start filter sub-chain	
+	// start filter sub-chain
 
 	mOutput_Thread = std::make_unique<std::thread>(&CGUI_Filter_Subchain::Run_Output, this);
 	Run_Input();
