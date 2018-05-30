@@ -15,7 +15,8 @@ int __cdecl main(int argc, char *argv[]) {
 	glucose::add_filters(gui::get_gui_filter_descriptors(), &gui::create_gui_filter);
 
 	
-	Configuration.Resolve_And_Load_Config_File();	//config uses QApp to determine the file path (to be platorm indepenedent) and it has to be initialized first
+	Configuration.Resolve_And_Load_Config_File(argc > 1 ? std::wstring{ argv[1], argv[1] + strlen(argv[1]) } : std::wstring{});	//config uses QApp to determine the file path (to be platorm indepenedent) and it has to be initialized first
+																															//but it tries to load custom config as well
 
 	//create the GUI
 	CMain_Window main_window{};
