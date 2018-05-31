@@ -132,7 +132,7 @@ void CGUI_Filter_Subchain::Run_Output() {
 	}
 }
 
-HRESULT CGUI_Filter_Subchain::Run(const refcnt::IVector_Container<glucose::TFilter_Parameter> *configuration) {
+HRESULT CGUI_Filter_Subchain::Run(refcnt::IVector_Container<glucose::TFilter_Parameter>* const configuration) {
 	
 	//TODO: re-engineer not to duplicate filter chain manager's functionality - it does the same!
 

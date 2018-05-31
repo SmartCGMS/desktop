@@ -49,7 +49,7 @@ class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CRe
 		CGUI_Filter_Subchain(glucose::SFilter_Pipe in_pipe, glucose::SFilter_Pipe out_pipe);
 		virtual ~CGUI_Filter_Subchain() {};
 
-		virtual HRESULT Run(const refcnt::IVector_Container<glucose::TFilter_Parameter> *configuration) override final;
+		virtual HRESULT Run(refcnt::IVector_Container<glucose::TFilter_Parameter>* const configuration) override;
 };
 
 #pragma warning( pop )
