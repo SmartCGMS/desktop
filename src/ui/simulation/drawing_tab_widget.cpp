@@ -14,12 +14,24 @@
 
 #include <QtCore/QTimer>
 #include <QtCore/QEventLoop>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QFileDialog>
 
 #include "moc_drawing_tab_widget.cpp"
 
 constexpr qreal Minimum_Zoom = 1.1;
 constexpr qreal Zoom_Step = 0.5;
 constexpr qreal Maximum_Zoom = 10.0;
+
+// array of default names for image files by type
+static const std::array<const char*, static_cast<size_t>(glucose::TDrawing_Image_Type::count)> Default_Filename_For_Type = {
+	dsSave_Image_Default_Filename_Graph,
+	dsSave_Image_Default_Filename_Day,
+	dsSave_Image_Default_Filename_Parkes,
+	dsSave_Image_Default_Filename_Clark,
+	dsSave_Image_Default_Filename_AGP,
+	dsSave_Image_Default_Filename_ECDF
+};
 
 CDrawing_Tab_Widget::CDrawing_Tab_Widget(const glucose::TDrawing_Image_Type type, QWidget *parent)
 	: CAbstract_Simulation_Tab_Widget(parent), mType(type), mItem(nullptr)
@@ -33,6 +45,9 @@ CDrawing_Tab_Widget::CDrawing_Tab_Widget(const glucose::TDrawing_Image_Type type
 	QGridLayout *mainLayout = new QGridLayout;
 	mainLayout->addWidget(mView);
 	setLayout(mainLayout);
+
+	setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(Show_Context_Menu(const QPoint&)));
 }
 
 CDrawing_Tab_Widget::~CDrawing_Tab_Widget()
@@ -57,12 +72,12 @@ void CDrawing_Tab_Widget::Drawing_Callback(const glucose::TDrawing_Image_Type ty
 
 	std::unique_lock<std::mutex> lck(mDrawMtx);
 
-	bool startTimer = (mSvgContents.size() == 0);
-
 	mSvgContents = svg;
 
-	if (startTimer)
+	if (!mDefered_Work)
 	{
+		mDefered_Work = true;
+
 		QEventLoop loop;
 		Q_UNUSED(loop);
 		QTimer::singleShot(0, this, [this]()
@@ -73,7 +88,7 @@ void CDrawing_Tab_Widget::Drawing_Callback(const glucose::TDrawing_Image_Type ty
 
 				mRenderer->load(QByteArray::fromStdString(mSvgContents));
 
-				mSvgContents = "";
+				mDefered_Work = false;
 			}
 
 			if (mItem)
@@ -113,4 +128,21 @@ void CDrawing_Tab_Widget::Do_Zoom(bool in)
 		mCurrZoom = Maximum_Zoom;
 
 	mItem->setTransform(QTransform::fromScale(mCurrZoom, mCurrZoom));
+}
+
+void CDrawing_Tab_Widget::Show_Context_Menu(const QPoint& pos)
+{
+	QPoint globalPos = mapToGlobal(pos);
+
+	QMenu myMenu;
+	myMenu.addAction(dsSave_Image_To_File, [this]() {
+		auto path = QFileDialog::getSaveFileName(this, tr(dsSave_Image_To_File), Default_Filename_For_Type[static_cast<size_t>(mType)], tr(dsSave_Image_Ext_Spec));
+		if (path.length() != 0)
+		{
+			std::ofstream fs(path.toStdString());
+			fs.write(mSvgContents.c_str(), mSvgContents.size());
+		}
+	});
+
+	myMenu.exec(globalPos);
 }

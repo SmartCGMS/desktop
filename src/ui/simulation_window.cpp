@@ -256,7 +256,7 @@ void CSimulation_Window::On_Solve_Params() {
 }
 
 void CSimulation_Window::On_Reset_And_Solve_Params() {
-	Inject_Event(glucose::NDevice_Event_Code::Solve_Parameters, Invalid_GUID, rsParameters_Reset_Request);
+	Inject_Event(glucose::NDevice_Event_Code::Information, Invalid_GUID, rsParameters_Reset_Request);
 	Inject_Event(glucose::NDevice_Event_Code::Solve_Parameters, Invalid_GUID, nullptr);
 }
 
@@ -333,7 +333,7 @@ void CSimulation_Window::Update_Error_Metrics(const GUID& signal_id, glucose::TE
 
 void CSimulation_Window::Inject_Event(const glucose::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info) {
 	glucose::UDevice_Event evt{ code };
-	evt.signal_id = signal_id;	
+	evt.signal_id = signal_id;
 	evt.info.set(info);
 	mFilter_Chain_Manager->Send(evt);
 }

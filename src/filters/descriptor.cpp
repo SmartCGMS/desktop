@@ -94,7 +94,7 @@ namespace gui
 
 	HRESULT IfaceCalling create_gui_filter(const GUID *id, glucose::IFilter_Pipe *input, glucose::IFilter_Pipe *output, glucose::IFilter **filter) {
 		if (*id == gui::GUI_Descriptor.id)
-			return Manufacture_Object<CGUI_Filter_Subchain>(filter, refcnt::make_shared_reference_ext<glucose::SFilter_Pipe, glucose::IFilter_Pipe>( input, true ), refcnt::make_shared_reference_ext<glucose::SFilter_Pipe, glucose::IFilter_Pipe>(output, false));
+			return Manufacture_Object<CGUI_Filter_Subchain>(filter, refcnt::make_shared_reference_ext<glucose::SFilter_Pipe, glucose::IFilter_Pipe>( input, true ), refcnt::make_shared_reference_ext<glucose::SFilter_Pipe, glucose::IFilter_Pipe>(output, true));
 	
 		return ENOENT;
 	}
