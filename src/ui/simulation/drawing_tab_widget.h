@@ -45,7 +45,7 @@ class CDrawing_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 		// is there something to be drawn, but timer didn't hit yet?
 		bool mDefered_Work = false;
 
-	private slots:
+	protected slots:
 		void Show_Context_Menu(const QPoint& pos);
 
 	public:
