@@ -17,6 +17,7 @@
 #include <QtWidgets/QCheckBox>
 #include <QtWidgets/QComboBox>
 #include <QtGui/QValidator>
+#include <QtWidgets/QDateTimeEdit>
 
 #include "moc_filter_config_window.cpp"
 
@@ -55,6 +56,39 @@ public:
 
 	void set_parameter(const glucose::TFilter_Parameter &param) {
 		setText(QString::number(param.dbl));
+	}
+};
+
+class CRatTime_Container_Edit : public QDateTimeEdit, public virtual filter_config_window::CContainer_Edit {
+protected:
+	const double MSecsPerDay = 24.0*60.0*60.0*1000.0;
+	const double InvMSecsPerDay = 1.0 / MSecsPerDay;
+
+	double QTime2RatTime(const QTime &qdt) {
+		const size_t msecs = qdt.msecsSinceStartOfDay();
+		return static_cast<double>(msecs)*InvMSecsPerDay;
+	}
+
+	QTime rattime2QTime(const double rt) {
+		QTime tmp(0, 0, 0, 0);
+		return tmp.addMSecs((int)(rt*MSecsPerDay));
+	}
+
+public:
+	CRatTime_Container_Edit(QWidget *parent) : QDateTimeEdit(parent) {		
+		setDisplayFormat(rsRattime_Edit_Mask);
+	}
+
+	glucose::TFilter_Parameter get_parameter() {
+		glucose::TFilter_Parameter result;
+		result.type = glucose::NParameter_Type::ptRatTime;
+
+		result.dbl = QTime2RatTime(time());
+		return result;
+	}
+
+	void set_parameter(const glucose::TFilter_Parameter &param) {
+		setTime(rattime2QTime(param.dbl));
 	}
 };
 
@@ -164,6 +198,10 @@ void CFilter_Config_Window::Setup_UI() {
 
 					case glucose::NParameter_Type::ptDouble:
 						container = new CDouble_Container_Edit{ this};
+						break;
+
+					case glucose::NParameter_Type::ptRatTime:
+						container = new CRatTime_Container_Edit{ this };
 						break;
 
 					case glucose::NParameter_Type::ptInt64:
