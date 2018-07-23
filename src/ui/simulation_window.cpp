@@ -117,6 +117,9 @@ void CSimulation_Window::Setup_UI()
 		mStepAmountSpinBox->setSingleStep(1);
 		gpBoxLayout->addWidget(mStepAmountSpinBox);
 
+		QLabel* stepUnitLabel = new QLabel(tr(dsStepUnit));
+		gpBoxLayout->addWidget(stepUnitLabel);
+
 		mSimulationStepButton = new QPushButton{ tr(dsStep) };
 		gpBoxLayout->addWidget(mSimulationStepButton);
 	}
@@ -288,7 +291,7 @@ void CSimulation_Window::Drawing_Callback(const glucose::TDrawing_Image_Type typ
 		wg->Drawing_Callback(type, diagnosis, image_data);
 }
 
-void CSimulation_Window::Log_Callback(const wchar_t* message)
+void CSimulation_Window::Log_Callback(const std::wstring &message)
 {
 	mLogWidget->Log_Message(message);
 }

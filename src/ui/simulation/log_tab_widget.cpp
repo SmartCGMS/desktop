@@ -25,7 +25,7 @@ CLog_Tab_Widget::CLog_Tab_Widget(QWidget *parent)
 	setLayout(mainLayout);
 }
 
-void CLog_Tab_Widget::Log_Message(const wchar_t* msg)
+void CLog_Tab_Widget::Log_Message(const std::wstring &msg)
 {
 	// copy, then pass by value
 	std::wstring logmsg(msg);
