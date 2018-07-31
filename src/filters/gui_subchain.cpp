@@ -66,9 +66,10 @@ void CGUI_Filter_Subchain::Run_Updater()
 			CSimulation_Window* simwin = CSimulation_Window::Get_Instance();
 			if (simwin && mLog_Filter_Inspection)
 			{
-				auto line = refcnt::Create_Container_shared<wchar_t>(nullptr, nullptr);
-				while (mLog_Filter_Inspection->Get_Buffered_Log_Line(line.get()) == S_OK)
-					simwin->Log_Callback(refcnt::WChar_Container_To_WString(line.get()));
+				std::shared_ptr<refcnt::wstr_list> lines;				
+				while (lines = mLog_Filter_Inspection.pop()) {
+					simwin->Log_Callback(lines);
+				}					
 			}
 		}
 
@@ -180,12 +181,7 @@ HRESULT CGUI_Filter_Subchain::Run(refcnt::IVector_Container<glucose::TFilter_Par
 		else if (filter_id == glucose::Error_Filter)
 			mError_Filter_Inspection = glucose::SError_Filter_Inspection(filter);
 		else if (filter_id == glucose::Log_Filter)
-		{
 			mLog_Filter_Inspection = glucose::SLog_Filter_Inspection(filter);
-			// start buffering in log filter
-			if (mLog_Filter_Inspection)
-				mLog_Filter_Inspection->Set_Buffering(true);
-		}
 
 		std::shared_ptr<refcnt::IVector_Container<glucose::TFilter_Parameter>> params;
 		if (param_begin != nullptr)

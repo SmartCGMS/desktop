@@ -89,7 +89,7 @@ class CSimulation_Window : public QMdiSubWindow {
 		void Update_Filter_Chain(CFilter_Chain& filter_chain);
 
 		void Drawing_Callback(const glucose::TDrawing_Image_Type type, const glucose::TDiagnosis diagnosis, const std::string &svg);
-		void Log_Callback(const std::wstring &message);
+		void Log_Callback(std::shared_ptr<refcnt::wstr_list> messages);
 		void Update_Solver_Progress(GUID& solver, size_t progress);
 		void Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type);
 };
