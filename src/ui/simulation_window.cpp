@@ -292,11 +292,11 @@ void CSimulation_Window::Drawing_Callback(const glucose::TDrawing_Image_Type typ
 }
 
 void CSimulation_Window::Log_Callback(std::shared_ptr<refcnt::wstr_list> messages) {
-	refcnt::wstr_container *begin, *end;
+	refcnt::wstr_container **begin, **end;
 	if (messages) {
 		if (messages->get(&begin, &end) == S_OK) {
 			for (auto iter = begin; iter != end; iter++) {				
-				mLogWidget->Log_Message(refcnt::WChar_Container_To_WString(iter));
+				mLogWidget->Log_Message(refcnt::WChar_Container_To_WString(*iter));
 			}
 		}
 	}
