@@ -51,6 +51,7 @@ class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CRe
 		std::mutex mUpdater_Mtx;
 		// condition variable of periodic updater
 		std::condition_variable mUpdater_Cv;
+		std::atomic<bool> mChange_Available;	//flag to know whether to resume the updating thread
 
 		// is the subchain still running?
 		bool mRunning;

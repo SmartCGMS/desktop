@@ -16,12 +16,16 @@ CGUI_Filter_Subchain::CGUI_Filter_Subchain(glucose::SFilter_Pipe in_pipe, glucos
 
 void CGUI_Filter_Subchain::Run_Input() {
 
+	mChange_Available = false;
+
 	for (; glucose::UDevice_Event evt = mInput.Receive(); evt) {
 		// here we may perform some input filtering, but that's not typical for filter input
 		// most of actions will be done in output handler (Run_Output)
 
 		if (!mFilter_Pipes[0].Send(evt))
 			break;
+
+		mChange_Available = true;
 	}
 
 	// all pipes are aborted automatically, since the outer code propagates Shut_Down message through them
@@ -37,44 +41,50 @@ void CGUI_Filter_Subchain::Run_Input() {
 
 void CGUI_Filter_Subchain::Run_Updater()
 {
-	while (mRunning)
-	{
-		std::unique_lock<std::mutex> lck(mUpdater_Mtx);
+	while (mRunning) {			
+		if (mChange_Available.exchange(false)) {	//update if there was a change
 
-		// update drawing
-		{
-			CSimulation_Window* simwin = CSimulation_Window::Get_Instance();
-			if (simwin && mDrawing_Filter_Inspection)
+			std::unique_lock<std::mutex> lck(mUpdater_Mtx);
+
+			// update drawing
 			{
-				auto svg = refcnt::Create_Container_shared<char>(nullptr, nullptr);
-
-				for (size_t type = 0; type < (size_t)glucose::TDrawing_Image_Type::count; type++)
+				CSimulation_Window* simwin = CSimulation_Window::Get_Instance();
+				if (simwin && mDrawing_Filter_Inspection)
 				{
-					if (mDrawing_Filter_Inspection->Draw((glucose::TDrawing_Image_Type)type, glucose::TDiagnosis::NotSpecified, svg.get()) == S_OK)
-						simwin->Drawing_Callback((glucose::TDrawing_Image_Type)type, glucose::TDiagnosis::NotSpecified, refcnt::Char_Container_To_String(svg.get()));
+					auto svg = refcnt::Create_Container_shared<char>(nullptr, nullptr);
+
+					for (size_t type = 0; type < (size_t)glucose::TDrawing_Image_Type::count; type++)
+					{
+						if (mDrawing_Filter_Inspection->Draw((glucose::TDrawing_Image_Type)type, glucose::TDiagnosis::NotSpecified, svg.get()) == S_OK)
+							simwin->Drawing_Callback((glucose::TDrawing_Image_Type)type, glucose::TDiagnosis::NotSpecified, refcnt::Char_Container_To_String(svg.get()));
+					}
+
+					// special drawing - e.g. Parkes' error grid for type 2 diabetes
+
+					if (mDrawing_Filter_Inspection->Draw(glucose::TDrawing_Image_Type::Parkes, glucose::TDiagnosis::Type2, svg.get()) == S_OK)
+						simwin->Drawing_Callback(glucose::TDrawing_Image_Type::Parkes, glucose::TDiagnosis::Type2, refcnt::Char_Container_To_String(svg.get()));
 				}
-
-				// special drawing - e.g. Parkes' error grid for type 2 diabetes
-
-				if (mDrawing_Filter_Inspection->Draw(glucose::TDrawing_Image_Type::Parkes, glucose::TDiagnosis::Type2, svg.get()) == S_OK)
-					simwin->Drawing_Callback(glucose::TDrawing_Image_Type::Parkes, glucose::TDiagnosis::Type2, refcnt::Char_Container_To_String(svg.get()));
 			}
-		}
 
-		// update log
-		{
-			CSimulation_Window* simwin = CSimulation_Window::Get_Instance();
-			if (simwin && mLog_Filter_Inspection)
+			// update log
 			{
-				std::shared_ptr<refcnt::wstr_list> lines;				
-				while (lines = mLog_Filter_Inspection.pop()) {
-					simwin->Log_Callback(lines);
-				}					
-			}
+				CSimulation_Window* simwin = CSimulation_Window::Get_Instance();
+				if (simwin && mLog_Filter_Inspection)
+				{
+					std::shared_ptr<refcnt::wstr_list> lines;
+					while (mLog_Filter_Inspection.pop(lines)) {
+						simwin->Log_Callback(lines);
+					}
+				}
+			}		
 		}
 
-		// TODO: configurable delay, maybe even during simulation?
-		mUpdater_Cv.wait_for(lck, std::chrono::milliseconds(GUI_Subchain_Default_Drawing_Update));
+		{
+			//wait some time to save cpu time
+			std::unique_lock<std::mutex> lck(mUpdater_Mtx);
+			// TODO: configurable delay, maybe even during simulation?
+			mUpdater_Cv.wait_for(lck, std::chrono::milliseconds(GUI_Subchain_Default_Drawing_Update));
+		}
 	}
 }
 
@@ -177,11 +187,11 @@ HRESULT CGUI_Filter_Subchain::Run(refcnt::IVector_Container<glucose::TFilter_Par
 
 		//we've got the filter, is it an inspectionable one?
 		if (filter_id == glucose::Drawing_Filter)
-			mDrawing_Filter_Inspection = glucose::SDrawing_Filter_Inspection(filter);
+			mDrawing_Filter_Inspection = glucose::SDrawing_Filter_Inspection{ filter };
 		else if (filter_id == glucose::Error_Filter)
-			mError_Filter_Inspection = glucose::SError_Filter_Inspection(filter);
+			mError_Filter_Inspection = glucose::SError_Filter_Inspection{ filter	};
 		else if (filter_id == glucose::Log_Filter)
-			mLog_Filter_Inspection = glucose::SLog_Filter_Inspection(filter);
+			mLog_Filter_Inspection = glucose::SLog_Filter_Inspection{ filter };
 
 		std::shared_ptr<refcnt::IVector_Container<glucose::TFilter_Parameter>> params;
 		if (param_begin != nullptr)
