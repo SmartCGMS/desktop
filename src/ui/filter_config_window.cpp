@@ -253,7 +253,7 @@ void CFilter_Config_Window::Setup_UI() {
 						break;
 				}
 
-				mContainer_Edits.push_back({ mDescription.config_parameter_name[i], container });
+				if (mDescription.parameter_type[i] != glucose::NParameter_Type::ptNull) mContainer_Edits.push_back({ mDescription.config_parameter_name[i], container });
 				switch (mDescription.parameter_type[i])
 				{
 					//special widget, let's add it as a standalone tab
