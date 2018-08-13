@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 
+#include <QtCore/QSignalMapper>
 #include <QtWidgets/QMdiSubWindow>
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QGroupBox>
@@ -15,10 +16,13 @@
 #include "../../../common/desktop-console/filter_chain.h"
 #include "../../../common/desktop-console/filter_chain_manager.h"
 #include "../filters/descriptor.h"
+#include "../filters/gui_subchain.h"
 
 #include "simulation/log_tab_widget.h"
 #include "simulation/drawing_tab_widget.h"
 #include "simulation/errors_tab_widget.h"
+#include "helpers/Time_Segment_Group_Widget.h"
+#include "helpers/Signal_Group_Widget.h"
 
 /*
  * Simulation control and results window
@@ -38,6 +42,8 @@ class CSimulation_Window : public QMdiSubWindow {
 		// is simulation in progress?
 		bool mSimulationInProgress;
 
+		SGUI_Filter_Subchain m_guiSubchain;
+
 	protected:
 		// chain holder retaining filter configuration
 		std::unique_ptr<CFilter_Chain_Manager> mFilter_Chain_Manager;
@@ -46,6 +52,10 @@ class CSimulation_Window : public QMdiSubWindow {
 		QTabWidget* mTabWidget;
 		// progress bar layout
 		QGroupBox* mProgressGroup;
+		// time segments layout
+		QGroupBox* mSegmentsGroup;
+		// signals layout
+		QGroupBox* mSignalsGroup;
 
 		// start button instance
 		QPushButton* mStartButton;
@@ -58,6 +68,8 @@ class CSimulation_Window : public QMdiSubWindow {
 
 		std::map<GUID, std::wstring> mSignalNames;
 		std::map<GUID, QProgressBar*> mProgressBars;
+		std::map<uint64_t, CTime_Segment_Group_Widget*> mSegmentWidgets;
+		std::map<GUID, CSignal_Group_Widget*> mSignalWidgets;
 
 		void Setup_UI();
 
@@ -75,6 +87,9 @@ class CSimulation_Window : public QMdiSubWindow {
 		void On_Suspend_Solve();
 		void On_Resume_Solve();
 		void On_Simulation_Step();
+
+		void On_Segments_Draw_Request();
+
 	protected:
 		void Inject_Event(const glucose::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info);
 	public:
@@ -92,4 +107,9 @@ class CSimulation_Window : public QMdiSubWindow {
 		void Log_Callback(std::shared_ptr<refcnt::wstr_list> messages);
 		void Update_Solver_Progress(GUID& solver, size_t progress);
 		void Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type);
+
+		void Start_Time_Segment(uint64_t segmentId);
+		void Add_Signal(const GUID& signalId);
+
+		std::wstring Get_Signal_Name(const GUID& guid) const;
 };

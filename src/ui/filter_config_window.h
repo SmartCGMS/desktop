@@ -7,9 +7,10 @@
 #include <vector>
 
 #include <QtWidgets/QWidget>
+#include <QtWidgets/QDialog>
 #include <QtWidgets/QLineEdit>
 
-class CFilter_Config_Window : public QWidget {
+class CFilter_Config_Window : public QDialog {
 	Q_OBJECT
 protected:
 	std::vector<glucose::TFilter_Parameter> &mConfiguration;
@@ -28,7 +29,6 @@ protected slots:
 public:
 	CFilter_Config_Window(const glucose::TFilter_Descriptor &description, std::vector<glucose::TFilter_Parameter> &configuration, QWidget *parent);
 };
-
 
 class CInteger_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
 	Q_OBJECT

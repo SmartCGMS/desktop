@@ -17,10 +17,9 @@
 #include <QtCore/QTimer>
 #include <QtCore/QEventLoop>
 
-
-
 #include "simulation/abstract_simulation_tab.h"
 #include "../filters/descriptor.h"
+#include "../filters/gui_subchain.h"
 
 #ifndef MOC_DIR
 	#include "moc_simulation_window.cpp"
@@ -54,6 +53,16 @@ CSimulation_Window::CSimulation_Window(CFilter_Chain &filter_chain, QWidget *own
 	mStopButton->setEnabled(false);
 	mStartButton->setEnabled(true);
 	mSimulationInProgress = false;
+
+	// TODO: make these somehow global, so we don't duplicate code in log filter and X other places
+	//       the same applies to retrieving signal names - there should be some global mechanism for that
+	mSignalNames[glucose::signal_BG] = L"Blood glucose";
+	mSignalNames[glucose::signal_IG] = L"Interstitiary glucose";
+	mSignalNames[glucose::signal_ISIG] = L"ISIG";
+	mSignalNames[glucose::signal_Calibration] = L"Calibration";
+	mSignalNames[glucose::signal_Insulin] = L"Insulin intake";
+	mSignalNames[glucose::signal_Carb_Intake] = L"Carbohydrates intake";
+	mSignalNames[glucose::signal_Health_Stress] = L"Health stress";
 
 	auto models = glucose::get_model_descriptors();
 	for (auto& model : models)
@@ -131,9 +140,37 @@ void CSimulation_Window::Setup_UI()
 
 	layout->addWidget(mProgressGroup, 1, 0);
 
+	QWidget* segmentsParentBox = new QWidget();
+	QVBoxLayout *segLayout = new QVBoxLayout();
+	segmentsParentBox->setLayout(segLayout);
+
+	mSegmentsGroup = new QGroupBox();
+	mSegmentsGroup->setTitle(tr(dsTime_Segments_Panel_Title));
+	QVBoxLayout* grlayout = new QVBoxLayout();
+	grlayout->addStretch();
+	mSegmentsGroup->setLayout(grlayout);
+
+	segLayout->addWidget(mSegmentsGroup);
+
+	mSignalsGroup = new QGroupBox();
+	mSignalsGroup->setTitle(tr(dsSignals_Panel_Title));
+	grlayout = new QVBoxLayout();
+	grlayout->addStretch();
+	mSignalsGroup->setLayout(grlayout);
+
+	segLayout->addWidget(mSignalsGroup);
+
+	segLayout->addStretch();
+
+	QPushButton* redrawBtn = new QPushButton(tr(dsRedraw_Button_Title));
+	segLayout->addWidget(redrawBtn);
+	connect(redrawBtn, SIGNAL(clicked()), this, SLOT(On_Segments_Draw_Request()));
+
+	layout->addWidget(segmentsParentBox, 1, 9);
+
 	// main tab widget, span to 11 columns for now
 	mTabWidget = new QTabWidget();
-	layout->addWidget(mTabWidget, 1, 1, 1, 9);
+	layout->addWidget(mTabWidget, 1, 1, 1, 8);
 
 	// TODO: verify if GUI filter is actually present in filter chain
 	{
@@ -231,6 +268,30 @@ void CSimulation_Window::On_Start()
 	if (lay)
 		lay->addStretch();
 
+	// clean segments
+	while ((wItem = mSegmentsGroup->layout()->takeAt(0)) != nullptr)
+	{
+		delete wItem->widget();
+		delete wItem;
+	}
+	mSegmentWidgets.clear();
+
+	lay = dynamic_cast<QVBoxLayout*>(mSegmentsGroup->layout());
+	if (lay)
+		lay->addStretch();
+
+	// clean signals
+	while ((wItem = mSignalsGroup->layout()->takeAt(0)) != nullptr)
+	{
+		delete wItem->widget();
+		delete wItem;
+	}
+	mSignalWidgets.clear();
+
+	lay = dynamic_cast<QVBoxLayout*>(mSignalsGroup->layout());
+	if (lay)
+		lay->addStretch();
+
 	// initialize and start filter holder, this will start filters
 	if (mFilter_Chain_Manager->Init_And_Start_Filters() != S_OK)
 	{
@@ -238,6 +299,15 @@ void CSimulation_Window::On_Start()
 		mFilter_Chain_Manager->Terminate_Filters();
 		return;
 	}
+
+	// retrieve GUI subchain shared ptr instance
+	m_guiSubchain.reset();
+	mFilter_Chain_Manager->Traverse_Filters([this](glucose::SFilter filter) {
+		m_guiSubchain = SGUI_Filter_Subchain{ filter };
+		if (m_guiSubchain)
+			return false;
+		return true;
+	});
 
 	mSimulationInProgress = true;
 	mStopButton->setEnabled(true);
@@ -252,6 +322,8 @@ void CSimulation_Window::On_Stop() {
 	mSimulationInProgress = false;
 	mStopButton->setEnabled(false);
 	mStartButton->setEnabled(true);
+
+	m_guiSubchain.reset();
 }
 
 void CSimulation_Window::On_Solve_Params() {
@@ -300,7 +372,7 @@ void CSimulation_Window::Log_Callback(std::shared_ptr<refcnt::wstr_list> message
 			}
 		}
 	}
-	
+
 }
 
 void CSimulation_Window::Update_Solver_Progress(GUID& solver, size_t progress)
@@ -334,6 +406,84 @@ void CSimulation_Window::Update_Solver_Progress(GUID& solver, size_t progress)
 		else
 			itr->second->setValue((int)progress);
 	});
+}
+
+void CSimulation_Window::On_Segments_Draw_Request()
+{
+	std::vector<uint64_t> segmentsToDraw;
+	std::vector<GUID> signalsToDraw;
+
+	for (auto ctrl : mSegmentWidgets)
+	{
+		if (ctrl.second->Is_Checked())
+			segmentsToDraw.push_back(ctrl.second->Get_Segment_Id());
+	}
+
+	for (auto ctrl : mSignalWidgets)
+	{
+		if (ctrl.second->Is_Checked())
+			signalsToDraw.push_back(ctrl.second->Get_Signal_Id());
+	}
+
+	if (m_guiSubchain)
+		m_guiSubchain->Request_Redraw(segmentsToDraw, signalsToDraw);
+}
+
+void CSimulation_Window::Start_Time_Segment(uint64_t segmentId)
+{
+	QEventLoop loop;
+	Q_UNUSED(loop);
+	QTimer::singleShot(0, this, [this, segmentId]()
+	{
+		auto itr = mSegmentWidgets.find(segmentId);
+
+		if (itr == mSegmentWidgets.end())
+		{
+			CTime_Segment_Group_Widget* grp = new CTime_Segment_Group_Widget(segmentId);
+
+			mSegmentWidgets[segmentId] = grp;
+
+			QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mSegmentsGroup->layout());
+			if (lay)
+			{
+				// append new segment after existing segments and before stretch
+				lay->insertWidget(static_cast<int>(mSegmentWidgets.size()) - 1, grp);
+			}
+		}
+	});
+}
+
+void CSimulation_Window::Add_Signal(const GUID& signalId)
+{
+	QEventLoop loop;
+	Q_UNUSED(loop);
+	QTimer::singleShot(0, this, [this, signalId]()
+	{
+		auto itr = mSignalWidgets.find(signalId);
+
+		if (itr == mSignalWidgets.end())
+		{
+			CSignal_Group_Widget* grp = new CSignal_Group_Widget(signalId);
+
+			mSignalWidgets[signalId] = grp;
+
+			QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mSignalsGroup->layout());
+			if (lay)
+			{
+				// append new signal after existing signals and before stretch
+				lay->insertWidget(static_cast<int>(mSignalWidgets.size()) - 1, grp);
+			}
+		}
+	});
+}
+
+std::wstring CSimulation_Window::Get_Signal_Name(const GUID& guid) const
+{
+	auto itr = mSignalNames.find(guid);
+	if (itr == mSignalNames.end())
+		return std::wstring{};
+
+	return itr->second;
 }
 
 void CSimulation_Window::Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type)

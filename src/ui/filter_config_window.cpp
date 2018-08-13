@@ -9,6 +9,7 @@
 
 #include "helpers/Select_Time_Segment_Id_Panel.h"
 #include "helpers/Model_Bounds_Panel.h"
+#include "helpers/Select_Subject_Panel.h"
 
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QTabWidget>
@@ -22,7 +23,6 @@
 #include "moc_filter_config_window.cpp"
 
 #include "helpers/filter_config_widgets.h"
-
 	
 class CWChar_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
 	glucose::TFilter_Parameter get_parameter() {
@@ -137,7 +137,7 @@ class CNull_Container_Edit : public QWidget, public virtual filter_config_window
 
 
 CFilter_Config_Window::CFilter_Config_Window(const glucose::TFilter_Descriptor &description, std::vector<glucose::TFilter_Parameter> &configuration, QWidget *parent) :
-	mDescription(description), mConfiguration(configuration), QWidget(parent) {
+	mDescription(description), mConfiguration(configuration), QDialog(parent) {
 
 
 	Setup_UI();
@@ -251,6 +251,10 @@ void CFilter_Config_Window::Setup_UI() {
 
 						container = new CModel_Bounds_Panel(dynamic_cast<QComboBox*>(model_select), this);
 						break;
+
+					case glucose::NParameter_Type::ptSubject_Id:
+						container = new CSelect_Subject_Panel{ mConfiguration, this };
+						break;
 				}
 
 				if (mDescription.parameter_type[i] != glucose::NParameter_Type::ptNull) mContainer_Edits.push_back({ mDescription.config_parameter_name[i], container });
@@ -259,6 +263,7 @@ void CFilter_Config_Window::Setup_UI() {
 					//special widget, let's add it as a standalone tab
 					case glucose::NParameter_Type::ptSelect_Time_Segment_ID:
 					case glucose::NParameter_Type::ptModel_Bounds:
+					case glucose::NParameter_Type::ptSubject_Id:
 					{
 						tabs->addTab(dynamic_cast<QWidget*>(container), QString::fromWCharArray(mDescription.ui_parameter_name[i]));
 						break;

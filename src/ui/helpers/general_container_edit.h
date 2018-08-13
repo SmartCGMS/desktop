@@ -2,7 +2,6 @@
 
 #include "../../../../common/iface/FilterIface.h"
 
-
 namespace filter_config_window {
 	class CContainer_Edit {
 	public:

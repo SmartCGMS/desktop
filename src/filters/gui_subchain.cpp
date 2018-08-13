@@ -7,22 +7,30 @@
 #include "../../../common/rtl/FilesystemLib.h"
 #include "../ui/simulation_window.h"
 
-#include <iostream>
+SGUI_Filter_Subchain::SGUI_Filter_Subchain(glucose::SFilter &gui_subchain_filter) {
+	if (gui_subchain_filter) refcnt::Query_Interface<glucose::IFilter, CGUI_Filter_Subchain>(gui_subchain_filter.get(), gui::gui_filter_guid, *this);
+}
 
 CGUI_Filter_Subchain::CGUI_Filter_Subchain(glucose::SFilter_Pipe in_pipe, glucose::SFilter_Pipe out_pipe)
-	: mInput(in_pipe), mOutput(out_pipe) {
+	: mInput(in_pipe), mOutput(out_pipe), mChange_Available(false) {
 	//
+}
+
+HRESULT IfaceCalling CGUI_Filter_Subchain::QueryInterface(const GUID*  riid, void ** ppvObj) {
+	if (Internal_Query_Interface<glucose::IFilter>(gui::gui_filter_guid, *riid, ppvObj)) return S_OK;
+
+	return E_NOINTERFACE;
 }
 
 void CGUI_Filter_Subchain::Run_Input() {
 
 	mChange_Available = false;
 
-	for (; glucose::UDevice_Event evt = mInput.Receive(); evt) {
+	for (; glucose::UDevice_Event evt = mInput.Receive(); ) {
 		// here we may perform some input filtering, but that's not typical for filter input
 		// most of actions will be done in output handler (Run_Output)
 
-		if (!mFilter_Pipes[0].Send(evt))
+		if (mSubchainMgr->Send(evt) != S_OK)
 			break;
 
 		mChange_Available = true;
@@ -32,65 +40,34 @@ void CGUI_Filter_Subchain::Run_Input() {
 	// so, when this message is propagated, all filters will return from blocking Receive call with an error code,
 	// and therefore end their threads
 
-	for (auto& thread : mFilter_Threads)
-	{
-		if (thread->joinable())
-			thread->join();
-	}
+	mSubchainMgr->Join_Filters();
 }
 
 void CGUI_Filter_Subchain::Run_Updater()
 {
-	while (mRunning) {			
-		if (mChange_Available.exchange(false)) {	//update if there was a change
+	while (mRunning) {
 
-			std::unique_lock<std::mutex> lck(mUpdater_Mtx);
+		// since user may asynchronnously request update of any component, we need to lock the mutex before updating
+		std::unique_lock<std::mutex> lck(mUpdater_Mtx);
 
-			// update drawing
-			{
-				CSimulation_Window* simwin = CSimulation_Window::Get_Instance();
-				if (simwin && mDrawing_Filter_Inspection)
-				{
-					auto svg = refcnt::Create_Container_shared<char>(nullptr, nullptr);
-
-					for (size_t type = 0; type < (size_t)glucose::TDrawing_Image_Type::count; type++)
-					{
-						if (mDrawing_Filter_Inspection->Draw((glucose::TDrawing_Image_Type)type, glucose::TDiagnosis::NotSpecified, svg.get()) == S_OK)
-							simwin->Drawing_Callback((glucose::TDrawing_Image_Type)type, glucose::TDiagnosis::NotSpecified, refcnt::Char_Container_To_String(svg.get()));
-					}
-
-					// special drawing - e.g. Parkes' error grid for type 2 diabetes
-
-					if (mDrawing_Filter_Inspection->Draw(glucose::TDrawing_Image_Type::Parkes, glucose::TDiagnosis::Type2, svg.get()) == S_OK)
-						simwin->Drawing_Callback(glucose::TDrawing_Image_Type::Parkes, glucose::TDiagnosis::Type2, refcnt::Char_Container_To_String(svg.get()));
-				}
-			}
-
-			// update log
-			{
-				CSimulation_Window* simwin = CSimulation_Window::Get_Instance();
-				if (simwin && mLog_Filter_Inspection)
-				{
-					std::shared_ptr<refcnt::wstr_list> lines;
-					while (mLog_Filter_Inspection.pop(lines)) {
-						simwin->Log_Callback(lines);
-					}
-				}
-			}		
+		// update if there was a change
+		if (mChange_Available.exchange(false)) {
+			Update_Drawing();
+			Update_Log();
+			Update_Error_Metrics();
 		}
 
-		{
-			//wait some time to save cpu time
-			std::unique_lock<std::mutex> lck(mUpdater_Mtx);
-			// TODO: configurable delay, maybe even during simulation?
-			mUpdater_Cv.wait_for(lck, std::chrono::milliseconds(GUI_Subchain_Default_Drawing_Update));
-		}
+		// TODO: configurable delay, maybe even during simulation?
+		mUpdater_Cv.wait_for(lck, std::chrono::milliseconds(GUI_Subchain_Default_Drawing_Update));
 	}
 }
 
 void CGUI_Filter_Subchain::Run_Output() {
 
-	for (; glucose::UDevice_Event evt = mFilter_Pipes[mFilter_Pipes.size() - 1].Receive(); evt) {
+	// simulation window lifetime is always longer than GUI filter subchain's and overlaps it entirely, so we could store simwin pointer here
+	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
+
+	for (; glucose::UDevice_Event evt = mSubchainMgr->Receive(); evt) {
 		// here we handle all messages that comes from last GUI-wrapped filter pipe
 		// this of course involves all messages that hasn't been dropped prior sending through last filter pipe
 
@@ -99,46 +76,14 @@ void CGUI_Filter_Subchain::Run_Output() {
 			// handle solver progress message
 			if (refcnt::WChar_Container_Equals_WString(evt.info.get(), rsInfo_Solver_Progress, 0, wcslen(rsInfo_Solver_Progress)))
 			{
-				size_t progress;
-
+				size_t progress = 0;
 				auto progStr = refcnt::WChar_Container_To_WString(evt.info.get());
-
-				try
-				{
+				try {
 					progress = std::stoull(progStr.substr(wcslen(rsInfo_Solver_Progress) + 1));
 				}
-				catch (...)
-				{
-					progress = 0;
-				}
+				catch (...) { }
 
-				CSimulation_Window* simwin = CSimulation_Window::Get_Instance();
-				if (simwin)
-					simwin->Update_Solver_Progress(evt.signal_id, progress);
-			}
-			// handle "error metrics ready" message
-			else if (evt.info == rsInfo_Error_Metrics_Ready)
-			{
-				CSimulation_Window* simwin = CSimulation_Window::Get_Instance();
-				if (simwin && mError_Filter_Inspection)
-				{
-					glucose::TError_Markers err;
-					for (auto& signal_id : mCalculatedSignalGUIDs)
-					{
-						for (size_t i = 0; i < static_cast<size_t>(glucose::NError_Type::count); i++) {
-							if (mError_Filter_Inspection->Get_Errors(&signal_id, static_cast<glucose::NError_Type>(i), &err) == S_OK)
-								simwin->Update_Error_Metrics(signal_id, err, static_cast<glucose::NError_Type>(i));
-						}
-					}
-
-					for (auto& signal_id : glucose::signal_Virtual)
-					{
-						for (size_t i = 0; i < static_cast<size_t>(glucose::NError_Type::count); i++) {
-							if (mError_Filter_Inspection->Get_Errors(&signal_id, static_cast<glucose::NError_Type>(i), &err) == S_OK)
-								simwin->Update_Error_Metrics(signal_id, err, static_cast<glucose::NError_Type>(i));
-						}
-					}
-				}
+				simwin->Update_Solver_Progress(evt.signal_id, progress);
 			}
 		}
 		else if (evt.event_code == glucose::NDevice_Event_Code::Parameters)
@@ -146,8 +91,28 @@ void CGUI_Filter_Subchain::Run_Output() {
 			if (mCalculatedSignalGUIDs.find(evt.signal_id) == mCalculatedSignalGUIDs.end())
 				mCalculatedSignalGUIDs.insert(evt.signal_id);
 		}
+		else if (evt.event_code == glucose::NDevice_Event_Code::Time_Segment_Start)
+		{
+			simwin->Start_Time_Segment(evt.segment_id);
 
-		// TODO: log filter output to log tab
+			// enable drawing of this segment by default
+			if (mDraw_Segment_Ids)
+				mDraw_Segment_Ids->add(&evt.segment_id, &evt.segment_id + 1);
+		}
+
+		// if the event is containing valid level, propagate it to GUI, if not already there
+		if (evt.is_level_event() /*|| evt.is_parameters_event()*/)
+		{
+			if (m_presentSignals.find(evt.signal_id) == m_presentSignals.end())
+			{
+				m_presentSignals.insert(evt.signal_id);
+				// enable drawing of this signal by default
+				if (mDraw_Signal_Ids)
+					mDraw_Signal_Ids->add(&evt.signal_id, &evt.signal_id + 1);
+
+				simwin->Add_Signal(evt.signal_id);
+			}
+		}
 
 		if (!mOutput.Send(evt))
 			break;
@@ -156,66 +121,59 @@ void CGUI_Filter_Subchain::Run_Output() {
 
 HRESULT CGUI_Filter_Subchain::Run(refcnt::IVector_Container<glucose::TFilter_Parameter>* const configuration) {
 	
-	//TODO: re-engineer not to duplicate filter chain manager's functionality - it does the same!
-
-	// initialize pipes
-	mFilter_Pipes.clear();
-	for (size_t i = 0; i < gui::gui_filters.size() + 1; i++) {
-		glucose::SFilter_Pipe pipe{};
-		if (!pipe)
-			return E_FAIL;
-		mFilter_Pipes.push_back(std::move(pipe));
-	}
-
-	glucose::TFilter_Descriptor desc{0};
-
-	// fetch configuration; the configuration is merged to one vector
+	// extract parameters - the parameter vector is a union of all parameters of all subchain filters, so we need to extract it
 	glucose::TFilter_Parameter *param_begin, *param_end;
 	if (configuration->get(&param_begin, &param_end) != S_OK)
 		param_begin = param_end = nullptr;
 
-	mFilters.clear();
+	CFilter_Chain subchain;
+
+	glucose::TFilter_Descriptor desc = glucose::Null_Filter_Descriptor;
+	CFilter_Configuration filter_config;
+
 	for (size_t i = 0; i < gui::gui_filters.size(); i++)
 	{
-		const GUID &filter_id = gui::gui_filters[i];
-		glucose::get_filter_descriptor_by_id(filter_id, desc);
+		const GUID &id = gui::gui_filters[i];
 
-		// try to create filter
-		auto filter = glucose::create_filter(filter_id, mFilter_Pipes[i], mFilter_Pipes[i + 1]);
-		if (!filter)
-			return ENODEV;
-
-		//we've got the filter, is it an inspectionable one?
-		if (filter_id == glucose::Drawing_Filter)
-			mDrawing_Filter_Inspection = glucose::SDrawing_Filter_Inspection{ filter };
-		else if (filter_id == glucose::Error_Filter)
-			mError_Filter_Inspection = glucose::SError_Filter_Inspection{ filter	};
-		else if (filter_id == glucose::Log_Filter)
-			mLog_Filter_Inspection = glucose::SLog_Filter_Inspection{ filter };
-
-		std::shared_ptr<refcnt::IVector_Container<glucose::TFilter_Parameter>> params;
-		if (param_begin != nullptr)
+		if (glucose::get_filter_descriptor_by_id(id, desc))
 		{
-			// skip null parameters (config headers)
-			while (param_begin != param_end && param_begin->type == glucose::NParameter_Type::ptNull)
-				param_begin += 1;
+			if (param_begin != nullptr)
+			{
+				// skip null parameters (config headers)
+				while (param_begin != param_end && param_begin->type == glucose::NParameter_Type::ptNull)
+					param_begin += 1;
 
-			// create parameter container by copying just part of parameters given
-			params = refcnt::Create_Container_shared<glucose::TFilter_Parameter>(param_begin, param_begin + desc.parameters_count);
-			// move beginning by param count, so the next filter gets its own parameters
-			param_begin += desc.parameters_count;
+				// iterate all the way to the last filter parameter, and copy it to chain link configuration
+				const auto param_end = param_begin + desc.parameters_count;
+				for (; param_begin != param_end; param_begin++)
+					filter_config.push_back(*param_begin);
+			}
+
+			subchain.push_back({ desc, filter_config });
 		}
-
-		// configure filter using loaded configuration and start the filter thread
-		mFilter_Threads.push_back(std::make_unique<std::thread>([params, filter, desc, &filter_id]() {
-			/*HRESULT hres = */filter->Run(params.get());
-		}));
-
-		// add filter to vector
-		mFilters.push_back(filter);
 	}
 
-	// start filter sub-chain
+	// initialize and start subchain
+	mSubchainMgr = std::make_unique<CFilter_Chain_Manager>(subchain);
+	HRESULT rc = mSubchainMgr->Init_And_Start_Filters(false);
+	if (rc != S_OK)
+		return rc;
+
+	// now we need to retrieve references to inspectionable filters, so we could provide drawings, log, etc.
+	mSubchainMgr->Traverse_Filters([this](glucose::SFilter filter) -> bool {
+		if (glucose::SDrawing_Filter_Inspection insp = glucose::SDrawing_Filter_Inspection{ filter })
+			mDrawing_Filter_Inspection = insp;
+		else if (glucose::SError_Filter_Inspection insp = glucose::SError_Filter_Inspection{ filter })
+			mError_Filter_Inspection = insp;
+		else if (glucose::SLog_Filter_Inspection insp = glucose::SLog_Filter_Inspection{ filter })
+			mLog_Filter_Inspection = insp;
+
+		return true;
+	});
+
+	// now we are ready; however, this filter still needs to manage input and output functionality, since it  is a filter itself
+	// therefore we need to start output thread to listen to subchain outputs and pass them to output pipe
+	// and also run input loop for receiving messages through input pipe and passing them to subchain as inputs
 
 	mRunning = true;
 
@@ -224,7 +182,6 @@ HRESULT CGUI_Filter_Subchain::Run(refcnt::IVector_Container<glucose::TFilter_Par
 
 	// this thread serves as input thread
 	Run_Input();
-
 	// join output thread; should terminate shortly after input part
 	if (mOutput_Thread->joinable())
 		mOutput_Thread->join();
@@ -241,4 +198,69 @@ HRESULT CGUI_Filter_Subchain::Run(refcnt::IVector_Container<glucose::TFilter_Par
 		mUpdater_Thread->join();
 	
 	return S_OK;
+}
+
+void CGUI_Filter_Subchain::Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds)
+{
+	std::unique_lock<std::mutex> lck(mUpdater_Mtx);
+
+	// store requested containers and request redraw
+	mDraw_Segment_Ids = refcnt::Create_Container_shared<uint64_t>(segmentIds.data(), segmentIds.data() + segmentIds.size());
+	mDraw_Signal_Ids = refcnt::Create_Container_shared<GUID>(signalIds.data(), signalIds.data() + signalIds.size());
+
+	Update_Drawing();
+}
+
+void CGUI_Filter_Subchain::Update_Drawing()
+{
+	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
+	if (!simwin || !mDrawing_Filter_Inspection)
+		return;
+
+	auto svg = refcnt::Create_Container_shared<char>(nullptr, nullptr);
+
+	for (size_t type = 0; type < (size_t)glucose::TDrawing_Image_Type::count; type++) {
+		if (mDrawing_Filter_Inspection->Draw((glucose::TDrawing_Image_Type)type, glucose::TDiagnosis::NotSpecified, svg.get(), mDraw_Segment_Ids.get(), mDraw_Signal_Ids.get()) == S_OK) {
+			simwin->Drawing_Callback((glucose::TDrawing_Image_Type)type, glucose::TDiagnosis::NotSpecified, refcnt::Char_Container_To_String(svg.get()));
+		}
+	}
+
+	if (mDrawing_Filter_Inspection->Draw(glucose::TDrawing_Image_Type::Parkes, glucose::TDiagnosis::Type2, svg.get(), mDraw_Segment_Ids.get(), mDraw_Signal_Ids.get()) == S_OK) {
+		simwin->Drawing_Callback(glucose::TDrawing_Image_Type::Parkes, glucose::TDiagnosis::Type2, refcnt::Char_Container_To_String(svg.get()));
+	}
+}
+
+void CGUI_Filter_Subchain::Update_Log()
+{
+	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
+
+	if (!simwin || !mLog_Filter_Inspection)
+		return;
+
+	std::shared_ptr<refcnt::wstr_list> lines;
+	while (mLog_Filter_Inspection.pop(lines)) {
+		simwin->Log_Callback(lines);
+	}
+}
+
+void CGUI_Filter_Subchain::Update_Error_Metrics()
+{
+	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
+	if (!simwin || !mError_Filter_Inspection)
+		return;
+
+	glucose::TError_Markers err;
+	for (auto& signal_id : mCalculatedSignalGUIDs) {
+		for (size_t i = 0; i < static_cast<size_t>(glucose::NError_Type::count); i++) {
+			if (mError_Filter_Inspection->Get_Errors(&signal_id, static_cast<glucose::NError_Type>(i), &err) == S_OK)
+				simwin->Update_Error_Metrics(signal_id, err, static_cast<glucose::NError_Type>(i));
+		}
+	}
+
+	for (auto& signal_id : glucose::signal_Virtual) {
+		for (size_t i = 0; i < static_cast<size_t>(glucose::NError_Type::count); i++) {
+			if (mError_Filter_Inspection->Get_Errors(&signal_id, static_cast<glucose::NError_Type>(i), &err) == S_OK)
+				simwin->Update_Error_Metrics(signal_id, err, static_cast<glucose::NError_Type>(i));
+		}
+	}
 }

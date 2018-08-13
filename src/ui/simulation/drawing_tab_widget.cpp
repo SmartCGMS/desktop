@@ -15,7 +15,9 @@
 #include <QtCore/QTimer>
 #include <QtCore/QEventLoop>
 #include <QtWidgets/QMenu>
+#include <QtWidgets/QComboBox>
 #include <QtWidgets/QFileDialog>
+#include <QtCore/QTimeLine>
 
 #include "moc_drawing_tab_widget.cpp"
 
@@ -33,18 +35,70 @@ static const std::array<const char*, static_cast<size_t>(glucose::TDrawing_Image
 	dsSave_Image_Default_Filename_ECDF
 };
 
-CDrawing_Tab_Widget::CDrawing_Tab_Widget(const glucose::TDrawing_Image_Type type, QWidget *parent)
-	: CAbstract_Simulation_Tab_Widget(parent), mType(type), mItem(nullptr)
+CDrawing_Graphics_View::CDrawing_Graphics_View()
+	: QGraphicsView()
 {
-	mView = new QGraphicsView();
+	//
+}
+
+void CDrawing_Graphics_View::wheelEvent(QWheelEvent * event)
+{
+	const int numSteps = event->delta() / 120;
+
+	mNumScheduledScalings += numSteps;
+	if (mNumScheduledScalings * numSteps < 0)
+		mNumScheduledScalings = numSteps;
+
+	QTimeLine *anim = new QTimeLine(350, this);
+	anim->setUpdateInterval(20);
+
+	connect(anim, SIGNAL(valueChanged(qreal)), SLOT(scalingTime(qreal)));
+	connect(anim, SIGNAL(finished()), SLOT(animFinished()));
+	anim->start();
+}
+
+void CDrawing_Graphics_View::scalingTime(qreal x)
+{
+	qreal factor = 1.0 + qreal(mNumScheduledScalings) / 300.0;
+	scale(factor, factor);
+}
+
+void CDrawing_Graphics_View::animFinished()
+{
+	if (mNumScheduledScalings < 0)
+		mNumScheduledScalings++;
+	sender()->~QObject();
+}
+
+CDrawing_Tab_Widget::CDrawing_Tab_Widget(const glucose::TDrawing_Image_Type type, QWidget *parent)
+	: CAbstract_Simulation_Tab_Widget(parent), mType(type), mItem(nullptr), mDiagnosis_Box(nullptr), mCurrent_Diagnosis(glucose::TDiagnosis::Type1)
+{
+	mView = new CDrawing_Graphics_View();
 	mScene = new QGraphicsScene(mView);
 	mView->setScene(mScene);
+
+	mView->setDragMode(QGraphicsView::ScrollHandDrag);
+	mView->setRenderHints(QPainter::HighQualityAntialiasing | QPainter::TextAntialiasing);
 
 	mRenderer = new QSvgRenderer();
 
 	QGridLayout *mainLayout = new QGridLayout;
-	mainLayout->addWidget(mView);
+	mainLayout->addWidget(mView, 0, 0);
 	setLayout(mainLayout);
+
+	// just parkes' grid has to disambiguate between diagnosis types (for now)
+	if (type == glucose::TDrawing_Image_Type::Parkes)
+	{
+		mDiagnosis_Box = new QComboBox(this);
+		mDiagnosis_Box->addItem(dsDiagnosis_T1D, static_cast<int>(glucose::TDiagnosis::Type1));
+		mDiagnosis_Box->addItem(dsDiagnosis_T2D, static_cast<int>(glucose::TDiagnosis::Type2));
+		mDiagnosis_Box->addItem(dsDiagnosis_Gestational, static_cast<int>(glucose::TDiagnosis::Gestational));
+		// this should relocate the widget on top of the drawing to top left corner somewhere
+		auto geom = mDiagnosis_Box->geometry();
+		mDiagnosis_Box->setGeometry(20, 20, geom.width(), geom.height());
+
+		connect(mDiagnosis_Box, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(On_Diagnosis_Changed(const QString&)));
+	}
 
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(Show_Context_Menu(const QPoint&)));
@@ -72,8 +126,13 @@ void CDrawing_Tab_Widget::Drawing_Callback(const glucose::TDrawing_Image_Type ty
 
 	std::unique_lock<std::mutex> lck(mDrawMtx);
 
-	mSvgContents = svg;
+	mSvgContents[diagnosis] = svg;
 
+	Redraw();
+}
+
+void CDrawing_Tab_Widget::Redraw()
+{
 	if (!mDefered_Work)
 	{
 		mDefered_Work = true;
@@ -82,11 +141,16 @@ void CDrawing_Tab_Widget::Drawing_Callback(const glucose::TDrawing_Image_Type ty
 		Q_UNUSED(loop);
 		QTimer::singleShot(0, this, [this]()
 		{
+			// if the requested diagnosis image is not found, fall back to "Not Specified" - it's the default
+			glucose::TDiagnosis diag = glucose::TDiagnosis::NotSpecified;
+			if (mSvgContents.find(mCurrent_Diagnosis) != mSvgContents.end())
+				diag = mCurrent_Diagnosis;
+
 			// lock scope
 			{
 				std::unique_lock<std::mutex> lck(mDrawMtx);
 
-				mRenderer->load(QByteArray::fromStdString(mSvgContents));
+				mRenderer->load(QByteArray::fromStdString(mSvgContents[diag]));
 
 				mDefered_Work = false;
 			}
@@ -104,30 +168,9 @@ void CDrawing_Tab_Widget::Drawing_Callback(const glucose::TDrawing_Image_Type ty
 			mItem->setZValue(0);
 
 			mScene->addItem(mItem);
-			mView->fitInView(mItem, Qt::AspectRatioMode::KeepAspectRatio);
+			//mView->fitInView(mItem, Qt::AspectRatioMode::KeepAspectRatio);
 		});
 	}
-}
-
-void CDrawing_Tab_Widget::Do_Zoom(bool in)
-{
-	if (in)
-		mCurrZoom += Zoom_Step;
-	else
-		mCurrZoom -= Zoom_Step;
-
-	if (mCurrZoom < Minimum_Zoom)
-	{
-		mCurrZoom = 1.0;
-		mItem->setTransform(QTransform::fromScale(mCurrZoom, mCurrZoom));
-		mView->fitInView(mItem, Qt::AspectRatioMode::KeepAspectRatio);
-
-		return;
-	}
-	else if (mCurrZoom > Maximum_Zoom)
-		mCurrZoom = Maximum_Zoom;
-
-	mItem->setTransform(QTransform::fromScale(mCurrZoom, mCurrZoom));
 }
 
 void CDrawing_Tab_Widget::Show_Context_Menu(const QPoint& pos)
@@ -140,9 +183,36 @@ void CDrawing_Tab_Widget::Show_Context_Menu(const QPoint& pos)
 		if (path.length() != 0)
 		{
 			std::ofstream fs(path.toStdString());
-			fs.write(mSvgContents.c_str(), mSvgContents.size());
+			fs.write(mSvgContents[mCurrent_Diagnosis].c_str(), mSvgContents.size());
 		}
+	});
+	myMenu.addAction(dsSave_Viewport_To_File, [this]() {
+		auto path = QFileDialog::getSaveFileName(this, tr(dsSave_Viewport_To_File), dsDefault_Viewport_File_Name, tr(dsSave_Viewport_Ext_Spec));
+		if (path.length() != 0)
+		{
+			QPixmap pixMap = QPixmap::grabWidget(mView->viewport());
+			pixMap.save(path);
+		}
+	});
+	myMenu.addSeparator();
+	myMenu.addAction(dsReset_Zoom, [this]() {
+		mView->resetMatrix();
 	});
 
 	myMenu.exec(globalPos);
+}
+
+void CDrawing_Tab_Widget::On_Diagnosis_Changed(const QString& /*item*/)
+{
+	int i = mDiagnosis_Box->currentIndex();
+	if (i < 0)
+		return;
+
+	bool ok;
+	int diagnosis = mDiagnosis_Box->itemData(i).toInt(&ok);
+	if (!ok)
+		return;
+
+	mCurrent_Diagnosis = static_cast<glucose::TDiagnosis>(diagnosis);
+	Redraw();
 }
