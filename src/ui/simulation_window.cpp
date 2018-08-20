@@ -140,31 +140,67 @@ void CSimulation_Window::Setup_UI()
 
 	layout->addWidget(mProgressGroup, 1, 0);
 
+
+
+
 	QWidget* segmentsParentBox = new QWidget();
-	QVBoxLayout *segLayout = new QVBoxLayout();
-	segmentsParentBox->setLayout(segLayout);
+	{
+		QVBoxLayout *segLayout = new QVBoxLayout();
+		segmentsParentBox->setLayout(segLayout);
 
-	mSegmentsGroup = new QGroupBox();
-	mSegmentsGroup->setTitle(tr(dsTime_Segments_Panel_Title));
-	QVBoxLayout* grlayout = new QVBoxLayout();
-	grlayout->addStretch();
-	mSegmentsGroup->setLayout(grlayout);
+		QVBoxLayout* grlayout;
 
-	segLayout->addWidget(mSegmentsGroup);
+		QGroupBox* segmentGrpBox = new QGroupBox();
+		segmentGrpBox->setTitle(tr(dsTime_Segments_Panel_Title));
+		grlayout = new QVBoxLayout();
+		segmentGrpBox->setLayout(grlayout);
+		{
+			QWidget* btnContainer = new QWidget();
+			QHBoxLayout* hlayout = new QHBoxLayout();
+			btnContainer->setLayout(hlayout);
+			{
+				QPushButton* btnAll = new QPushButton(dsSelect_All_Segments);
+				hlayout->addWidget(btnAll);
+				connect(btnAll, SIGNAL(clicked()), this, SLOT(On_Select_Segments_All()));
 
-	mSignalsGroup = new QGroupBox();
-	mSignalsGroup->setTitle(tr(dsSignals_Panel_Title));
-	grlayout = new QVBoxLayout();
-	grlayout->addStretch();
-	mSignalsGroup->setLayout(grlayout);
+				QPushButton* btnNone = new QPushButton(dsSelect_No_Segments);
+				hlayout->addWidget(btnNone);
+				connect(btnNone, SIGNAL(clicked()), this, SLOT(On_Select_Segments_None()));
+			}
+			grlayout->addWidget(btnContainer);
 
-	segLayout->addWidget(mSignalsGroup);
+			//
 
-	segLayout->addStretch();
+			QScrollArea* scrollArea = new QScrollArea;
+			scrollArea->setWidgetResizable(true);
+			scrollArea->setFrameShape(QFrame::NoFrame);
+			{
+				mSegmentsGroup = new QWidget();
 
-	QPushButton* redrawBtn = new QPushButton(tr(dsRedraw_Button_Title));
-	segLayout->addWidget(redrawBtn);
-	connect(redrawBtn, SIGNAL(clicked()), this, SLOT(On_Segments_Draw_Request()));
+				QVBoxLayout* gr2layout = new QVBoxLayout();
+				gr2layout->addStretch();
+				mSegmentsGroup->setLayout(gr2layout);
+
+				scrollArea->setWidget(mSegmentsGroup);
+			}
+			grlayout->addWidget(scrollArea);
+		}
+		segLayout->addWidget(segmentGrpBox);
+
+		mSignalsGroup = new QGroupBox();
+		mSignalsGroup->setTitle(tr(dsSignals_Panel_Title));
+		{
+			QVBoxLayout* grlayout = new QVBoxLayout();
+			grlayout->addStretch();
+			mSignalsGroup->setLayout(grlayout);
+
+			segLayout->addWidget(mSignalsGroup);
+		}
+
+		QPushButton* redrawBtn = new QPushButton(tr(dsRedraw_Button_Title));
+		segLayout->addWidget(redrawBtn);
+		connect(redrawBtn, SIGNAL(clicked()), this, SLOT(On_Segments_Draw_Request()));
+	}
 
 	layout->addWidget(segmentsParentBox, 1, 9);
 
@@ -427,6 +463,18 @@ void CSimulation_Window::On_Segments_Draw_Request()
 
 	if (m_guiSubchain)
 		m_guiSubchain->Request_Redraw(segmentsToDraw, signalsToDraw);
+}
+
+void CSimulation_Window::On_Select_Segments_All()
+{
+	for (auto ctrl : mSegmentWidgets)
+		ctrl.second->Set_Checked(true);
+}
+
+void CSimulation_Window::On_Select_Segments_None()
+{
+	for (auto ctrl : mSegmentWidgets)
+		ctrl.second->Set_Checked(false);
 }
 
 void CSimulation_Window::Start_Time_Segment(uint64_t segmentId)

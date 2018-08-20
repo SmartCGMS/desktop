@@ -25,6 +25,11 @@ bool CTime_Segment_Group_Widget::Is_Checked() const
 	return mCheckBox->isChecked();
 }
 
+void CTime_Segment_Group_Widget::Set_Checked(bool state)
+{
+	mCheckBox->setChecked(state);
+}
+
 uint64_t CTime_Segment_Group_Widget::Get_Segment_Id() const
 {
 	return mSegment_Id;

@@ -17,5 +17,6 @@ class CTime_Segment_Group_Widget : public QGroupBox
 		virtual ~CTime_Segment_Group_Widget();
 
 		bool Is_Checked() const;
+		void Set_Checked(bool state);
 		uint64_t Get_Segment_Id() const;
 };

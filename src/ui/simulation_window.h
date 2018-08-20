@@ -53,7 +53,7 @@ class CSimulation_Window : public QMdiSubWindow {
 		// progress bar layout
 		QGroupBox* mProgressGroup;
 		// time segments layout
-		QGroupBox* mSegmentsGroup;
+		QWidget* mSegmentsGroup;
 		// signals layout
 		QGroupBox* mSignalsGroup;
 
@@ -89,6 +89,9 @@ class CSimulation_Window : public QMdiSubWindow {
 		void On_Simulation_Step();
 
 		void On_Segments_Draw_Request();
+
+		void On_Select_Segments_All();
+		void On_Select_Segments_None();
 
 	protected:
 		void Inject_Event(const glucose::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info);
