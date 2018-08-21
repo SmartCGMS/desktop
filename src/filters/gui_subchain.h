@@ -53,7 +53,7 @@ class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CRe
 		std::set<GUID> m_presentSignals;
 
 		// is the subchain still running?
-		bool mRunning;
+		bool mRunning = false;
 
 		// main function for managing input pipe
 		void Run_Input();
