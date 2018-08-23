@@ -53,26 +53,6 @@ CSimulation_Window::CSimulation_Window(CFilter_Chain &filter_chain, QWidget *own
 	mStopButton->setEnabled(false);
 	mStartButton->setEnabled(true);
 	mSimulationInProgress = false;
-
-	// TODO: make these somehow global, so we don't duplicate code in log filter and X other places
-	//       the same applies to retrieving signal names - there should be some global mechanism for that
-	mSignalNames[glucose::signal_BG] = L"Blood glucose";
-	mSignalNames[glucose::signal_IG] = L"Interstitiary glucose";
-	mSignalNames[glucose::signal_ISIG] = L"ISIG";
-	mSignalNames[glucose::signal_Calibration] = L"Calibration";
-	mSignalNames[glucose::signal_Insulin] = L"Insulin intake";
-	mSignalNames[glucose::signal_Carb_Intake] = L"Carbohydrates intake";
-	mSignalNames[glucose::signal_Health_Stress] = L"Health stress";
-
-	auto models = glucose::get_model_descriptors();
-	for (auto& model : models)
-	{
-		for (size_t i = 0; i < model.number_of_calculated_signals; i++)
-			mSignalNames[model.calculated_signal_ids[i]] = model.description + std::wstring(L" - ") + model.calculated_signal_names[i];
-	}
-
-	for (size_t i = 0; i < glucose::signal_Virtual.size(); i++)
-		mSignalNames[glucose::signal_Virtual[i]] = dsSignal_Prefix_Virtual + std::wstring(L" ") + std::to_wstring(i);
 }
 
 CSimulation_Window::~CSimulation_Window()
@@ -108,30 +88,6 @@ void CSimulation_Window::Setup_UI()
 	layout->addWidget(mSolveParamsButton, 0, 2);
 	mSolveAndResetParamsButton = new QPushButton{ tr(dsSolve_Reset) };
 	layout->addWidget(mSolveAndResetParamsButton, 0, 3);
-	mSuspendSolveButton = new QPushButton{ tr(dsSuspend) };
-	layout->addWidget(mSuspendSolveButton, 0, 4);
-	mResumeSolveButton = new QPushButton{ tr(dsResume) };
-	layout->addWidget(mResumeSolveButton, 0, 5);
-
-	QWidget* simstepBox = new QWidget();
-	{
-		QHBoxLayout* gpBoxLayout = new QHBoxLayout();
-		simstepBox->setLayout(gpBoxLayout);
-		layout->addWidget(simstepBox, 0, 6);
-
-		mStepAmountSpinBox = new QSpinBox();
-		mStepAmountSpinBox->setMinimum(1);
-		mStepAmountSpinBox->setMaximum(100);
-		mStepAmountSpinBox->setValue(1);
-		mStepAmountSpinBox->setSingleStep(1);
-		gpBoxLayout->addWidget(mStepAmountSpinBox);
-
-		QLabel* stepUnitLabel = new QLabel(tr(dsStepUnit));
-		gpBoxLayout->addWidget(stepUnitLabel);
-
-		mSimulationStepButton = new QPushButton{ tr(dsStep) };
-		gpBoxLayout->addWidget(mSimulationStepButton);
-	}
 
 	mProgressGroup = new QGroupBox();
 	QVBoxLayout *progLayout = new QVBoxLayout();
@@ -139,9 +95,6 @@ void CSimulation_Window::Setup_UI()
 	mProgressGroup->setTitle(StdWStringToQString(dsSolver_Progress_Box_Title));
 
 	layout->addWidget(mProgressGroup, 1, 0);
-
-
-
 
 	QWidget* segmentsParentBox = new QWidget();
 	{
@@ -261,9 +214,6 @@ void CSimulation_Window::Setup_UI()
 	connect(mStopButton, SIGNAL(clicked()), this, SLOT(On_Stop()));
 	connect(mSolveParamsButton, SIGNAL(clicked()), this, SLOT(On_Solve_Params()));
 	connect(mSolveAndResetParamsButton, SIGNAL(clicked()), this, SLOT(On_Reset_And_Solve_Params()));
-	connect(mSuspendSolveButton, SIGNAL(clicked()), this, SLOT(On_Suspend_Solve()));
-	connect(mResumeSolveButton, SIGNAL(clicked()), this, SLOT(On_Resume_Solve()));
-	connect(mSimulationStepButton, SIGNAL(clicked()), this, SLOT(On_Simulation_Step()));
 	connect(mTabWidget, SIGNAL(currentChanged(int)), this, SLOT(On_Tab_Change(int)));
 }
 
@@ -367,25 +317,7 @@ void CSimulation_Window::On_Solve_Params() {
 }
 
 void CSimulation_Window::On_Reset_And_Solve_Params() {
-	Inject_Event(glucose::NDevice_Event_Code::Information, Invalid_GUID, rsParameters_Reset_Request);
-	Inject_Event(glucose::NDevice_Event_Code::Solve_Parameters, Invalid_GUID, nullptr);
-}
-
-void CSimulation_Window::On_Suspend_Solve() {
-	Inject_Event(glucose::NDevice_Event_Code::Suspend_Parameter_Solving, Invalid_GUID, nullptr);
-}
-
-void CSimulation_Window::On_Resume_Solve() {
-	Inject_Event(glucose::NDevice_Event_Code::Resume_Parameter_Solving, Invalid_GUID, nullptr);
-}
-
-void CSimulation_Window::On_Simulation_Step() {
-
-	// TODO: find a better solution than sending amount in GUID
-	GUID amt{ 0 };
-	amt.Data1 = (unsigned long)mStepAmountSpinBox->value();
-
-	Inject_Event(glucose::NDevice_Event_Code::Simulation_Step, amt, nullptr);
+	Inject_Event(glucose::NDevice_Event_Code::Warm_Reset, Invalid_GUID, nullptr);
 }
 
 CSimulation_Window* CSimulation_Window::Get_Instance()
@@ -424,11 +356,7 @@ void CSimulation_Window::Update_Solver_Progress(GUID& solver, size_t progress)
 			QProgressBar* pbar = new QProgressBar();
 			mProgressBars[solver] = pbar;
 
-			auto sigNameItr = mSignalNames.find(solver);
-			if (sigNameItr == mSignalNames.end())
-				mSignalNames[solver] = dsSignal_Unknown;
-
-			QLabel* plabel = new QLabel(StdWStringToQString(mSignalNames[solver]));
+			QLabel* plabel = new QLabel(StdWStringToQString(mSignal_Names.Get_Name(solver)));
 
 			pbar->setValue((int)progress);
 
@@ -523,15 +451,6 @@ void CSimulation_Window::Add_Signal(const GUID& signalId)
 			}
 		}
 	});
-}
-
-std::wstring CSimulation_Window::Get_Signal_Name(const GUID& guid) const
-{
-	auto itr = mSignalNames.find(guid);
-	if (itr == mSignalNames.end())
-		return std::wstring{};
-
-	return itr->second;
 }
 
 void CSimulation_Window::Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type)

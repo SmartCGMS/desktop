@@ -15,6 +15,8 @@
 #include "../../../common/iface/FilterIface.h"
 #include "../../../common/desktop-console/filter_chain.h"
 #include "../../../common/desktop-console/filter_chain_manager.h"
+#include "../../../common/rtl/UILib.h"
+
 #include "../filters/descriptor.h"
 #include "../filters/gui_subchain.h"
 
@@ -43,7 +45,7 @@ class CSimulation_Window : public QMdiSubWindow {
 		bool mSimulationInProgress;
 
 		SGUI_Filter_Subchain m_guiSubchain;
-
+		glucose::CSignal_Names mSignal_Names;
 	protected:
 		// chain holder retaining filter configuration
 		std::unique_ptr<CFilter_Chain_Manager> mFilter_Chain_Manager;
@@ -62,11 +64,8 @@ class CSimulation_Window : public QMdiSubWindow {
 		// stop button instance
 		QPushButton* mStopButton;
 		// simulation control buttons
-		QPushButton *mSolveParamsButton, *mSolveAndResetParamsButton, *mSuspendSolveButton, *mResumeSolveButton, *mSimulationStepButton;
-		// step amount spinbox
-		QSpinBox *mStepAmountSpinBox;
+		QPushButton *mSolveParamsButton, *mSolveAndResetParamsButton;
 
-		std::map<GUID, std::wstring> mSignalNames;
 		std::map<GUID, QProgressBar*> mProgressBars;
 		std::map<uint64_t, CTime_Segment_Group_Widget*> mSegmentWidgets;
 		std::map<GUID, CSignal_Group_Widget*> mSignalWidgets;
@@ -84,9 +83,6 @@ class CSimulation_Window : public QMdiSubWindow {
 
 		void On_Solve_Params();
 		void On_Reset_And_Solve_Params();
-		void On_Suspend_Solve();
-		void On_Resume_Solve();
-		void On_Simulation_Step();
 
 		void On_Segments_Draw_Request();
 
@@ -113,6 +109,4 @@ class CSimulation_Window : public QMdiSubWindow {
 
 		void Start_Time_Segment(uint64_t segmentId);
 		void Add_Signal(const GUID& signalId);
-
-		std::wstring Get_Signal_Name(const GUID& guid) const;
 };

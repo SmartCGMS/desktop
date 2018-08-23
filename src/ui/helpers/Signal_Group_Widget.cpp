@@ -1,6 +1,7 @@
 #include "Signal_Group_Widget.h"
 #include "../../../../../common/QtUtils.h"
 #include "../simulation_window.h"
+#include "../../../../common/rtl/UILib.h"
 
 #include <QtWidgets/QGridLayout>
 
@@ -12,8 +13,10 @@ CSignal_Group_Widget::CSignal_Group_Widget(const GUID& signalId, QWidget* parent
 
 	std::wstring signalName;
 	CSimulation_Window* simwin = CSimulation_Window::Get_Instance();
-	if (simwin)
-		signalName = simwin->Get_Signal_Name(mSignal_Id);
+	if (simwin) {
+		glucose::CSignal_Names names;
+		signalName = names.Get_Name(mSignal_Id);
+	}
 
 	mCheckBox = new QCheckBox(StdWStringToQString(signalName));
 	mCheckBox->setChecked(true);
