@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../../common/rtl/FilterLib.h"
-
+#include "../../../common/desktop-console/filter_chain.h"
 #include "helpers/general_container_edit.h"
 
 #include <vector>
@@ -13,7 +13,7 @@
 class CFilter_Config_Window : public QDialog {
 	Q_OBJECT
 protected:
-	std::vector<glucose::TFilter_Parameter> &mConfiguration;
+	CFilter_Configuration &mConfiguration;
 	const glucose::TFilter_Descriptor &mDescription;
 
 	using TName_Container_Pair = std::pair<std::wstring, filter_config_window::CContainer_Edit*>;
@@ -27,7 +27,7 @@ protected slots:
 	void On_Cancel();
 	void On_Apply();
 public:
-	CFilter_Config_Window(const glucose::TFilter_Descriptor &description, std::vector<glucose::TFilter_Parameter> &configuration, QWidget *parent);
+	CFilter_Config_Window(const glucose::TFilter_Descriptor &description, CFilter_Configuration &configuration, QWidget *parent);
 };
 
 class CInteger_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {

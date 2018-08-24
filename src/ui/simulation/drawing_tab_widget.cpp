@@ -115,8 +115,7 @@ CDrawing_Tab_Widget::~CDrawing_Tab_Widget()
 
 void CDrawing_Tab_Widget::Update_View_Size()
 {
-	if (mItem)
-		mView->fitInView(mItem, Qt::AspectRatioMode::KeepAspectRatio);
+	mView->resetMatrix();
 }
 
 void CDrawing_Tab_Widget::Drawing_Callback(const glucose::TDrawing_Image_Type type, const glucose::TDiagnosis diagnosis, const std::string &svg)

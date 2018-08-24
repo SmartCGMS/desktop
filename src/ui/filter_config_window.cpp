@@ -136,7 +136,7 @@ class CNull_Container_Edit : public QWidget, public virtual filter_config_window
 
 
 
-CFilter_Config_Window::CFilter_Config_Window(const glucose::TFilter_Descriptor &description, std::vector<glucose::TFilter_Parameter> &configuration, QWidget *parent) :
+CFilter_Config_Window::CFilter_Config_Window(const glucose::TFilter_Descriptor &description, CFilter_Configuration &configuration, QWidget *parent) :
 	mDescription(description), mConfiguration(configuration), QDialog(parent) {
 
 
@@ -325,12 +325,13 @@ void CFilter_Config_Window::Setup_UI() {
 }
 
 void CFilter_Config_Window::Commit_Parameters() {
-	std::vector<glucose::TFilter_Parameter> new_parameters;
+	CFilter_Configuration new_parameters;
 	for (auto &edit : mContainer_Edits) {
 		glucose::TFilter_Parameter param = edit.second->get_parameter();
 		param.config_name = refcnt::WString_To_WChar_Container(edit.first.c_str());
 
-		new_parameters.push_back(param);
+		new_parameters.push_back(param);			//does AddRef => we have to call release	
+		glucose::Release_Filter_Parameter(param);
 	}
 
 	mConfiguration = std::move(new_parameters);
