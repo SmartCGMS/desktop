@@ -1,3 +1,34 @@
+/**
+ * SmartCGMS - continuous glucose monitoring and controlling framework
+ * https://diabetes.zcu.cz/
+ *
+ * Contact:
+ * diabetes@mail.kiv.zcu.cz
+ * Medical Informatics, Department of Computer Science and Engineering
+ * Faculty of Applied Sciences, University of West Bohemia
+ * Technicka 8
+ * 314 06, Pilsen
+ *
+ * Licensing terms:
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *
+ * a) For non-profit, academic research, this software is available under the
+ *    GPLv3 license. When publishing any related work, user of this software
+ *    must:
+ *    1) let us know about the publication,
+ *    2) acknowledge this software and respective literature - see the
+ *       https://diabetes.zcu.cz/about#publications,
+ *    3) At least, the user of this software must cite the following paper:
+ *       Parallel software architecture for the next generation of glucose
+ *       monitoring, Proceedings of the 8th International Conference on Current
+ *       and Future Trends of Information and Communication Technologies
+ *       in Healthcare (ICTH 2018) November 5-8, 2018, Leuven, Belgium
+ * b) For any other use, especially commercial use, you must contact us and
+ *    obtain specific terms and conditions for the use of the software.
+ */
+
 #include "simulation_window.h"
 
 #include "../../../common/lang/dstrings.h"
@@ -13,6 +44,7 @@
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QFrame>
+#include <QtWidgets/QMenu>
 
 #include <QtCore/QTimer>
 #include <QtCore/QEventLoop>
@@ -71,6 +103,36 @@ void CSimulation_Window::Update_Filter_Chain(CFilter_Chain& filter_chain)
 	mFilter_Chain_Manager = std::make_unique<CFilter_Chain_Manager>(filter_chain);
 }
 
+void CSimulation_Window::Setup_Solve_Button_Menu()
+{
+	mSolveSignalMapper = new QSignalMapper(this);
+	connect(mSolveSignalMapper, SIGNAL(mapped(QString)), this, SLOT(On_Solve_Signal(QString)));
+
+	QMenu* menu = new QMenu(this);
+
+	QAction* anyaction = menu->addAction(StdWStringToQString(mSignal_Names.Get_Name(glucose::signal_All).c_str()));
+	connect(anyaction, SIGNAL(triggered()), mSolveSignalMapper, SLOT(map()));
+	mSolveSignalMapper->setMapping(anyaction, StdWStringToQString(GUID_To_WString(glucose::signal_All)));
+
+	menu->addSeparator();
+
+	auto models = glucose::get_model_descriptors();
+	for (const auto& model : models)
+	{
+		for (size_t i = 0; i < model.number_of_calculated_signals; i++)
+		{
+			auto& action = mSignalSolveActions[model.calculated_signal_ids[i]];
+
+			action = menu->addAction(StdWStringToQString(mSignal_Names.Get_Name(model.calculated_signal_ids[i]).c_str()));
+			action->setVisible(false);
+			connect(action, SIGNAL(triggered()), mSolveSignalMapper, SLOT(map()));
+			mSolveSignalMapper->setMapping(action, StdWStringToQString(GUID_To_WString(model.calculated_signal_ids[i])));
+		}
+	}
+
+	mSolveParamsButton->setMenu(menu);
+}
+
 void CSimulation_Window::Setup_UI()
 {
 	setWindowTitle(tr(dsSimulation_Window));
@@ -88,6 +150,8 @@ void CSimulation_Window::Setup_UI()
 	layout->addWidget(mSolveParamsButton, 0, 2);
 	mSolveAndResetParamsButton = new QPushButton{ tr(dsSolve_Reset) };
 	layout->addWidget(mSolveAndResetParamsButton, 0, 3);
+
+	Setup_Solve_Button_Menu();
 
 	mProgressGroup = new QGroupBox();
 	QVBoxLayout *progLayout = new QVBoxLayout();
@@ -212,7 +276,6 @@ void CSimulation_Window::Setup_UI()
 
 	connect(mStartButton, SIGNAL(clicked()), this, SLOT(On_Start()));
 	connect(mStopButton, SIGNAL(clicked()), this, SLOT(On_Stop()));
-	connect(mSolveParamsButton, SIGNAL(clicked()), this, SLOT(On_Solve_Params()));
 	connect(mSolveAndResetParamsButton, SIGNAL(clicked()), this, SLOT(On_Reset_And_Solve_Params()));
 	connect(mTabWidget, SIGNAL(currentChanged(int)), this, SLOT(On_Tab_Change(int)));
 }
@@ -301,6 +364,10 @@ void CSimulation_Window::On_Start()
 
 	if (mErrorsWidget)
 		mErrorsWidget->Reset();
+
+	// hide all signal solve actions
+	for (auto& action : mSignalSolveActions)
+		action.second->setVisible(false);
 }
 
 void CSimulation_Window::On_Stop() {
@@ -310,10 +377,6 @@ void CSimulation_Window::On_Stop() {
 	mStartButton->setEnabled(true);
 
 	m_guiSubchain.reset();
-}
-
-void CSimulation_Window::On_Solve_Params() {
-	Inject_Event(glucose::NDevice_Event_Code::Solve_Parameters, Invalid_GUID, nullptr);
 }
 
 void CSimulation_Window::On_Reset_And_Solve_Params() {
@@ -442,6 +505,9 @@ void CSimulation_Window::Add_Signal(const GUID& signalId)
 			CSignal_Group_Widget* grp = new CSignal_Group_Widget(signalId);
 
 			mSignalWidgets[signalId] = grp;
+			// show "solve" action
+			if (mSignalSolveActions.find(signalId) != mSignalSolveActions.end())
+				mSignalSolveActions[signalId]->setVisible(true);
 
 			QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mSignalsGroup->layout());
 			if (lay)
@@ -453,14 +519,24 @@ void CSimulation_Window::Add_Signal(const GUID& signalId)
 	});
 }
 
+void CSimulation_Window::On_Solve_Signal(QString str)
+{
+	GUID signalId = WString_To_GUID(str.toStdWString());
+	if (signalId == Invalid_GUID)
+		return;
+
+	Inject_Event(glucose::NDevice_Event_Code::Solve_Parameters, signalId, nullptr, glucose::All_Segments_Id);
+}
+
 void CSimulation_Window::Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type)
 {
 	mErrorsWidget->Update_Error_Metrics(signal_id, container, type);
 }
 
-void CSimulation_Window::Inject_Event(const glucose::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info) {
+void CSimulation_Window::Inject_Event(const glucose::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info, const uint64_t segment_id) {
 	glucose::UDevice_Event evt{ code };
 	evt.signal_id = signal_id;
+	evt.segment_id = segment_id;
 	evt.info.set(info);
 	mFilter_Chain_Manager->Send(evt);
 }

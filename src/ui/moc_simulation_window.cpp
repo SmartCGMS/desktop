@@ -37,18 +37,18 @@ QT_MOC_LITERAL(2, 28, 0), // ""
 QT_MOC_LITERAL(3, 29, 7), // "On_Stop"
 QT_MOC_LITERAL(4, 37, 13), // "On_Tab_Change"
 QT_MOC_LITERAL(5, 51, 5), // "index"
-QT_MOC_LITERAL(6, 57, 15), // "On_Solve_Params"
-QT_MOC_LITERAL(7, 73, 25), // "On_Reset_And_Solve_Params"
-QT_MOC_LITERAL(8, 99, 24), // "On_Segments_Draw_Request"
-QT_MOC_LITERAL(9, 124, 22), // "On_Select_Segments_All"
-QT_MOC_LITERAL(10, 147, 23) // "On_Select_Segments_None"
+QT_MOC_LITERAL(6, 57, 25), // "On_Reset_And_Solve_Params"
+QT_MOC_LITERAL(7, 83, 24), // "On_Segments_Draw_Request"
+QT_MOC_LITERAL(8, 108, 22), // "On_Select_Segments_All"
+QT_MOC_LITERAL(9, 131, 23), // "On_Select_Segments_None"
+QT_MOC_LITERAL(10, 155, 15) // "On_Solve_Signal"
 
     },
     "CSimulation_Window\0On_Start\0\0On_Stop\0"
-    "On_Tab_Change\0index\0On_Solve_Params\0"
-    "On_Reset_And_Solve_Params\0"
+    "On_Tab_Change\0index\0On_Reset_And_Solve_Params\0"
     "On_Segments_Draw_Request\0"
-    "On_Select_Segments_All\0On_Select_Segments_None"
+    "On_Select_Segments_All\0On_Select_Segments_None\0"
+    "On_Solve_Signal"
 };
 #undef QT_MOC_LITERAL
 
@@ -73,7 +73,7 @@ static const uint qt_meta_data_CSimulation_Window[] = {
        7,    0,   60,    2, 0x09 /* Protected */,
        8,    0,   61,    2, 0x09 /* Protected */,
        9,    0,   62,    2, 0x09 /* Protected */,
-      10,    0,   63,    2, 0x09 /* Protected */,
+      10,    1,   63,    2, 0x09 /* Protected */,
 
  // slots: parameters
     QMetaType::Void,
@@ -83,7 +83,7 @@ static const uint qt_meta_data_CSimulation_Window[] = {
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
-    QMetaType::Void,
+    QMetaType::Void, QMetaType::QString,    2,
 
        0        // eod
 };
@@ -97,11 +97,11 @@ void CSimulation_Window::qt_static_metacall(QObject *_o, QMetaObject::Call _c, i
         case 0: _t->On_Start(); break;
         case 1: _t->On_Stop(); break;
         case 2: _t->On_Tab_Change((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 3: _t->On_Solve_Params(); break;
-        case 4: _t->On_Reset_And_Solve_Params(); break;
-        case 5: _t->On_Segments_Draw_Request(); break;
-        case 6: _t->On_Select_Segments_All(); break;
-        case 7: _t->On_Select_Segments_None(); break;
+        case 3: _t->On_Reset_And_Solve_Params(); break;
+        case 4: _t->On_Segments_Draw_Request(); break;
+        case 5: _t->On_Select_Segments_All(); break;
+        case 6: _t->On_Select_Segments_None(); break;
+        case 7: _t->On_Solve_Signal((*reinterpret_cast< QString(*)>(_a[1]))); break;
         default: ;
         }
     }
