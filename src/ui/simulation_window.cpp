@@ -35,7 +35,7 @@
 #include "../../../common/rtl/FilterLib.h"
 #include "../../../common/rtl/UILib.h"
 #include "../../../common/rtl/referencedImpl.h"
-#include "../../../../common/QtUtils.h"
+#include "../../../common/utils/QtUtils.h"
 #include "../../../common/rtl/rattime.h"
 
 #include <QtWidgets/QSplitter>

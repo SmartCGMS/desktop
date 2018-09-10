@@ -30,7 +30,7 @@
  */
 
 #include "Signal_Group_Widget.h"
-#include "../../../../../common/QtUtils.h"
+#include "../../../../common/utils/QtUtils.h"
 #include "../simulation_window.h"
 #include "../../../../common/rtl/UILib.h"
 

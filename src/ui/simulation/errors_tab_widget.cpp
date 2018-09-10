@@ -33,7 +33,7 @@
 
 #include "../../../../common/lang/dstrings.h"
 #include "../../../../common/rtl/UILib.h"
-#include "../../../../../common/QtUtils.h"
+#include "../../../../common/utils/QtUtils.h"
 
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QGridLayout>

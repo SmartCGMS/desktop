@@ -30,7 +30,7 @@
  */
 
 #include "Time_Segment_Group_Widget.h"
-#include "../../../../../common/QtUtils.h"
+#include "../../../../common/utils/QtUtils.h"
 #include "../../../../common/lang/dstrings.h"
 
 #include <QtWidgets/QGridLayout>

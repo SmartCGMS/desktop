@@ -33,7 +33,7 @@
 
 #include "../../../common/desktop-console/config.h"
 #include "../../../common/lang/dstrings.h"
-#include "../../../../common/QtUtils.h"
+#include "../../../common/utils/QtUtils.h"
 #include "filters_window.h"
 #include "simulation_window.h"
 

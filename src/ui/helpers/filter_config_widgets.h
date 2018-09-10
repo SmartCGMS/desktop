@@ -38,7 +38,7 @@
 #include "../../../../common/rtl/referencedImpl.h"
 #include "../../../../common/rtl/FilterLib.h"
 #include "../../../../common/rtl/UILib.h"
-#include "../../../../../common/QtUtils.h"
+#include "../../../../common/utils/QtUtils.h"
 
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QComboBox>

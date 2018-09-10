@@ -32,7 +32,7 @@
 #include "drawing_tab_widget.h"
 
 #include "../../../../common/lang/dstrings.h"
-#include "../../../../../common/QtUtils.h"
+#include "../../../../common/utils/QtUtils.h"
 #include "../../../../common/rtl/referencedImpl.h"
 
 #include <QtWidgets/QLabel>
