@@ -32,7 +32,7 @@
 #pragma once
 
 
-#include <QtWidgets/QListWidgetItem >
+#include <QtWidgets/QListWidgetItem>
 
 #include "../../../../common/desktop-console/filter_chain.h"
 

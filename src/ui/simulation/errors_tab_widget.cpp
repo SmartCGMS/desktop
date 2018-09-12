@@ -40,6 +40,7 @@
 #include <QtWidgets/QScrollBar>
 
 #include <fstream>
+#include <cmath>
 
 #include <QtCore/QTimer>
 #include <QtCore/QEventLoop>
@@ -88,7 +89,7 @@ int CError_Table_Model::columnCount(const QModelIndex &idx) const
 QString Format_Error_String(glucose::NError_Type type, double val)
 {
 	// infinite, NaN, or other values like that results in empty string
-	const auto cl = fpclassify(val);
+	const auto cl = std::fpclassify(val);
 	if (cl != FP_NORMAL && cl != FP_ZERO)
 		return QString();
 

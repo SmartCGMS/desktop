@@ -32,14 +32,14 @@
 #include "ui/main_window.h"
 
 #include "../../common/desktop-console/config.h"
+#include "../../common/utils/winapi_mapping.h"
 #include "../../common/rtl/FilterLib.h"
 #include "filters/descriptor.h"
 
 #include <QtWidgets/QApplication>
 
 
-
-int __cdecl main(int argc, char *argv[]) {
+int MainCalling main(int argc, char *argv[]) {
 
 	QApplication application(argc, argv);
 	// inject GUI-specific loaders to generic code
