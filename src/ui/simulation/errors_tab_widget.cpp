@@ -99,9 +99,9 @@ QString Format_Error_String(glucose::NError_Type type, double val)
 			return QString("%1").arg(val, 0, 'g', 4);
 		case glucose::NError_Type::Relative:
 			return QString("%1%").arg(val*100.0, 0, 'g', 4);
+		default:
+			return QString::number(val);
 	}
-
-	return QString::number(val);
 }
 
 QVariant CError_Table_Model::data(const QModelIndex &index, int role) const
@@ -178,7 +178,6 @@ bool CError_Table_Model::setData(const QModelIndex &index, const QVariant &value
 
 void CError_Table_Model::Set_Error(const GUID& signal_id, std::wstring signal_name, const glucose::TError_Markers& errors, const glucose::NError_Type type)
 {
-	bool added = false;
 	int row;
 
 	if (mSignalRow.find(signal_id) == mSignalRow.end())
@@ -201,9 +200,9 @@ void CError_Table_Model::Set_Error(const GUID& signal_id, std::wstring signal_na
 		idx = index(row*static_cast<size_t>(glucose::NError_Type::count) + offset, i, QModelIndex());
 		setData(idx, errors.markers[i], Qt::EditRole);
 	}
-	for (int i = 0; i < static_cast<size_t>(glucose::NError_Percentile::count); i++)
+	for (int i = 0; i < static_cast<int>(glucose::NError_Percentile::count); i++)
 	{
-		idx = index(row*static_cast<size_t>(glucose::NError_Type::count) + offset, i + static_cast<int>(glucose::NError_Marker::count), QModelIndex());
+		idx = index(row*static_cast<int>(glucose::NError_Type::count) + offset, i + static_cast<int>(glucose::NError_Marker::count), QModelIndex());
 		setData(idx, errors.percentile[i], Qt::EditRole);
 	}
 }

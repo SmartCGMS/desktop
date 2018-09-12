@@ -29,8 +29,6 @@
  *    obtain specific terms and conditions for the use of the software.
  */
 
-#pragma once
-
 #include "gui_subchain.h"
 #include "descriptor.h"
 
@@ -98,7 +96,7 @@ void CGUI_Filter_Subchain::Run_Output() {
 	// simulation window lifetime is always longer than GUI filter subchain's and overlaps it entirely, so we could store simwin pointer here
 	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
 
-	for (; glucose::UDevice_Event evt = mSubchainMgr->Receive(); evt) {
+	for (; glucose::UDevice_Event evt = mSubchainMgr->Receive();) {
 		// here we handle all messages that comes from last GUI-wrapped filter pipe
 		// this of course involves all messages that hasn't been dropped prior sending through last filter pipe
 

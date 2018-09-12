@@ -169,7 +169,7 @@ void CModel_Bounds_Panel::Reset_UI(const size_t parameter_count, const wchar_t**
 
 void CModel_Bounds_Panel::On_Reset_Lower()
 {
-	glucose::TModel_Descriptor model{ 0 };
+	glucose::TModel_Descriptor model = glucose::Null_Model_Descriptor;
 	if (!Get_Current_Selected_Model(model))
 		return;
 
@@ -179,7 +179,7 @@ void CModel_Bounds_Panel::On_Reset_Lower()
 
 void CModel_Bounds_Panel::On_Reset_Defaults()
 {
-	glucose::TModel_Descriptor model{ 0 };
+	glucose::TModel_Descriptor model = glucose::Null_Model_Descriptor;
 	if (!Get_Current_Selected_Model(model))
 		return;
 
@@ -189,7 +189,7 @@ void CModel_Bounds_Panel::On_Reset_Defaults()
 
 void CModel_Bounds_Panel::On_Reset_Upper()
 {
-	glucose::TModel_Descriptor model{ 0 };
+	glucose::TModel_Descriptor model = glucose::Null_Model_Descriptor;
 	if (!Get_Current_Selected_Model(model))
 		return;
 
@@ -213,7 +213,7 @@ bool CModel_Bounds_Panel::Get_Current_Selected_Model(glucose::TModel_Descriptor&
 
 void CModel_Bounds_Panel::Refresh_Contents(glucose::IModel_Parameter_Vector* inputs)
 {
-	glucose::TModel_Descriptor model{ 0 };
+	glucose::TModel_Descriptor model = glucose::Null_Model_Descriptor;
 
 	if (Get_Current_Selected_Model(model))
 	{
@@ -225,7 +225,7 @@ void CModel_Bounds_Panel::Refresh_Contents(glucose::IModel_Parameter_Vector* inp
 
 		if (inputs && inputs->get(&beg, &end) == S_OK)
 		{
-			if (std::distance(beg, end) == model.number_of_parameters * 3)
+			if (static_cast<size_t>(std::distance(beg, end)) == model.number_of_parameters * 3)
 			{
 				lb = beg;
 				def = beg + model.number_of_parameters;

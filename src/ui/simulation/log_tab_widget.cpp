@@ -145,7 +145,7 @@ QVariant CLog_Table_Model::headerData(int section, Qt::Orientation orientation, 
 		// horizontal - use column names stored during widget creation
 		if (orientation == Qt::Horizontal)
 		{
-			if (section >= 0 && section < mHeaderTitles.size())
+			if (section >= 0 && section < static_cast<int>(mHeaderTitles.size()))
 				return StdWStringToQString(mHeaderTitles[section]);
 		}
 	}

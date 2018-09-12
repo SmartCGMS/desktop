@@ -157,7 +157,7 @@ class CBoolean_Container_Edit : public QCheckBox, public virtual filter_config_w
 
 class CNull_Container_Edit : public QWidget, public virtual filter_config_window::CContainer_Edit {
 	glucose::TFilter_Parameter get_parameter() {
-		return { glucose::NParameter_Type::ptNull };
+		return glucose::Null_Filter_Parameter;
 	}
 
 	void set_parameter(const glucose::TFilter_Parameter &param) {
@@ -168,7 +168,7 @@ class CNull_Container_Edit : public QWidget, public virtual filter_config_window
 
 
 CFilter_Config_Window::CFilter_Config_Window(const glucose::TFilter_Descriptor &description, CFilter_Configuration &configuration, QWidget *parent) :
-	mDescription(description), mConfiguration(configuration), QDialog(parent) {
+	QDialog(parent), mConfiguration(configuration), mDescription(description) {
 
 
 	Setup_UI();

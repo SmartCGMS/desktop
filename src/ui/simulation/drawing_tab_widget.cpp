@@ -52,19 +52,15 @@
 
 #include "moc_drawing_tab_widget.cpp"
 
-constexpr qreal Minimum_Zoom = 1.1;
-constexpr qreal Zoom_Step = 0.5;
-constexpr qreal Maximum_Zoom = 10.0;
-
 // array of default names for image files by type
-static const std::array<const char*, static_cast<size_t>(glucose::TDrawing_Image_Type::count)> Default_Filename_For_Type = {
+static const std::array<const char*, static_cast<size_t>(glucose::TDrawing_Image_Type::count)> Default_Filename_For_Type = { {
 	dsSave_Image_Default_Filename_Graph,
 	dsSave_Image_Default_Filename_Day,
 	dsSave_Image_Default_Filename_Parkes,
 	dsSave_Image_Default_Filename_Clark,
 	dsSave_Image_Default_Filename_AGP,
 	dsSave_Image_Default_Filename_ECDF
-};
+} };
 
 CDrawing_Graphics_View::CDrawing_Graphics_View()
 	: QGraphicsView()

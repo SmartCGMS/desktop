@@ -76,7 +76,7 @@ CSimulation_Window* CSimulation_Window::Show_Instance(CFilter_Chain &filter_chai
 	return mInstance;
 }
 
-CSimulation_Window::CSimulation_Window(CFilter_Chain &filter_chain, QWidget *owner) : mTabWidget(nullptr), QMdiSubWindow{ owner }
+CSimulation_Window::CSimulation_Window(CFilter_Chain &filter_chain, QWidget *owner) : QMdiSubWindow{ owner }, mTabWidget(nullptr)
 {
 	mFilter_Chain_Manager = std::make_unique<CFilter_Chain_Manager>(filter_chain);
 

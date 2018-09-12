@@ -29,8 +29,6 @@
  *    obtain specific terms and conditions for the use of the software.
  */
 
-#pragma once
-
 #include "descriptor.h"
 #include "gui_subchain.h"
 
@@ -52,14 +50,15 @@ namespace gui
 		0,
 		nullptr,
 		nullptr,
+		nullptr,
 		nullptr
 	};
 
-	const std::array<GUID, 3> gui_filters = {
+	const std::array<GUID, 3> gui_filters = { {
 		glucose::Drawing_Filter,
 		glucose::Error_Filter,
 		glucose::Log_Filter
-	};
+	} };
 
 	// lazy-loaded config param types
 	std::vector<glucose::NParameter_Type> config_param_types;
@@ -77,7 +76,7 @@ namespace gui
 	bool init_filter_descriptor()
 	{
 		// load filters from gui_filters array
-		glucose::TFilter_Descriptor desc{ 0 };
+		glucose::TFilter_Descriptor desc = glucose::Null_Filter_Descriptor;
 		
 		for (const auto &gui_filter : gui_filters) 	{
 			// if the filter fails to load, fail whole GUI filter loading routine

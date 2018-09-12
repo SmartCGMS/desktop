@@ -61,7 +61,7 @@ void CModel_Signal_Select_ComboBox::Refresh_Contents()
 	if (mModelSelector->currentIndex() >= 0)
 	{
 		// get selected model GUID
-		glucose::TModel_Descriptor model{ 0 };
+		glucose::TModel_Descriptor model = glucose::Null_Model_Descriptor;
 		const GUID selectedModelGUID = *reinterpret_cast<const GUID*>(mModelSelector->currentData().toByteArray().constData());
 
 		// retrieve proper model

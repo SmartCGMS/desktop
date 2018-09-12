@@ -35,7 +35,7 @@
 #include <QtCore/QObject>
 
 CFilter_List_Item::CFilter_List_Item(const glucose::TFilter_Descriptor &descriptor) :
-	mDescriptor(descriptor), QListWidgetItem() {
+	QListWidgetItem(), mDescriptor(descriptor) {
 
 	Refresh();
 }

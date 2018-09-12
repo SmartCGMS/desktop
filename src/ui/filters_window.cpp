@@ -71,7 +71,7 @@ CFilters_Window* CFilters_Window::Show_Instance(CFilter_Chain &filter_chain, QWi
 	return mInstance;
 }
 
-CFilters_Window::CFilters_Window(CFilter_Chain &filter_chain, QWidget *owner) : mFilter_Chain(filter_chain), QMdiSubWindow(owner) {
+CFilters_Window::CFilters_Window(CFilter_Chain &filter_chain, QWidget *owner) : QMdiSubWindow(owner), mFilter_Chain(filter_chain) {
 	Setup_UI();
 }
 
@@ -146,7 +146,6 @@ void CFilters_Window::Setup_UI() {
 	
 	wgtAvailable_Filters->setLayout(lotAvailable_Filters);
 
-	QWidget *content = new QWidget {this};
 	QSplitter *splitter = new QSplitter{ this };
 
 	splitter->addWidget(wgtApplied_Filters);
