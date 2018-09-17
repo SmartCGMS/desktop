@@ -109,6 +109,7 @@ class CDrawing_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 		virtual ~CDrawing_Tab_Widget();
 
 		virtual void Update_View_Size() override;
+		virtual CAbstract_Simulation_Tab_Widget* Clone() override;
 
 		// when a new drawing is available
 		void Drawing_Callback(const glucose::TDrawing_Image_Type type, const glucose::TDiagnosis diagnosis, const std::string &svg);

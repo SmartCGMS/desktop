@@ -128,6 +128,14 @@ void CGUI_Filter_Subchain::Run_Output() {
 			if (mDraw_Segment_Ids)
 				mDraw_Segment_Ids->add(&evt.segment_id, &evt.segment_id + 1);
 		}
+		else if (evt.event_code == glucose::NDevice_Event_Code::Shut_Down)
+		{
+			std::unique_lock<std::mutex> lck(mUpdater_Mtx);
+
+			mUpdater_Cv.notify_all();
+
+			simwin->Stop_Simulation();
+		}
 
 		// if the event is containing valid level, propagate it to GUI, if not already there
 		if (evt.is_level_event() /*|| evt.is_parameters_event()*/)

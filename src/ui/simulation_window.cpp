@@ -235,6 +235,8 @@ void CSimulation_Window::Setup_UI()
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Graph));
 
+		tab->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
+
 		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Day);
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Day));
@@ -264,6 +266,8 @@ void CSimulation_Window::Setup_UI()
 
 		mErrorsWidget = new CErrors_Tab_Widget(this);
 		mTabWidget->addTab(mErrorsWidget, tr(dsErrors_Tab));
+
+		mBase_Tab_Count = mTabWidget->count();
 	}
 
 	QWidget *content = new QWidget{ this };
@@ -278,6 +282,46 @@ void CSimulation_Window::Setup_UI()
 	connect(mStopButton, SIGNAL(clicked()), this, SLOT(On_Stop()));
 	connect(mSolveAndResetParamsButton, SIGNAL(clicked()), this, SLOT(On_Reset_And_Solve_Params()));
 	connect(mTabWidget, SIGNAL(currentChanged(int)), this, SLOT(On_Tab_Change(int)));
+
+	mTabWidget->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(mTabWidget->tabBar(), SIGNAL(customContextMenuRequested(const QPoint &)), SLOT(Show_Tab_Context_Menu(const QPoint &)));
+}
+
+void CSimulation_Window::Show_Tab_Context_Menu(const QPoint &point)
+{
+	if (point.isNull())
+		return;
+
+	int tabIndex = mTabWidget->tabBar()->tabAt(point);
+	QMenu menu(this);
+	if (tabIndex >= mBase_Tab_Count)
+		menu.addAction(tr(dsClose_Tab), std::bind(&CSimulation_Window::Close_Tab, this, tabIndex));
+	else
+		menu.addAction(tr(dsSave_Tab_State), std::bind(&CSimulation_Window::Save_Tab_State, this, tabIndex));
+
+	menu.exec(mTabWidget->tabBar()->mapToGlobal(point));
+}
+
+void CSimulation_Window::Close_Tab(int index)
+{
+	CAbstract_Simulation_Tab_Widget* widget = dynamic_cast<CAbstract_Simulation_Tab_Widget*>(mTabWidget->widget(index));
+	if (!widget)
+		return;
+
+	mTabWidget->removeTab(index);
+}
+
+void CSimulation_Window::Save_Tab_State(int index)
+{
+	CAbstract_Simulation_Tab_Widget* widget = dynamic_cast<CAbstract_Simulation_Tab_Widget*>(mTabWidget->widget(index));
+	if (!widget)
+		return;
+
+	CAbstract_Simulation_Tab_Widget* cloned = widget->Clone();
+	if (!cloned)
+		return;
+
+	mTabWidget->addTab(cloned, mTabWidget->tabBar()->tabText(index) + dsSaved_State_Tab_Suffix);
 }
 
 void CSimulation_Window::Update_Tab_View()
@@ -371,12 +415,22 @@ void CSimulation_Window::On_Start()
 }
 
 void CSimulation_Window::On_Stop() {
-	mFilter_Chain_Manager->Terminate_Filters();
-	mSimulationInProgress = false;
 	mStopButton->setEnabled(false);
-	mStartButton->setEnabled(true);
+	Inject_Event(glucose::NDevice_Event_Code::Shut_Down, glucose::signal_All, nullptr);
+}
 
-	m_guiSubchain.reset();
+void CSimulation_Window::Stop_Simulation() {
+	QEventLoop loop;
+	Q_UNUSED(loop);
+	QTimer::singleShot(0, this, [this]()
+	{
+		mFilter_Chain_Manager->Terminate_Filters();
+		mSimulationInProgress = false;
+		mStopButton->setEnabled(false);
+		mStartButton->setEnabled(true);
+
+		m_guiSubchain.reset();
+	});
 }
 
 void CSimulation_Window::On_Reset_And_Solve_Params() {

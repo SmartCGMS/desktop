@@ -72,6 +72,19 @@ void CLog_Subtab_Raw_Widget::Log_Message(const std::wstring &msg)
 	});
 }
 
+CAbstract_Simulation_Tab_Widget* CLog_Subtab_Raw_Widget::Clone()
+{
+	CLog_Subtab_Raw_Widget* cloned = new CLog_Subtab_Raw_Widget();
+	cloned->Set_Contents(mLogContents->document()->toPlainText());
+
+	return cloned;
+}
+
+void CLog_Subtab_Raw_Widget::Set_Contents(const QString& contents)
+{
+	mLogContents->document()->setPlainText(contents);
+}
+
 /* TABLE subtab widget */
 
 CLog_Subtab_Table_Widget::CLog_Subtab_Table_Widget(QWidget *parent)
@@ -102,6 +115,28 @@ void CLog_Subtab_Table_Widget::Log_Message(const std::wstring &msg)
 		// scrolling to bottom is disabled for now
 		//mTableView->scrollToBottom();
 	});
+}
+
+CAbstract_Simulation_Tab_Widget* CLog_Subtab_Table_Widget::Clone()
+{
+	CLog_Subtab_Table_Widget* cloned = new CLog_Subtab_Table_Widget();
+	cloned->Append_From_Model(mModel);
+
+	return cloned;
+}
+
+void CLog_Subtab_Table_Widget::Append_From_Model(CLog_Table_Model* source)
+{
+	for (int i = 0; i < source->rowCount(); i++)
+	{
+		mModel->insertRows(i, 1, QModelIndex());
+
+		for (int j = 0; j < source->columnCount(); j++)
+		{
+			QModelIndex idx = mModel->index(i, j, QModelIndex());
+			mModel->setData(idx, source->data(idx), Qt::DisplayRole);
+		}
+	}
 }
 
 CLog_Table_Model::CLog_Table_Model(QObject *parent) noexcept : QAbstractTableModel(parent) {
@@ -203,15 +238,30 @@ void CLog_Table_Model::Log_Message(const std::wstring &msg)
 CLog_Tab_Widget::CLog_Tab_Widget(QWidget *parent)
 	: CAbstract_Simulation_Tab_Widget(parent)
 {
-	QGridLayout *mainLayout = new QGridLayout;
-
-	mTabWidget = new QTabWidget();
-	mainLayout->addWidget(mTabWidget);
+	Init_Layout();
 
 	mTableLogWidget = new CLog_Subtab_Table_Widget(this);
 	mTabWidget->addTab(mTableLogWidget, tr(dsLog_Table_View));
 	mRawLogWidget = new CLog_Subtab_Raw_Widget(this);
 	mTabWidget->addTab(mRawLogWidget, tr(dsLog_Raw_View));
+}
+
+CLog_Tab_Widget::CLog_Tab_Widget(CLog_Subtab_Raw_Widget* cloned_raw, CLog_Subtab_Table_Widget* cloned_table)
+{
+	Init_Layout();
+
+	mTableLogWidget = cloned_table;
+	mTabWidget->addTab(mTableLogWidget, tr(dsLog_Table_View));
+	mRawLogWidget = cloned_raw;
+	mTabWidget->addTab(mRawLogWidget, tr(dsLog_Raw_View));
+}
+
+void CLog_Tab_Widget::Init_Layout()
+{
+	QGridLayout *mainLayout = new QGridLayout;
+
+	mTabWidget = new QTabWidget();
+	mainLayout->addWidget(mTabWidget);
 
 	setLayout(mainLayout);
 }
@@ -220,4 +270,13 @@ void CLog_Tab_Widget::Log_Message(const std::wstring &msg)
 {
 	mRawLogWidget->Log_Message(msg);
 	mTableLogWidget->Log_Message(msg);
+}
+
+CAbstract_Simulation_Tab_Widget* CLog_Tab_Widget::Clone()
+{
+	CLog_Tab_Widget* cloned = new CLog_Tab_Widget(
+		dynamic_cast<CLog_Subtab_Raw_Widget*>(mRawLogWidget->Clone()),
+		dynamic_cast<CLog_Subtab_Table_Widget*>(mTableLogWidget->Clone()));
+
+	return cloned;
 }

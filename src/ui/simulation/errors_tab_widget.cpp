@@ -107,7 +107,7 @@ QString Format_Error_String(glucose::NError_Type type, double val)
 QVariant CError_Table_Model::data(const QModelIndex &index, int role) const
 {
 	// content of error cells
-	if (role == Qt::DisplayRole)
+	if (role == Qt::DisplayRole || role == Qt::EditRole)
 	{
 		const int row = index.row();
 		double val;
@@ -117,7 +117,10 @@ QVariant CError_Table_Model::data(const QModelIndex &index, int role) const
 		else
 			val = mErrors[row /static_cast<int>(glucose::NError_Type::count)][row %static_cast<int>(glucose::NError_Type::count)].percentile[index.column() - static_cast<int>(glucose::NError_Marker::count)];
 
-		return Format_Error_String((glucose::NError_Type)(row %static_cast<int>(glucose::NError_Type::count)), val);
+		if (role == Qt::DisplayRole)
+			return Format_Error_String((glucose::NError_Type)(row %static_cast<int>(glucose::NError_Type::count)), val);
+		else
+			return val;
 	}
 	else if (role == Qt::BackgroundRole)
 	{
@@ -187,7 +190,7 @@ void CError_Table_Model::Set_Error(const GUID& signal_id, std::wstring signal_na
 		mSignalRow[signal_id] = row;
 		mSignalNameList.push_back(signal_name);
 
-		insertRows(row,static_cast<int>(glucose::NError_Type::count), QModelIndex());
+		insertRows(row, static_cast<int>(glucose::NError_Type::count), QModelIndex());
 	}
 	else
 		row = mSignalRow[signal_id];
@@ -205,6 +208,35 @@ void CError_Table_Model::Set_Error(const GUID& signal_id, std::wstring signal_na
 		idx = index(row*static_cast<int>(glucose::NError_Type::count) + offset, i + static_cast<int>(glucose::NError_Marker::count), QModelIndex());
 		setData(idx, errors.percentile[i], Qt::EditRole);
 	}
+}
+
+void CError_Table_Model::Set_From_Model(const std::map<GUID, int>& srcSignalMap, const std::vector<std::wstring>& srcSignalNameMap, CError_Table_Model* source)
+{
+	int row;
+
+	for (const auto& sig : srcSignalMap)
+	{
+		row = mMaxSignalRow++;
+
+		mSignalRow[sig.first] = row;
+		mSignalNameList.push_back(srcSignalNameMap[sig.second]);
+
+		insertRows(row, static_cast<int>(glucose::NError_Type::count), QModelIndex());
+	}
+
+	for (int i = 0; i < source->rowCount(); i++)
+	{
+		for (int j = 0; j < source->columnCount(); j++)
+		{
+			QModelIndex idx = index(i, j, QModelIndex());
+			setData(idx, source->data(idx, Qt::EditRole), Qt::EditRole);
+		}
+	}
+}
+
+void CError_Table_Model::Clone_To_Model(CError_Table_Model* dest)
+{
+	dest->Set_From_Model(mSignalRow, mSignalNameList, this);
 }
 
 
@@ -241,6 +273,19 @@ void CErrors_Tab_Widget::Update_Error_Metrics(const GUID& signal_id, glucose::TE
 
 		mTableView->repaint();
 	});
+}
+
+CAbstract_Simulation_Tab_Widget* CErrors_Tab_Widget::Clone()
+{
+	CErrors_Tab_Widget* cloned = new CErrors_Tab_Widget();
+	cloned->Clone_From_Model(mModel);
+
+	return cloned;
+}
+
+void CErrors_Tab_Widget::Clone_From_Model(CError_Table_Model* source)
+{
+	source->Clone_To_Model(mModel);
 }
 
 void CErrors_Tab_Widget::Reset()

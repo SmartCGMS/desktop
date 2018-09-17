@@ -70,6 +70,10 @@ class CError_Table_Model : public QAbstractTableModel {
 
 		// sets error values from given container for given signal and type
 		void Set_Error(const GUID& signal_id, std::wstring signal_name, const glucose::TError_Markers& errors, const glucose::NError_Type type);
+		// clones signal map and stores errors from another model
+		void Set_From_Model(const std::map<GUID, int>& srcSignalMap, const std::vector<std::wstring>& srcSignalNameMap, CError_Table_Model* source);
+		// just calls Set_From_Model from within
+		void Clone_To_Model(CError_Table_Model* dest);
 };
 
 /*
@@ -90,8 +94,12 @@ class CErrors_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 	public:
 		explicit CErrors_Tab_Widget(QWidget *parent = 0) noexcept;
 
+		virtual CAbstract_Simulation_Tab_Widget* Clone() override;
+
 		// updates error metrics of given signal
 		void Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type);
 		// resets the model (i.e. on simulation start)
 		void Reset();
+
+		void Clone_From_Model(CError_Table_Model* source);
 };

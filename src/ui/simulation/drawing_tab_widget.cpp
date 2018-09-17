@@ -145,6 +145,15 @@ void CDrawing_Tab_Widget::Update_View_Size()
 	mView->resetMatrix();
 }
 
+CAbstract_Simulation_Tab_Widget* CDrawing_Tab_Widget::Clone()
+{
+	CDrawing_Tab_Widget* cloned = new CDrawing_Tab_Widget(mType);
+	for (auto& svg : mSvgContents)
+		cloned->Drawing_Callback(mType, svg.first, svg.second);
+
+	return cloned;
+}
+
 void CDrawing_Tab_Widget::Drawing_Callback(const glucose::TDrawing_Image_Type type, const glucose::TDiagnosis diagnosis, const std::string &svg)
 {
 	if (type != mType)

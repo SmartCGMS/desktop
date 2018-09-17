@@ -53,8 +53,12 @@ class CLog_Subtab_Raw_Widget : public CAbstract_Simulation_Tab_Widget
 	public:
 		explicit CLog_Subtab_Raw_Widget(QWidget *parent = 0);
 
+		virtual CAbstract_Simulation_Tab_Widget* Clone() override;
+
 		// when a new log message is available
 		void Log_Message(const std::wstring &msg);
+		// sets contents
+		void Set_Contents(const QString& contents);
 };
 
 
@@ -97,8 +101,12 @@ class CLog_Subtab_Table_Widget : public CAbstract_Simulation_Tab_Widget
 	public:
 		explicit CLog_Subtab_Table_Widget(QWidget *parent = 0);
 
+		virtual CAbstract_Simulation_Tab_Widget* Clone() override;
+
 		// when a new log message is available
 		void Log_Message(const std::wstring &msg);
+
+		void Append_From_Model(CLog_Table_Model* source);
 };
 
 /*
@@ -113,8 +121,15 @@ class CLog_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 		CLog_Subtab_Raw_Widget* mRawLogWidget;
 		CLog_Subtab_Table_Widget* mTableLogWidget;
 
+	protected:
+		void Init_Layout();
+
 	public:
 		explicit CLog_Tab_Widget(QWidget *parent = 0);
+		// clone constructor
+		CLog_Tab_Widget(CLog_Subtab_Raw_Widget* cloned_raw, CLog_Subtab_Table_Widget* cloned_table);
+
+		virtual CAbstract_Simulation_Tab_Widget* Clone() override;
 
 		// when a new log message is available
 		void Log_Message(const std::wstring &msg);

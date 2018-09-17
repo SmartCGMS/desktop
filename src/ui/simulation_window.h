@@ -77,6 +77,8 @@ class CSimulation_Window : public QMdiSubWindow {
 
 		SGUI_Filter_Subchain m_guiSubchain;
 		glucose::CSignal_Names mSignal_Names;
+
+		int mBase_Tab_Count;
 	protected:
 		// chain holder retaining filter configuration
 		std::unique_ptr<CFilter_Chain_Manager> mFilter_Chain_Manager;
@@ -111,6 +113,9 @@ class CSimulation_Window : public QMdiSubWindow {
 
 		void Update_Tab_View();
 
+		void Close_Tab(int index);
+		void Save_Tab_State(int index);
+
 	protected slots:
 		void On_Start();
 		void On_Stop();
@@ -124,6 +129,8 @@ class CSimulation_Window : public QMdiSubWindow {
 		void On_Select_Segments_None();
 
 		void On_Solve_Signal(QString);
+
+		void Show_Tab_Context_Menu(const QPoint &point);
 
 	protected:
 		void Inject_Event(const glucose::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info, const uint64_t segment_id = glucose::Invalid_Segment_Id);
@@ -145,4 +152,6 @@ class CSimulation_Window : public QMdiSubWindow {
 
 		void Start_Time_Segment(uint64_t segmentId);
 		void Add_Signal(const GUID& signalId);
+
+		void Stop_Simulation();
 };

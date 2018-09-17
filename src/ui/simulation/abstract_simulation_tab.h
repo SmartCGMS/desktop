@@ -39,4 +39,5 @@ class CAbstract_Simulation_Tab_Widget : public QWidget {
 		explicit CAbstract_Simulation_Tab_Widget(QWidget *parent = 0) noexcept;
 
 		virtual void Update_View_Size();
+		virtual CAbstract_Simulation_Tab_Widget* Clone() = 0;
 };
