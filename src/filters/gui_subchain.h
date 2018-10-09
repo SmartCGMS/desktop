@@ -75,8 +75,12 @@ class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CRe
 		std::unique_ptr<std::thread> mUpdater_Thread;
 		// updater mutex
 		std::mutex mUpdater_Mtx;
+		// shut down synchronization mutex
+		std::mutex mShut_Down_Mtx;
 		// condition variable of periodic updater
 		std::condition_variable mUpdater_Cv;
+		// condition variable of shutdown marker
+		std::condition_variable mShut_Down_Cv;
 		// flag to know whether to resume the updating thread
 		std::atomic<bool> mChange_Available;
 
@@ -85,6 +89,8 @@ class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CRe
 
 		// is the subchain still running?
 		bool mRunning = false;
+		// was marker received?
+		bool mMarker_Received = false;
 
 		// main function for managing input pipe
 		void Run_Input();
@@ -98,9 +104,14 @@ class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CRe
 
 		std::unique_ptr<CFilter_Chain_Manager> mSubchainMgr;
 
+		void Update_GUI();
+
 		void Update_Drawing();
 		void Update_Log();
 		void Update_Error_Metrics();
+		void Hint_Update_Solver_Progress();
+
+		void Emit_Marker();
 
 	public:
 		CGUI_Filter_Subchain(glucose::SFilter_Pipe in_pipe, glucose::SFilter_Pipe out_pipe);

@@ -21,8 +21,8 @@ QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_CSimulation_Window_t {
-    QByteArrayData data[11];
-    char stringdata0[171];
+    QByteArrayData data[13];
+    char stringdata0[199];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -41,14 +41,17 @@ QT_MOC_LITERAL(6, 57, 25), // "On_Reset_And_Solve_Params"
 QT_MOC_LITERAL(7, 83, 24), // "On_Segments_Draw_Request"
 QT_MOC_LITERAL(8, 108, 22), // "On_Select_Segments_All"
 QT_MOC_LITERAL(9, 131, 23), // "On_Select_Segments_None"
-QT_MOC_LITERAL(10, 155, 15) // "On_Solve_Signal"
+QT_MOC_LITERAL(10, 155, 15), // "On_Solve_Signal"
+QT_MOC_LITERAL(11, 171, 21), // "Show_Tab_Context_Menu"
+QT_MOC_LITERAL(12, 193, 5) // "point"
 
     },
     "CSimulation_Window\0On_Start\0\0On_Stop\0"
     "On_Tab_Change\0index\0On_Reset_And_Solve_Params\0"
     "On_Segments_Draw_Request\0"
     "On_Select_Segments_All\0On_Select_Segments_None\0"
-    "On_Solve_Signal"
+    "On_Solve_Signal\0Show_Tab_Context_Menu\0"
+    "point"
 };
 #undef QT_MOC_LITERAL
 
@@ -58,7 +61,7 @@ static const uint qt_meta_data_CSimulation_Window[] = {
        7,       // revision
        0,       // classname
        0,    0, // classinfo
-       8,   14, // methods
+       9,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -66,14 +69,15 @@ static const uint qt_meta_data_CSimulation_Window[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    0,   54,    2, 0x09 /* Protected */,
-       3,    0,   55,    2, 0x09 /* Protected */,
-       4,    1,   56,    2, 0x09 /* Protected */,
-       6,    0,   59,    2, 0x09 /* Protected */,
-       7,    0,   60,    2, 0x09 /* Protected */,
-       8,    0,   61,    2, 0x09 /* Protected */,
-       9,    0,   62,    2, 0x09 /* Protected */,
-      10,    1,   63,    2, 0x09 /* Protected */,
+       1,    0,   59,    2, 0x09 /* Protected */,
+       3,    0,   60,    2, 0x09 /* Protected */,
+       4,    1,   61,    2, 0x09 /* Protected */,
+       6,    0,   64,    2, 0x09 /* Protected */,
+       7,    0,   65,    2, 0x09 /* Protected */,
+       8,    0,   66,    2, 0x09 /* Protected */,
+       9,    0,   67,    2, 0x09 /* Protected */,
+      10,    1,   68,    2, 0x09 /* Protected */,
+      11,    1,   71,    2, 0x09 /* Protected */,
 
  // slots: parameters
     QMetaType::Void,
@@ -84,6 +88,7 @@ static const uint qt_meta_data_CSimulation_Window[] = {
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void, QMetaType::QString,    2,
+    QMetaType::Void, QMetaType::QPoint,   12,
 
        0        // eod
 };
@@ -102,6 +107,7 @@ void CSimulation_Window::qt_static_metacall(QObject *_o, QMetaObject::Call _c, i
         case 5: _t->On_Select_Segments_All(); break;
         case 6: _t->On_Select_Segments_None(); break;
         case 7: _t->On_Solve_Signal((*reinterpret_cast< QString(*)>(_a[1]))); break;
+        case 8: _t->Show_Tab_Context_Menu((*reinterpret_cast< const QPoint(*)>(_a[1]))); break;
         default: ;
         }
     }
@@ -132,13 +138,13 @@ int CSimulation_Window::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 8)
+        if (_id < 9)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 8;
+        _id -= 9;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 8)
+        if (_id < 9)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 8;
+        _id -= 9;
     }
     return _id;
 }

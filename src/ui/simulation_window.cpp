@@ -356,6 +356,7 @@ void CSimulation_Window::On_Start()
 		delete wItem;
 	}
 	mProgressBars.clear();
+	mBestMetricLabels.clear();
 
 	QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mProgressGroup->layout());
 	if (lay)
@@ -393,12 +394,13 @@ void CSimulation_Window::On_Start()
 		return;
 	}
 
-	// retrieve GUI subchain shared ptr instance
+	// retrieve GUI subchain shared ptr instance and solver filter instances
 	m_guiSubchain.reset();
 	mFilter_Chain_Manager->Traverse_Filters([this](glucose::SFilter filter) {
-		m_guiSubchain = SGUI_Filter_Subchain{ filter };
-		if (m_guiSubchain)
-			return false;
+		if (!m_guiSubchain)
+			m_guiSubchain = SGUI_Filter_Subchain{ filter };
+		if (glucose::SCalculate_Filter_Inspection insp = glucose::SCalculate_Filter_Inspection{ filter })
+			mSolver_Filters.push_back(insp);
 		return true;
 	});
 
@@ -417,6 +419,9 @@ void CSimulation_Window::On_Start()
 void CSimulation_Window::On_Stop() {
 	mStopButton->setEnabled(false);
 	Inject_Event(glucose::NDevice_Event_Code::Shut_Down, glucose::signal_All, nullptr);
+
+	for (const auto& solvers : mSolver_Filters)
+		solvers->Cancel_Solver();
 }
 
 void CSimulation_Window::Stop_Simulation() {
@@ -430,6 +435,7 @@ void CSimulation_Window::Stop_Simulation() {
 		mStartButton->setEnabled(true);
 
 		m_guiSubchain.reset();
+		mSolver_Filters.clear();
 	});
 }
 
@@ -460,11 +466,11 @@ void CSimulation_Window::Log_Callback(std::shared_ptr<refcnt::wstr_list> message
 
 }
 
-void CSimulation_Window::Update_Solver_Progress(GUID& solver, size_t progress)
+void CSimulation_Window::Update_Solver_Progress(const GUID& solver, size_t progress, double bestMetric)
 {
 	QEventLoop loop;
 	Q_UNUSED(loop);
-	QTimer::singleShot(0, this, [this, solver, progress]()
+	QTimer::singleShot(0, this, [this, solver, progress, bestMetric]()
 	{
 		auto itr = mProgressBars.find(solver);
 
@@ -474,18 +480,27 @@ void CSimulation_Window::Update_Solver_Progress(GUID& solver, size_t progress)
 			mProgressBars[solver] = pbar;
 
 			QLabel* plabel = new QLabel(StdWStringToQString(mSignal_Names.Get_Name(solver)));
+			QLabel* metriclabel = new QLabel(tr(dsBest_Metric_Label).arg(bestMetric));
+			mBestMetricLabels[solver] = metriclabel;
 
 			pbar->setValue((int)progress);
 
 			QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mProgressGroup->layout());
 			if (lay)
 			{
+				lay->insertWidget(0, metriclabel);
 				lay->insertWidget(0, pbar);
 				lay->insertWidget(0, plabel);
 			}
 		}
 		else
+		{
 			itr->second->setValue((int)progress);
+
+			auto mitr = mBestMetricLabels.find(solver);
+			if (mitr != mBestMetricLabels.end())
+				mitr->second->setText(tr(dsBest_Metric_Label).arg(bestMetric));
+		}
 	});
 }
 
@@ -585,6 +600,19 @@ void CSimulation_Window::On_Solve_Signal(QString str)
 void CSimulation_Window::Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type)
 {
 	mErrorsWidget->Update_Error_Metrics(signal_id, container, type);
+}
+
+void CSimulation_Window::Update_Solver_Progress()
+{
+	for (const auto& solvers : mSolver_Filters)
+	{
+		glucose::TSolver_Progress progress;
+		if (solvers->Get_Solver_Progress(&progress) != S_OK)
+			continue;
+
+		size_t pct = progress.max_progress != 0 ? (progress.current_progress * 100) / progress.max_progress : progress.current_progress;
+		Update_Solver_Progress(glucose::signal_All /* TODO: solve this - there's no way to know now */, pct, progress.best_metric);
+	}
 }
 
 void CSimulation_Window::Inject_Event(const glucose::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info, const uint64_t segment_id) {

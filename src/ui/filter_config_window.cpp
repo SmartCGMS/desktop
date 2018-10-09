@@ -72,7 +72,10 @@ class CWChar_Container_Edit : public QLineEdit, public virtual filter_config_win
 class CDouble_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {	
 public:
 	CDouble_Container_Edit(QWidget *parent) : QLineEdit(parent) {
-		setValidator(new QDoubleValidator(this));
+		auto validator = new QDoubleValidator(this);
+		// force english locale rules (e.g. dot decimal separator)
+		validator->setLocale(QLocale(QLocale::English));
+		setValidator(validator);
 	}
 
 	glucose::TFilter_Parameter get_parameter() {

@@ -218,7 +218,7 @@ void CDrawing_Tab_Widget::Show_Context_Menu(const QPoint& pos)
 		if (path.length() != 0)
 		{
 			std::ofstream fs(path.toStdString());
-			fs.write(mSvgContents[mCurrent_Diagnosis].c_str(), mSvgContents.size());
+			fs << mSvgContents[mCurrent_Diagnosis].c_str();
 		}
 	});
 	myMenu.addAction(dsSave_Viewport_To_File, [this]() {

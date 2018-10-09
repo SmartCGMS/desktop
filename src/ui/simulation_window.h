@@ -76,6 +76,7 @@ class CSimulation_Window : public QMdiSubWindow {
 		bool mSimulationInProgress;
 
 		SGUI_Filter_Subchain m_guiSubchain;
+		std::vector<glucose::SCalculate_Filter_Inspection> mSolver_Filters;
 		glucose::CSignal_Names mSignal_Names;
 
 		int mBase_Tab_Count;
@@ -102,6 +103,7 @@ class CSimulation_Window : public QMdiSubWindow {
 		QSignalMapper* mSolveSignalMapper;
 
 		std::map<GUID, QProgressBar*> mProgressBars;
+		std::map<GUID, QLabel*> mBestMetricLabels;
 		std::map<uint64_t, CTime_Segment_Group_Widget*> mSegmentWidgets;
 		std::map<GUID, CSignal_Group_Widget*> mSignalWidgets;
 		std::map<GUID, QAction*> mSignalSolveActions;
@@ -147,8 +149,9 @@ class CSimulation_Window : public QMdiSubWindow {
 
 		void Drawing_Callback(const glucose::TDrawing_Image_Type type, const glucose::TDiagnosis diagnosis, const std::string &svg);
 		void Log_Callback(std::shared_ptr<refcnt::wstr_list> messages);
-		void Update_Solver_Progress(GUID& solver, size_t progress);
+		void Update_Solver_Progress(const GUID& solver, size_t progress, double bestMetric);
 		void Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type);
+		void Update_Solver_Progress();
 
 		void Start_Time_Segment(uint64_t segmentId);
 		void Add_Signal(const GUID& signalId);

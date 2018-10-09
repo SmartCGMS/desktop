@@ -34,6 +34,7 @@
 
 #include "../../../common/lang/dstrings.h"
 #include "../../../common/rtl/FilesystemLib.h"
+#include "../../../common/rtl/rattime.h"
 #include "../ui/simulation_window.h"
 
 SGUI_Filter_Subchain::SGUI_Filter_Subchain(glucose::SFilter &gui_subchain_filter) {
@@ -59,6 +60,23 @@ void CGUI_Filter_Subchain::Run_Input() {
 		// here we may perform some input filtering, but that's not typical for filter input
 		// most of actions will be done in output handler (Run_Output)
 
+		// synchronnously update GUI on Shut_Down event; the filter chain is destroyed after that message, so to not miss
+		// any updates, send marker, wait for it to come out of subchain output pipe, update GUI and then propagate Shut_Down
+		if (evt.event_code == glucose::NDevice_Event_Code::Shut_Down) {
+
+			mMarker_Received = false;
+			Emit_Marker();
+
+			// wait for marker to propagate through subchain; Run_Output will notify when it arrives
+			{
+				std::unique_lock<std::mutex> lck(mShut_Down_Mtx);
+				mShut_Down_Cv.wait(lck, [this]() { return mMarker_Received; });
+			}
+
+			std::unique_lock<std::mutex> lck(mUpdater_Mtx);
+			Update_GUI();
+		}
+
 		if (mSubchainMgr->Send(evt) != S_OK)
 			break;
 
@@ -81,9 +99,7 @@ void CGUI_Filter_Subchain::Run_Updater()
 
 		// update if there was a change
 		if (mChange_Available.exchange(false)) {
-			Update_Drawing();
-			Update_Log();
-			Update_Error_Metrics();
+			Update_GUI();
 		}
 
 		// TODO: configurable delay, maybe even during simulation?
@@ -102,17 +118,12 @@ void CGUI_Filter_Subchain::Run_Output() {
 
 		if (evt.event_code == glucose::NDevice_Event_Code::Information)
 		{
-			// handle solver progress message
-			if (refcnt::WChar_Container_Equals_WString(evt.info.get(), rsInfo_Solver_Progress, 0, wcslen(rsInfo_Solver_Progress)))
+			// shutdown marker received - notify input thread so it could update GUI and propagate Shut_Down event
+			if (refcnt::WChar_Container_Equals_WString(evt.info.get(), rsInfo_Shut_Down_Marker))
 			{
-				size_t progress = 0;
-				auto progStr = refcnt::WChar_Container_To_WString(evt.info.get());
-				try {
-					progress = std::stoull(progStr.substr(wcslen(rsInfo_Solver_Progress) + 1));
-				}
-				catch (...) { }
-
-				simwin->Update_Solver_Progress(evt.signal_id, progress);
+				std::unique_lock<std::mutex> lck(mShut_Down_Mtx);
+				mMarker_Received = true;
+				mShut_Down_Cv.notify_all();
 			}
 		}
 		else if (evt.event_code == glucose::NDevice_Event_Code::Parameters)
@@ -130,10 +141,6 @@ void CGUI_Filter_Subchain::Run_Output() {
 		}
 		else if (evt.event_code == glucose::NDevice_Event_Code::Shut_Down)
 		{
-			std::unique_lock<std::mutex> lck(mUpdater_Mtx);
-
-			mUpdater_Cv.notify_all();
-
 			simwin->Stop_Simulation();
 		}
 
@@ -248,6 +255,14 @@ void CGUI_Filter_Subchain::Request_Redraw(std::vector<uint64_t>& segmentIds, std
 	Update_Drawing();
 }
 
+void CGUI_Filter_Subchain::Update_GUI()
+{
+	Update_Drawing();
+	Update_Log();
+	Update_Error_Metrics();
+	Hint_Update_Solver_Progress();
+}
+
 void CGUI_Filter_Subchain::Update_Drawing()
 {
 	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
@@ -300,4 +315,23 @@ void CGUI_Filter_Subchain::Update_Error_Metrics()
 				simwin->Update_Error_Metrics(signal_id, err, static_cast<glucose::NError_Type>(i));
 		}
 	}
+}
+
+void CGUI_Filter_Subchain::Hint_Update_Solver_Progress()
+{
+	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
+	if (!simwin)
+		return;
+
+	simwin->Update_Solver_Progress();
+}
+
+void CGUI_Filter_Subchain::Emit_Marker()
+{
+	glucose::UDevice_Event evt{ glucose::NDevice_Event_Code::Information };
+
+	evt.device_time = Unix_Time_To_Rat_Time(time(nullptr));
+	evt.info.set(rsInfo_Shut_Down_Marker);
+
+	mSubchainMgr->Send(evt);
 }
