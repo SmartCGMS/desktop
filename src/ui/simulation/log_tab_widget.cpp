@@ -107,8 +107,8 @@ void CLog_Subtab_Table_Widget::Log_Message(const std::wstring &msg)
 	// copy, then pass by value
 	std::wstring logmsg(msg);
 
-	QEventLoop loop;
-	Q_UNUSED(loop);
+	//QEventLoop loop;
+	//Q_UNUSED(loop);
 	QTimer::singleShot(0, this, [this, logmsg]()
 	{
 		mModel->Log_Message(logmsg);

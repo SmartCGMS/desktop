@@ -89,7 +89,10 @@ CSimulation_Window::CSimulation_Window(CFilter_Chain &filter_chain, QWidget *own
 
 CSimulation_Window::~CSimulation_Window()
 {
-	On_Stop();
+	for (const auto& solvers : mSolver_Filters)
+		solvers->Cancel_Solver();
+	mFilter_Chain_Manager->Terminate_Filters();
+
 	mInstance = nullptr;
 }
 
