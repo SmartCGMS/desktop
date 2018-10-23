@@ -2,31 +2,40 @@
  * SmartCGMS - continuous glucose monitoring and controlling framework
  * https://diabetes.zcu.cz/
  *
+ * Copyright (c) since 2018 University of West Bohemia.
+ *
  * Contact:
  * diabetes@mail.kiv.zcu.cz
  * Medical Informatics, Department of Computer Science and Engineering
  * Faculty of Applied Sciences, University of West Bohemia
- * Technicka 8
- * 314 06, Pilsen
+ * Univerzitni 8
+ * 301 00, Pilsen
+ * 
+ * 
+ * Purpose of this software:
+ * This software is intended to demonstrate work of the diabetes.zcu.cz research
+ * group to other scientists, to complement our published papers. It is strictly
+ * prohibited to use this software for diagnosis or treatment of any medical condition,
+ * without obtaining all required approvals from respective regulatory bodies.
+ *
+ * Especially, a diabetic patient is warned that unauthorized use of this software
+ * may result into severe injure, including death.
+ *
  *
  * Licensing terms:
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * distributed under these license terms is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *
  * a) For non-profit, academic research, this software is available under the
- *    GPLv3 license. When publishing any related work, user of this software
- *    must:
- *    1) let us know about the publication,
- *    2) acknowledge this software and respective literature - see the
- *       https://diabetes.zcu.cz/about#publications,
- *    3) At least, the user of this software must cite the following paper:
- *       Parallel software architecture for the next generation of glucose
- *       monitoring, Proceedings of the 8th International Conference on Current
+ *      GPLv3 license.
+ * b) For any other use, especially commercial use, you must contact us and
+ *       obtain specific terms and conditions for the use of the software.
+ * c) When publishing work with results obtained using this software, you agree to cite the following paper:
+ *       Tomas Koutny and Martin Ubl, "Parallel software architecture for the next generation of glucose
+ *       monitoring", Proceedings of the 8th International Conference on Current
  *       and Future Trends of Information and Communication Technologies
  *       in Healthcare (ICTH 2018) November 5-8, 2018, Leuven, Belgium
- * b) For any other use, especially commercial use, you must contact us and
- *    obtain specific terms and conditions for the use of the software.
  */
 
 #include "main_window.h"
@@ -72,9 +81,6 @@ void CMain_Window::Setup_UI() {
 	QMenu *menu_Tools;
 	QToolBar *mainToolBar;
 	QStatusBar *statusBar;
-
-	
-		
 
 	centralWidget = new QWidget(this);
 	verticalLayout = new QVBoxLayout(centralWidget);
@@ -126,7 +132,7 @@ void CMain_Window::Setup_UI() {
 
 	mniWindow = menuBar->addMenu(tr(dsWindow));
 	On_Update_Window_Menu();
-		
+
 	QMenu *mnuHelp = menuBar->addMenu(tr(dsHelp));
 	QAction *actHelpAbout = new QAction(tr(dsAbout_Amp), this);
 	mnuHelp->addAction(actHelpAbout);
@@ -156,17 +162,15 @@ void CMain_Window::Setup_UI() {
 void CMain_Window::Close_Event(QCloseEvent *event) {
 	pnlMDI_Content->closeAllSubWindows();
 
-	if (pnlMDI_Content->currentSubWindow())  {
+	if (pnlMDI_Content->currentSubWindow()) {
 		event->ignore();
-	}
-	else  {		
+	} else {
 		event->accept();
 	}
 }
 
 void CMain_Window::On_Update_Actions() {
 	bool hasMdiChild = !pnlMDI_Content->subWindowList().isEmpty();
-	
 
 	actClose_Window->setEnabled(hasMdiChild);
 	actClose_All_Windows->setEnabled(hasMdiChild);
@@ -175,17 +179,13 @@ void CMain_Window::On_Update_Actions() {
 	actCascade->setEnabled(hasMdiChild);
 	actNext_Window->setEnabled(hasMdiChild);
 	actPrevious_Window->setEnabled(hasMdiChild);
-
 }
-
 
 void CMain_Window::On_Quit() {
     QApplication::instance()->quit();
 }
 
-
 void CMain_Window::On_Close_All() {
-	
 }
 
 void CMain_Window::Tile_Window(std::function<QRect()> rect_fnc) {
@@ -201,7 +201,7 @@ void CMain_Window::Tile_Window(std::function<QRect()> rect_fnc) {
 	}
 }
 
-void CMain_Window::On_Tile_Horizontally() {	
+void CMain_Window::On_Tile_Horizontally() {
 	Tile_Window([this]() {return QRect{ 0, 0, pnlMDI_Content->width(), pnlMDI_Content->height() / pnlMDI_Content->subWindowList().count() }; });
 }
 
@@ -225,16 +225,15 @@ void CMain_Window::On_Update_Window_Menu() {
 	QList<QMdiSubWindow *> windows = pnlMDI_Content->subWindowList();
 	actWindow_Menu_Separator->setVisible(!windows.isEmpty());
 
-	for (int i = 0; i < windows.size(); ++i)  {
+	for (int i = 0; i < windows.size(); ++i) {
 		QMdiSubWindow *child = windows.at(i);
 
 		QString text;
-		if (i < 9)  {
+		if (i < 9) {
 			text = tr("&%1 %2").arg(i + 1)
-				.arg(child->windowTitle ());
-		}
-		else  {
- 		text = tr("%1 %2").arg(i + 1)
+				.arg(child->windowTitle());
+		} else {
+			text = tr("%1 %2").arg(i + 1)
 				.arg(child->windowTitle());
 		}
 		QAction *action = mniWindow->addAction(text);

@@ -2,31 +2,40 @@
  * SmartCGMS - continuous glucose monitoring and controlling framework
  * https://diabetes.zcu.cz/
  *
+ * Copyright (c) since 2018 University of West Bohemia.
+ *
  * Contact:
  * diabetes@mail.kiv.zcu.cz
  * Medical Informatics, Department of Computer Science and Engineering
  * Faculty of Applied Sciences, University of West Bohemia
- * Technicka 8
- * 314 06, Pilsen
+ * Univerzitni 8
+ * 301 00, Pilsen
+ * 
+ * 
+ * Purpose of this software:
+ * This software is intended to demonstrate work of the diabetes.zcu.cz research
+ * group to other scientists, to complement our published papers. It is strictly
+ * prohibited to use this software for diagnosis or treatment of any medical condition,
+ * without obtaining all required approvals from respective regulatory bodies.
+ *
+ * Especially, a diabetic patient is warned that unauthorized use of this software
+ * may result into severe injure, including death.
+ *
  *
  * Licensing terms:
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * distributed under these license terms is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *
  * a) For non-profit, academic research, this software is available under the
- *    GPLv3 license. When publishing any related work, user of this software
- *    must:
- *    1) let us know about the publication,
- *    2) acknowledge this software and respective literature - see the
- *       https://diabetes.zcu.cz/about#publications,
- *    3) At least, the user of this software must cite the following paper:
- *       Parallel software architecture for the next generation of glucose
- *       monitoring, Proceedings of the 8th International Conference on Current
+ *      GPLv3 license.
+ * b) For any other use, especially commercial use, you must contact us and
+ *       obtain specific terms and conditions for the use of the software.
+ * c) When publishing work with results obtained using this software, you agree to cite the following paper:
+ *       Tomas Koutny and Martin Ubl, "Parallel software architecture for the next generation of glucose
+ *       monitoring", Proceedings of the 8th International Conference on Current
  *       and Future Trends of Information and Communication Technologies
  *       in Healthcare (ICTH 2018) November 5-8, 2018, Leuven, Belgium
- * b) For any other use, especially commercial use, you must contact us and
- *    obtain specific terms and conditions for the use of the software.
  */
 
 #include "simulation_window.h"
@@ -189,8 +198,6 @@ void CSimulation_Window::Setup_UI()
 			}
 			grlayout->addWidget(btnContainer);
 
-			//
-
 			QScrollArea* scrollArea = new QScrollArea;
 			scrollArea->setWidgetResizable(true);
 			scrollArea->setFrameShape(QFrame::NoFrame);
@@ -288,6 +295,12 @@ void CSimulation_Window::Setup_UI()
 
 	mTabWidget->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(mTabWidget->tabBar(), SIGNAL(customContextMenuRequested(const QPoint &)), SLOT(Show_Tab_Context_Menu(const QPoint &)));
+
+	// GUI asynchronnous updaters
+	connect(this, SIGNAL(On_Start_Time_Segment(quint64)), this, SLOT(Slot_Start_Time_Segment(quint64)), Qt::QueuedConnection);
+	connect(this, SIGNAL(On_Add_Signal(QUuid)), this, SLOT(Slot_Add_Signal(QUuid)), Qt::QueuedConnection);
+	connect(this, SIGNAL(On_Update_Solver_Progress(QUuid)), this, SLOT(Slot_Update_Solver_Progress(QUuid)), Qt::QueuedConnection);
+	connect(this, SIGNAL(On_Simulation_Terminate()), this, SLOT(Slot_Simulation_Terminate()), Qt::QueuedConnection);
 }
 
 void CSimulation_Window::Show_Tab_Context_Menu(const QPoint &point)
@@ -428,18 +441,18 @@ void CSimulation_Window::On_Stop() {
 }
 
 void CSimulation_Window::Stop_Simulation() {
-	QEventLoop loop;
-	Q_UNUSED(loop);
-	QTimer::singleShot(0, this, [this]()
-	{
-		mFilter_Chain_Manager->Terminate_Filters();
-		mSimulationInProgress = false;
-		mStopButton->setEnabled(false);
-		mStartButton->setEnabled(true);
+	emit On_Simulation_Terminate();
+}
 
-		m_guiSubchain.reset();
-		mSolver_Filters.clear();
-	});
+void CSimulation_Window::Slot_Simulation_Terminate()
+{
+	mFilter_Chain_Manager->Terminate_Filters();
+	mSimulationInProgress = false;
+	mStopButton->setEnabled(false);
+	mStartButton->setEnabled(true);
+
+	m_guiSubchain.reset();
+	mSolver_Filters.clear();
 }
 
 void CSimulation_Window::On_Reset_And_Solve_Params() {
@@ -461,7 +474,7 @@ void CSimulation_Window::Log_Callback(std::shared_ptr<refcnt::wstr_list> message
 	refcnt::wstr_container **begin, **end;
 	if (messages) {
 		if (messages->get(&begin, &end) == S_OK) {
-			for (auto iter = begin; iter != end; iter++) {				
+			for (auto iter = begin; iter != end; iter++) {
 				mLogWidget->Log_Message(refcnt::WChar_Container_To_WString(*iter));
 			}
 		}
@@ -469,42 +482,75 @@ void CSimulation_Window::Log_Callback(std::shared_ptr<refcnt::wstr_list> message
 
 }
 
-void CSimulation_Window::Update_Solver_Progress(const GUID& solver, size_t progress, double bestMetric)
+void CSimulation_Window::Update_Solver_Progress(const GUID& solver, size_t progress, double bestMetric, glucose::TSolver_Status status)
 {
-	QEventLoop loop;
-	Q_UNUSED(loop);
-	QTimer::singleShot(0, this, [this, solver, progress, bestMetric]()
+	// do not display disabled solver
+	if (status == glucose::TSolver_Status::Disabled)
+		return;
+
+	mSolverProgress[solver] = { progress, bestMetric, status };
+	emit On_Update_Solver_Progress(solver);
+}
+
+void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
+{
+	auto itr = mProgressBars.find(solver);
+
+	const size_t progress = mSolverProgress[solver].progress;
+	const double bestMetric = mSolverProgress[solver].bestMetric;
+	const glucose::TSolver_Status status = mSolverProgress[solver].status;
+
+	std::string statusStr;
+	switch (status)
 	{
-		auto itr = mProgressBars.find(solver);
+		case glucose::TSolver_Status::Disabled:    statusStr = dsSolver_Status_Disabled; break;
+		case glucose::TSolver_Status::Idle:        statusStr = dsSolver_Status_Idle; break;
+		case glucose::TSolver_Status::In_Progress: statusStr = dsSolver_Status_In_Progress; break;
+		case glucose::TSolver_Status::Completed:   statusStr = dsSolver_Status_Completed; break;
+		case glucose::TSolver_Status::Failed:      statusStr = dsSolver_Status_Failed; break;
+	}
 
-		if (itr == mProgressBars.end())
+	if (itr == mProgressBars.end())
+	{
+		QProgressBar* pbar = new QProgressBar();
+		mProgressBars[solver] = pbar;
+
+		QLabel* plabel = new QLabel(StdWStringToQString(mSignal_Names.Get_Name(solver)));
+		QLabel* metriclabel = new QLabel(tr(dsBest_Metric_Label).arg(bestMetric));
+		mBestMetricLabels[solver] = metriclabel;
+		QLabel* statusLabel = new QLabel(tr(statusStr.c_str()));
+		mSolverStatusLabels[solver] = statusLabel;
+
+		pbar->setValue((int)progress);
+
+		QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mProgressGroup->layout());
+		if (lay)
 		{
-			QProgressBar* pbar = new QProgressBar();
-			mProgressBars[solver] = pbar;
-
-			QLabel* plabel = new QLabel(StdWStringToQString(mSignal_Names.Get_Name(solver)));
-			QLabel* metriclabel = new QLabel(tr(dsBest_Metric_Label).arg(bestMetric));
-			mBestMetricLabels[solver] = metriclabel;
-
-			pbar->setValue((int)progress);
-
-			QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mProgressGroup->layout());
-			if (lay)
-			{
-				lay->insertWidget(0, metriclabel);
-				lay->insertWidget(0, pbar);
-				lay->insertWidget(0, plabel);
-			}
+			lay->insertWidget(0, metriclabel);
+			lay->insertWidget(0, pbar);
+			lay->insertWidget(0, statusLabel);
+			lay->insertWidget(0, plabel);
 		}
-		else
-		{
-			itr->second->setValue((int)progress);
+	}
+	else
+	{
+		itr->second->setValue((int)progress);
 
-			auto mitr = mBestMetricLabels.find(solver);
-			if (mitr != mBestMetricLabels.end())
-				mitr->second->setText(tr(dsBest_Metric_Label).arg(bestMetric));
-		}
-	});
+		mBestMetricLabels[solver]->setText(tr(dsBest_Metric_Label).arg(bestMetric));
+		mSolverStatusLabels[solver]->setText(tr(statusStr.c_str()));
+	}
+
+	// In_Progress = progress bar visible, status hidden
+	if (status != glucose::TSolver_Status::In_Progress)
+	{
+		mSolverStatusLabels[solver]->show();
+		mProgressBars[solver]->hide();
+	}
+	else
+	{
+		mSolverStatusLabels[solver]->hide();
+		mProgressBars[solver]->show();
+	}
 }
 
 void CSimulation_Window::On_Segments_Draw_Request()
@@ -542,53 +588,54 @@ void CSimulation_Window::On_Select_Segments_None()
 
 void CSimulation_Window::Start_Time_Segment(uint64_t segmentId)
 {
-	QEventLoop loop;
-	Q_UNUSED(loop);
-	QTimer::singleShot(0, this, [this, segmentId]()
+	emit On_Start_Time_Segment(segmentId);
+}
+
+void CSimulation_Window::Slot_Start_Time_Segment(quint64 id)
+{
+	auto itr = mSegmentWidgets.find(id);
+
+	if (itr == mSegmentWidgets.end())
 	{
-		auto itr = mSegmentWidgets.find(segmentId);
+		CTime_Segment_Group_Widget* grp = new CTime_Segment_Group_Widget(id);
 
-		if (itr == mSegmentWidgets.end())
+		mSegmentWidgets[id] = grp;
+
+		QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mSegmentsGroup->layout());
+		if (lay)
 		{
-			CTime_Segment_Group_Widget* grp = new CTime_Segment_Group_Widget(segmentId);
-
-			mSegmentWidgets[segmentId] = grp;
-
-			QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mSegmentsGroup->layout());
-			if (lay)
-			{
-				// append new segment after existing segments and before stretch
-				lay->insertWidget(static_cast<int>(mSegmentWidgets.size()) - 1, grp);
-			}
+			// append new segment after existing segments and before stretch
+			lay->insertWidget(static_cast<int>(mSegmentWidgets.size()) - 1, grp);
 		}
-	});
+	}
 }
 
 void CSimulation_Window::Add_Signal(const GUID& signalId)
 {
-	QEventLoop loop;
-	Q_UNUSED(loop);
-	QTimer::singleShot(0, this, [this, signalId]()
+	// possible narrowing conversion (fine, as QUuid internally matches GUID)
+	emit On_Add_Signal(signalId);
+}
+
+void CSimulation_Window::Slot_Add_Signal(QUuid id)
+{
+	auto itr = mSignalWidgets.find(id);
+
+	if (itr == mSignalWidgets.end())
 	{
-		auto itr = mSignalWidgets.find(signalId);
+		CSignal_Group_Widget* grp = new CSignal_Group_Widget(id);
 
-		if (itr == mSignalWidgets.end())
+		mSignalWidgets[id] = grp;
+		// show "solve" action
+		if (mSignalSolveActions.find(id) != mSignalSolveActions.end())
+			mSignalSolveActions[id]->setVisible(true);
+
+		QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mSignalsGroup->layout());
+		if (lay)
 		{
-			CSignal_Group_Widget* grp = new CSignal_Group_Widget(signalId);
-
-			mSignalWidgets[signalId] = grp;
-			// show "solve" action
-			if (mSignalSolveActions.find(signalId) != mSignalSolveActions.end())
-				mSignalSolveActions[signalId]->setVisible(true);
-
-			QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mSignalsGroup->layout());
-			if (lay)
-			{
-				// append new signal after existing signals and before stretch
-				lay->insertWidget(static_cast<int>(mSignalWidgets.size()) - 1, grp);
-			}
+			// append new signal after existing signals and before stretch
+			lay->insertWidget(static_cast<int>(mSignalWidgets.size()) - 1, grp);
 		}
-	});
+	}
 }
 
 void CSimulation_Window::On_Solve_Signal(QString str)
@@ -609,12 +656,17 @@ void CSimulation_Window::Update_Solver_Progress()
 {
 	for (const auto& solvers : mSolver_Filters)
 	{
+		GUID guid;
+		glucose::TSolver_Status status;
+		if (solvers->Get_Solver_Information(&guid, &status) != S_OK)
+			continue;
+
 		glucose::TSolver_Progress progress;
 		if (solvers->Get_Solver_Progress(&progress) != S_OK)
 			continue;
 
 		size_t pct = progress.max_progress != 0 ? (progress.current_progress * 100) / progress.max_progress : progress.current_progress;
-		Update_Solver_Progress(glucose::signal_All /* TODO: solve this - there's no way to know now */, pct, progress.best_metric);
+		Update_Solver_Progress(guid, pct, progress.best_metric, status);
 	}
 }
 

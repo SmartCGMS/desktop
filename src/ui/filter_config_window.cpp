@@ -2,31 +2,40 @@
  * SmartCGMS - continuous glucose monitoring and controlling framework
  * https://diabetes.zcu.cz/
  *
+ * Copyright (c) since 2018 University of West Bohemia.
+ *
  * Contact:
  * diabetes@mail.kiv.zcu.cz
  * Medical Informatics, Department of Computer Science and Engineering
  * Faculty of Applied Sciences, University of West Bohemia
- * Technicka 8
- * 314 06, Pilsen
+ * Univerzitni 8
+ * 301 00, Pilsen
+ * 
+ * 
+ * Purpose of this software:
+ * This software is intended to demonstrate work of the diabetes.zcu.cz research
+ * group to other scientists, to complement our published papers. It is strictly
+ * prohibited to use this software for diagnosis or treatment of any medical condition,
+ * without obtaining all required approvals from respective regulatory bodies.
+ *
+ * Especially, a diabetic patient is warned that unauthorized use of this software
+ * may result into severe injure, including death.
+ *
  *
  * Licensing terms:
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * distributed under these license terms is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *
  * a) For non-profit, academic research, this software is available under the
- *    GPLv3 license. When publishing any related work, user of this software
- *    must:
- *    1) let us know about the publication,
- *    2) acknowledge this software and respective literature - see the
- *       https://diabetes.zcu.cz/about#publications,
- *    3) At least, the user of this software must cite the following paper:
- *       Parallel software architecture for the next generation of glucose
- *       monitoring, Proceedings of the 8th International Conference on Current
+ *      GPLv3 license.
+ * b) For any other use, especially commercial use, you must contact us and
+ *       obtain specific terms and conditions for the use of the software.
+ * c) When publishing work with results obtained using this software, you agree to cite the following paper:
+ *       Tomas Koutny and Martin Ubl, "Parallel software architecture for the next generation of glucose
+ *       monitoring", Proceedings of the 8th International Conference on Current
  *       and Future Trends of Information and Communication Technologies
  *       in Healthcare (ICTH 2018) November 5-8, 2018, Leuven, Belgium
- * b) For any other use, especially commercial use, you must contact us and
- *    obtain specific terms and conditions for the use of the software.
  */
 
 #include "filter_config_window.h"
@@ -69,7 +78,7 @@ class CWChar_Container_Edit : public QLineEdit, public virtual filter_config_win
 	}
 };
 
-class CDouble_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {	
+class CDouble_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
 public:
 	CDouble_Container_Edit(QWidget *parent) : QLineEdit(parent) {
 		auto validator = new QDoubleValidator(this);
@@ -109,7 +118,7 @@ protected:
 	}
 
 public:
-	CRatTime_Container_Edit(QWidget *parent) : QDateTimeEdit(parent) {		
+	CRatTime_Container_Edit(QWidget *parent) : QDateTimeEdit(parent) {
 		setDisplayFormat(rsRattime_Edit_Mask);
 	}
 
@@ -207,13 +216,13 @@ void CFilter_Config_Window::Setup_UI() {
 	auto create_model_select = [&]() {
 		model_select = new CGUID_Entity_ComboBox<glucose::TModel_Descriptor, glucose::get_model_descriptors>(nullptr, glucose::NParameter_Type::ptModel_Id);
 	};
-	
+
 	QWidget *main_tab = new QWidget{this};
 	{
 		const int idxName_col = 0;
 		const int idxEdit_col = 1;
 
-		QGridLayout *main_layout = new QGridLayout();		
+		QGridLayout *main_layout = new QGridLayout();
 		int ui_row = 0;
 		for (int i = 0; i < static_cast<int>(mDescription.parameters_count); i++) {
 			
@@ -364,7 +373,7 @@ void CFilter_Config_Window::Commit_Parameters() {
 		glucose::TFilter_Parameter param = edit.second->get_parameter();
 		param.config_name = refcnt::WString_To_WChar_Container(edit.first.c_str());
 
-		new_parameters.push_back(param);			//does AddRef => we have to call release	
+		new_parameters.push_back(param);			//does AddRef => we have to call release
 		glucose::Release_Filter_Parameter(param);
 	}
 
