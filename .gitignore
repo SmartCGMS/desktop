@@ -5,4 +5,4 @@
 /.vs
 /msvc
 /QtMocRule
-
+moc_*.cpp
