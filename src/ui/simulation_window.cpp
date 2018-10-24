@@ -24,7 +24,7 @@
  *
  * Licensing terms:
  * Unless required by applicable law or agreed to in writing, software
- * distributed under these license terms is distributed on an "AS IS" BASIS, WITHOUT
+ * distributed under this license terms is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *
  * a) For non-profit, academic research, this software is available under the
@@ -489,16 +489,18 @@ void CSimulation_Window::Update_Solver_Progress(const GUID& solver, size_t progr
 		return;
 
 	mSolverProgress[solver] = { progress, bestMetric, status };
-	emit On_Update_Solver_Progress(solver);
+	emit On_Update_Solver_Progress(GUID_To_QUuid(solver));
 }
 
 void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
 {
-	auto itr = mProgressBars.find(solver);
+	const GUID solver_id = QUuid_To_GUID(solver);
 
-	const size_t progress = mSolverProgress[solver].progress;
-	const double bestMetric = mSolverProgress[solver].bestMetric;
-	const glucose::TSolver_Status status = mSolverProgress[solver].status;
+	auto itr = mProgressBars.find(solver_id);
+
+	const size_t progress = mSolverProgress[solver_id].progress;
+	const double bestMetric = mSolverProgress[solver_id].bestMetric;
+	const glucose::TSolver_Status status = mSolverProgress[solver_id].status;
 
 	std::string statusStr;
 	switch (status)
@@ -513,13 +515,13 @@ void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
 	if (itr == mProgressBars.end())
 	{
 		QProgressBar* pbar = new QProgressBar();
-		mProgressBars[solver] = pbar;
+		mProgressBars[solver_id] = pbar;
 
-		QLabel* plabel = new QLabel(StdWStringToQString(mSignal_Names.Get_Name(solver)));
+		QLabel* plabel = new QLabel(StdWStringToQString(mSignal_Names.Get_Name(solver_id)));
 		QLabel* metriclabel = new QLabel(tr(dsBest_Metric_Label).arg(bestMetric));
-		mBestMetricLabels[solver] = metriclabel;
+		mBestMetricLabels[solver_id] = metriclabel;
 		QLabel* statusLabel = new QLabel(tr(statusStr.c_str()));
-		mSolverStatusLabels[solver] = statusLabel;
+		mSolverStatusLabels[solver_id] = statusLabel;
 
 		pbar->setValue((int)progress);
 
@@ -536,20 +538,20 @@ void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
 	{
 		itr->second->setValue((int)progress);
 
-		mBestMetricLabels[solver]->setText(tr(dsBest_Metric_Label).arg(bestMetric));
-		mSolverStatusLabels[solver]->setText(tr(statusStr.c_str()));
+		mBestMetricLabels[solver_id]->setText(tr(dsBest_Metric_Label).arg(bestMetric));
+		mSolverStatusLabels[solver_id]->setText(tr(statusStr.c_str()));
 	}
 
 	// In_Progress = progress bar visible, status hidden
 	if (status != glucose::TSolver_Status::In_Progress)
 	{
-		mSolverStatusLabels[solver]->show();
-		mProgressBars[solver]->hide();
+		mSolverStatusLabels[solver_id]->show();
+		mProgressBars[solver_id]->hide();
 	}
 	else
 	{
-		mSolverStatusLabels[solver]->hide();
-		mProgressBars[solver]->show();
+		mSolverStatusLabels[solver_id]->hide();
+		mProgressBars[solver_id]->show();
 	}
 }
 
@@ -613,21 +615,23 @@ void CSimulation_Window::Slot_Start_Time_Segment(quint64 id)
 void CSimulation_Window::Add_Signal(const GUID& signalId)
 {
 	// possible narrowing conversion (fine, as QUuid internally matches GUID)
-	emit On_Add_Signal(signalId);
+	emit On_Add_Signal(GUID_To_QUuid(signalId));
 }
 
 void CSimulation_Window::Slot_Add_Signal(QUuid id)
 {
-	auto itr = mSignalWidgets.find(id);
+	const GUID signal_id = QUuid_To_GUID(id);
+
+	auto itr = mSignalWidgets.find(signal_id);
 
 	if (itr == mSignalWidgets.end())
 	{
-		CSignal_Group_Widget* grp = new CSignal_Group_Widget(id);
+		CSignal_Group_Widget* grp = new CSignal_Group_Widget(signal_id);
 
-		mSignalWidgets[id] = grp;
+		mSignalWidgets[signal_id] = grp;
 		// show "solve" action
-		if (mSignalSolveActions.find(id) != mSignalSolveActions.end())
-			mSignalSolveActions[id]->setVisible(true);
+		if (mSignalSolveActions.find(signal_id) != mSignalSolveActions.end())
+			mSignalSolveActions[signal_id]->setVisible(true);
 
 		QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mSignalsGroup->layout());
 		if (lay)
@@ -676,4 +680,18 @@ void CSimulation_Window::Inject_Event(const glucose::NDevice_Event_Code &code, c
 	evt.segment_id = segment_id;
 	evt.info.set(info);
 	mFilter_Chain_Manager->Send(evt);
+}
+
+QUuid CSimulation_Window::GUID_To_QUuid(const GUID& guid)
+{
+	return QUuid(guid.Data1, guid.Data2, guid.Data3, guid.Data4[0], guid.Data4[1], guid.Data4[2],
+		guid.Data4[3], guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
+}
+
+GUID CSimulation_Window::QUuid_To_GUID(const QUuid& uuid)
+{
+	return { uuid.data1, uuid.data2, uuid.data3,
+		uuid.data4[0], uuid.data4[1], uuid.data4[2], uuid.data4[3], uuid.data4[4], uuid.data4[5],
+		uuid.data4[6], uuid.data4[7]
+	};
 }
