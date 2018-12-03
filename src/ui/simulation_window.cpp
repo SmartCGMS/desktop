@@ -503,11 +503,12 @@ void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
 	std::string statusStr;
 	switch (status)
 	{
-		case glucose::TSolver_Status::Disabled:    statusStr = dsSolver_Status_Disabled; break;
-		case glucose::TSolver_Status::Idle:        statusStr = dsSolver_Status_Idle; break;
-		case glucose::TSolver_Status::In_Progress: statusStr = dsSolver_Status_In_Progress; break;
-		case glucose::TSolver_Status::Completed:   statusStr = dsSolver_Status_Completed; break;
-		case glucose::TSolver_Status::Failed:      statusStr = dsSolver_Status_Failed; break;
+		case glucose::TSolver_Status::Disabled:					statusStr = dsSolver_Status_Disabled; break;
+		case glucose::TSolver_Status::Idle:						statusStr = dsSolver_Status_Idle; break;
+		case glucose::TSolver_Status::In_Progress:				statusStr = dsSolver_Status_In_Progress; break;
+		case glucose::TSolver_Status::Completed_Improved:		statusStr = dsSolver_Status_Completed_Improved; break;
+		case glucose::TSolver_Status::Completed_Not_Improved:   statusStr = dsSolver_Status_Completed_Not_Improved; break;
+		case glucose::TSolver_Status::Failed:					statusStr = dsSolver_Status_Failed; break;
 	}
 
 	if (itr == mProgressBars.end())
