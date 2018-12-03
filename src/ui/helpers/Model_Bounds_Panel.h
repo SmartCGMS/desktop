@@ -63,14 +63,16 @@ class CModel_Bounds_Panel : public QWidget, public virtual filter_config_window:
 		QGridLayout* mLayout;
 
 		// stored edits
-		std::vector<QLineEdit*> mLowerBoundEdits, mDefaultsEdits, mUpperBoundEdits;
+		std::vector<filter_config_window::CContainer_Edit*> mLowerBoundEdits, mDefaultsEdits, mUpperBoundEdits;
 
 		// refreshes contents (may use given parameter set)
-		void Refresh_Contents(glucose::IModel_Parameter_Vector* inputs = nullptr);
+		void Refresh_Content(glucose::IModel_Parameter_Vector* inputs = nullptr);
 		// resets user interface using given values
-		void Reset_UI(const size_t parameter_count, const wchar_t** parameter_names, const double* lower_bounds, const double* defaults, const double* upper_bounds);
+		void Reset_UI(const glucose::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds);
 		// retrieves currently selected model; returns true on success
 		bool Get_Current_Selected_Model(glucose::TModel_Descriptor& model);
+
+		void CModel_Bounds_Panel::Reset_Parameters(const std::vector<filter_config_window::CContainer_Edit*> &containers, std::function<const double*(const glucose::TModel_Descriptor&)> get_bounds);
 
 	protected slots:
 		void On_Reset_Lower();

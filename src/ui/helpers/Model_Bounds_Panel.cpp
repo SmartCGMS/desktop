@@ -62,24 +62,21 @@ CModel_Bounds_Panel::CModel_Bounds_Panel(QComboBox* modelSelector, QWidget * par
 	layout->addStretch();
 
 	connect(mModelSelector, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {
-		Refresh_Contents();
+		Refresh_Content();
 	});
 
-	Refresh_Contents();
+	Refresh_Content();
 }
 
-glucose::TFilter_Parameter CModel_Bounds_Panel::get_parameter()
-{
+glucose::TFilter_Parameter CModel_Bounds_Panel::get_parameter() {
 	std::vector<double> values;
-	bool ok;
 
 	// "serialize" fields
 	for (auto& container : { mLowerBoundEdits, mDefaultsEdits, mUpperBoundEdits })
 	{
-		for (size_t i = 0; i < container.size(); i++)
-		{
-			double dbl = container[i]->text().toDouble(&ok);
-			values.push_back(ok ? dbl : 0.0);
+		for (size_t i = 0; i < container.size(); i++) {			
+			const glucose::TFilter_Parameter val = container[i]->get_parameter();
+			values.push_back(val.dbl);
 		}
 	}
 
@@ -94,14 +91,14 @@ void CModel_Bounds_Panel::set_parameter(const glucose::TFilter_Parameter &param)
 	if (param.type != glucose::NParameter_Type::ptModel_Bounds)
 		return;
 
-	Refresh_Contents(param.parameters);
+	Refresh_Content(param.parameters);
 }
 
 void CModel_Bounds_Panel::apply()
 {
 }
 
-void CModel_Bounds_Panel::Reset_UI(const size_t parameter_count, const wchar_t** parameter_names, const double* lower_bounds, const double* defaults, const double* upper_bounds)
+void CModel_Bounds_Panel::Reset_UI(const glucose::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds)
 {
 	// clear layout
 	int colums = mLayout->columnCount();
@@ -127,32 +124,48 @@ void CModel_Bounds_Panel::Reset_UI(const size_t parameter_count, const wchar_t**
 	mLayout->addWidget(new QLabel(dsDefault_Parameters), 0, 2);
 	mLayout->addWidget(new QLabel(dsUpper_Bounds), 0, 3);
 
-	auto create_edit = [this](double val) -> QLineEdit* {
-		QLineEdit* fld = new QLineEdit(QString::number(val, 'f'));
-		auto validator = new QDoubleValidator(this);
-		validator->setLocale(QLocale(QLocale::English));
-		fld->setValidator(validator);
-		return fld;
+	auto create_edit = [this](const glucose::NModel_Parameter_Value parameter_type, const double val) -> filter_config_window::CContainer_Edit* {
+
+		filter_config_window::CContainer_Edit* container = nullptr;
+
+		switch (parameter_type) {
+		case glucose::NModel_Parameter_Value::mptDouble:
+			container = new filter_config_window::CDouble_Container_Edit{ this };
+			break;
+
+		case glucose::NModel_Parameter_Value::mptTime:
+			container = new filter_config_window::CRatTime_Container_Edit{ this };
+			break;
+
+		default:
+			container = new filter_config_window::CNull_Container_Edit{  };
+			break;
+		}
+
+		glucose::TFilter_Parameter converted_val;				
+		converted_val.dbl = val;
+		container->set_parameter(converted_val);
+		
+		return container;
 	};
+
 
 	mLowerBoundEdits.clear();
 	mDefaultsEdits.clear();
 	mUpperBoundEdits.clear();
 
-	for (size_t i = 0; i < parameter_count; i++)
-	{
-		mLowerBoundEdits.push_back(create_edit(lower_bounds[i]));
-		mDefaultsEdits.push_back(create_edit(defaults[i]));
-		mUpperBoundEdits.push_back(create_edit(upper_bounds[i]));
+	for (size_t i = 0; i < model.number_of_parameters; i++) {			
+		mLowerBoundEdits.push_back(create_edit(model.parameter_types[i], lower_bounds[i]));
+		mDefaultsEdits.push_back(create_edit(model.parameter_types[i], defaults[i]));
+		mUpperBoundEdits.push_back(create_edit(model.parameter_types[i], upper_bounds[i]));
 	}
 
-	for (size_t i = 0; i < parameter_count; i++)
-	{
-		mLayout->addWidget(new QLabel(QString::fromWCharArray(parameter_names[i])), (int)i + 1, 0);
+	for (int i = 0; i < static_cast<int>(model.number_of_parameters); i++) {
+		mLayout->addWidget(new QLabel(QString::fromWCharArray(model.parameter_ui_names[i])), i + 1, 0);
 
-		mLayout->addWidget(mLowerBoundEdits[i], (int)i + 1, 1);
-		mLayout->addWidget(mDefaultsEdits[i], (int)i + 1, 2);
-		mLayout->addWidget(mUpperBoundEdits[i], (int)i + 1, 3);
+		mLayout->addWidget(dynamic_cast<QWidget*>(mLowerBoundEdits[i]), i + 1, 1);
+		mLayout->addWidget(dynamic_cast<QWidget*>(mDefaultsEdits[i]), i + 1, 2);
+		mLayout->addWidget(dynamic_cast<QWidget*>(mUpperBoundEdits[i]), i + 1, 3);
 	}
 
 	// add reset buttons
@@ -160,48 +173,44 @@ void CModel_Bounds_Panel::Reset_UI(const size_t parameter_count, const wchar_t**
 
 	btn = new QPushButton(dsReset_Bounds);
 	connect(btn, SIGNAL(clicked()), this, SLOT(On_Reset_Lower()));
-	mLayout->addWidget(btn, (int)parameter_count + 1, 1);
+	mLayout->addWidget(btn, static_cast<int>(model.number_of_parameters+ 1), 1);
 
 	btn = new QPushButton(dsReset_Bounds);
 	connect(btn, SIGNAL(clicked()), this, SLOT(On_Reset_Defaults()));
-	mLayout->addWidget(btn, (int)parameter_count + 1, 2);
+	mLayout->addWidget(btn, static_cast<int>(model.number_of_parameters + 1), 2);
 
 	btn = new QPushButton(dsReset_Bounds);
 	connect(btn, SIGNAL(clicked()), this, SLOT(On_Reset_Upper()));
-	mLayout->addWidget(btn, (int)parameter_count + 1, 3);
+	mLayout->addWidget(btn, static_cast<int>(model.number_of_parameters + 1), 3);
 
-	for (size_t i = 0; i < parameter_count + 2; i++)
+	for (int i = 0; i < static_cast<int>(model.number_of_parameters) + 2; i++)
 		mLayout->setRowStretch((int)i, 1);
 }
 
-void CModel_Bounds_Panel::On_Reset_Lower()
-{
+void CModel_Bounds_Panel::Reset_Parameters(const std::vector<filter_config_window::CContainer_Edit*> &containers, std::function<const double*(const glucose::TModel_Descriptor&)> get_bounds) {
 	glucose::TModel_Descriptor model = glucose::Null_Model_Descriptor;
 	if (!Get_Current_Selected_Model(model))
 		return;
 
-	for (size_t i = 0; i < model.number_of_parameters; i++)
-		mLowerBoundEdits[i]->setText(QString::number(model.lower_bound[i], 'f'));
+	const double* bounds = get_bounds(model);
+
+	for (size_t i = 0; i < model.number_of_parameters; i++) {
+		glucose::TFilter_Parameter val;
+		val.dbl = bounds[i];
+		containers[i]->set_parameter(val);
+	}		
 }
 
-void CModel_Bounds_Panel::On_Reset_Defaults()
-{
-	glucose::TModel_Descriptor model = glucose::Null_Model_Descriptor;
-	if (!Get_Current_Selected_Model(model))
-		return;
-
-	for (size_t i = 0; i < model.number_of_parameters; i++)
-		mDefaultsEdits[i]->setText(QString::number(model.default_values[i], 'f'));
+void CModel_Bounds_Panel::On_Reset_Lower() {
+	Reset_Parameters(mLowerBoundEdits, [](const glucose::TModel_Descriptor& model)->const double* {return model.lower_bound; });
 }
 
-void CModel_Bounds_Panel::On_Reset_Upper()
-{
-	glucose::TModel_Descriptor model = glucose::Null_Model_Descriptor;
-	if (!Get_Current_Selected_Model(model))
-		return;
+void CModel_Bounds_Panel::On_Reset_Defaults() {
+	Reset_Parameters(mDefaultsEdits, [](const glucose::TModel_Descriptor& model)->const double* {return model.default_values; });
+}
 
-	for (size_t i = 0; i < model.number_of_parameters; i++)
-		mUpperBoundEdits[i]->setText(QString::number(model.upper_bound[i], 'f'));
+void CModel_Bounds_Panel::On_Reset_Upper() {
+	Reset_Parameters(mUpperBoundEdits, [](const glucose::TModel_Descriptor& model)->const double* {return model.upper_bound; });
 }
 
 bool CModel_Bounds_Panel::Get_Current_Selected_Model(glucose::TModel_Descriptor& model)
@@ -218,7 +227,7 @@ bool CModel_Bounds_Panel::Get_Current_Selected_Model(glucose::TModel_Descriptor&
 	return false;
 }
 
-void CModel_Bounds_Panel::Refresh_Contents(glucose::IModel_Parameter_Vector* inputs)
+void CModel_Bounds_Panel::Refresh_Content(glucose::IModel_Parameter_Vector* inputs)
 {
 	glucose::TModel_Descriptor model = glucose::Null_Model_Descriptor;
 
@@ -240,6 +249,6 @@ void CModel_Bounds_Panel::Refresh_Contents(glucose::IModel_Parameter_Vector* inp
 			}
 		}
 
-		Reset_UI(model.number_of_parameters, model.parameter_ui_names, lb, def, ub);
+		Reset_UI(model, lb, def, ub);
 	}
 }

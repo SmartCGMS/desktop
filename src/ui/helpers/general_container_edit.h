@@ -40,11 +40,64 @@
 
 #include "../../../../common/iface/FilterIface.h"
 
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QDateTimeEdit>
+#include <QtWidgets/QCheckBox>
+
 namespace filter_config_window {
+
 	class CContainer_Edit {
 	public:
 		virtual glucose::TFilter_Parameter get_parameter() = 0;
 		virtual void set_parameter(const glucose::TFilter_Parameter &param) = 0;
 		virtual void apply() {};	//e.g., on click the Apply button - non-mandatory function
+	};
+
+	class CInteger_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
+		Q_OBJECT
+	public:
+		CInteger_Container_Edit(QWidget *parent);
+		glucose::TFilter_Parameter get_parameter() override;
+		void set_parameter(const glucose::TFilter_Parameter &param) override;
+	};
+
+
+	class CWChar_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
+	public:
+		glucose::TFilter_Parameter get_parameter() override;
+		void set_parameter(const glucose::TFilter_Parameter &param) override;
+	};
+
+	class CRatTime_Container_Edit : public QDateTimeEdit, public virtual filter_config_window::CContainer_Edit {
+	protected:
+		const double MSecsPerDay = 24.0*60.0*60.0*1000.0;
+		const double InvMSecsPerDay = 1.0 / MSecsPerDay;
+
+		double QTime2RatTime(const QTime &qdt);
+		QTime rattime2QTime(const double rt);
+	public:
+		CRatTime_Container_Edit(QWidget *parent);
+		glucose::TFilter_Parameter get_parameter() override;
+		void set_parameter(const glucose::TFilter_Parameter &param) override;
+	};
+
+
+	class CDouble_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
+	public:
+		CDouble_Container_Edit(QWidget *parent);
+		glucose::TFilter_Parameter get_parameter() override;
+		void set_parameter(const glucose::TFilter_Parameter &param) override;
+	};
+
+	class CBoolean_Container_Edit : public QCheckBox, public virtual filter_config_window::CContainer_Edit {
+		glucose::TFilter_Parameter get_parameter() override;
+		void set_parameter(const glucose::TFilter_Parameter &param) override;
+	};
+
+	class CNull_Container_Edit : public QWidget, public virtual filter_config_window::CContainer_Edit {
+	public:
+		glucose::TFilter_Parameter get_parameter() override;
+		void set_parameter(const glucose::TFilter_Parameter &param) override;
 	};
 }
