@@ -172,36 +172,25 @@ void CGUI_Filter_Subchain::Run_Output() {
 
 HRESULT CGUI_Filter_Subchain::Run(refcnt::IVector_Container<glucose::TFilter_Parameter>* const configuration) {
 
-	// extract parameters - the parameter vector is a union of all parameters of all subchain filters, so we need to extract it
-	glucose::TFilter_Parameter *param_begin, *param_end;
-	if (configuration->get(&param_begin, &param_end) != S_OK)
-		param_begin = param_end = nullptr;
-
+	glucose::SFilter_Parameters shared_configuration = refcnt::make_shared_reference_ext<glucose::SFilter_Parameters, glucose::IFilter_Configuration>(configuration, true);
+	
 	CFilter_Chain subchain;
 
-	glucose::TFilter_Descriptor desc = glucose::Null_Filter_Descriptor;
-	CFilter_Configuration filter_config;
+	glucose::TFilter_Descriptor desc = glucose::Null_Filter_Descriptor;	
 
-	for (size_t i = 0; i < gui::gui_filters.size(); i++)
-	{
+	for (size_t i = 0; i < gui::gui_filters.size(); i++) {
+		CFilter_Configuration filter_config;
 		const GUID &id = gui::gui_filters[i];
 
-		if (glucose::get_filter_descriptor_by_id(id, desc))
-		{
-			if (param_begin != nullptr)
-			{
-				// skip null parameters (config headers)
-				while (param_begin != param_end && param_begin->type == glucose::NParameter_Type::ptNull)
-					param_begin += 1;
-
-				// iterate all the way to the last filter parameter, and copy it to chain link configuration
-				const auto param_end = param_begin + desc.parameters_count;
-				for (; param_begin != param_end; param_begin++)
-					filter_config.push_back(*param_begin);
+		if (glucose::get_filter_descriptor_by_id(id, desc)) {
+			for (size_t j = 0; j < desc.parameters_count; j++) {
+				glucose::TFilter_Parameter *param = shared_configuration.Resolve_Parameter(desc.config_parameter_name[j]);
+				if (param != nullptr)
+					filter_config.push_back(*param);
 			}
-
-			subchain.push_back({ desc, filter_config });
 		}
+
+		subchain.push_back({ desc, filter_config });
 	}
 
 	// initialize and start subchain
