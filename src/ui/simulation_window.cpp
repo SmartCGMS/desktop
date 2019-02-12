@@ -664,7 +664,7 @@ void CSimulation_Window::Update_Solver_Progress()
 		if (solvers->Get_Solver_Information(&guid, &status) != S_OK)
 			continue;
 
-		glucose::TSolver_Progress progress;
+		solver::TSolver_Progress progress;
 		if (solvers->Get_Solver_Progress(&progress) != S_OK)
 			continue;
 
