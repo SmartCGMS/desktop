@@ -67,7 +67,7 @@ class CGUID_Entity_ComboBox : public QComboBox, public virtual filter_config_win
 
 			// add entities retrieved using template function
 			for (auto entity : entities)
-				addItem(StdWStringToQString(entity.description), QVariant{ QByteArray(reinterpret_cast<const char*>(&entity.id)) });
+				addItem(StdWStringToQString(entity.description), QVariant{ QByteArray(reinterpret_cast<const char*>(&entity.id), sizeof(entity.id)) });	//without size of, QByteArray ctor would interpret first zero as end of GUID
 		}
 
 		glucose::TFilter_Parameter get_parameter() override
