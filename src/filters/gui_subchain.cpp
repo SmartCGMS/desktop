@@ -50,7 +50,13 @@ SGUI_Filter_Subchain::SGUI_Filter_Subchain(glucose::SFilter &gui_subchain_filter
 
 CGUI_Filter_Subchain::CGUI_Filter_Subchain(glucose::SFilter_Pipe in_pipe, glucose::SFilter_Pipe out_pipe)
 	: mInput(in_pipe), mOutput(out_pipe), mChange_Available(false) {
-	//
+
+	// take all model-calculated signals and put them into calculated signal guids set
+	const auto models = glucose::get_model_descriptors();
+	for (const auto& model : models) {
+		for (size_t i = 0; i < model.number_of_calculated_signals; i++)
+			mCalculatedSignalGUIDs.insert(model.calculated_signal_ids[i]);
+	}
 }
 
 HRESULT IfaceCalling CGUI_Filter_Subchain::QueryInterface(const GUID*  riid, void ** ppvObj) {
@@ -69,7 +75,7 @@ void CGUI_Filter_Subchain::Run_Input() {
 
 		// synchronnously update GUI on Shut_Down event; the filter chain is destroyed after that message, so to not miss
 		// any updates, send marker, wait for it to come out of subchain output pipe, update GUI and then propagate Shut_Down
-		if (evt.event_code == glucose::NDevice_Event_Code::Shut_Down) {
+		if (evt.event_code() == glucose::NDevice_Event_Code::Shut_Down) {
 
 			mMarker_Received = false;
 			Emit_Marker();
@@ -123,7 +129,7 @@ void CGUI_Filter_Subchain::Run_Output() {
 		// here we handle all messages that comes from last GUI-wrapped filter pipe
 		// this of course involves all messages that hasn't been dropped prior sending through last filter pipe
 
-		if (evt.event_code == glucose::NDevice_Event_Code::Information)
+		if (evt.event_code() == glucose::NDevice_Event_Code::Information)
 		{
 			// shutdown marker received - notify input thread so it could update GUI and propagate Shut_Down event
 			if (refcnt::WChar_Container_Equals_WString(evt.info.get(), rsInfo_Shut_Down_Marker))
@@ -133,20 +139,15 @@ void CGUI_Filter_Subchain::Run_Output() {
 				mShut_Down_Cv.notify_all();
 			}
 		}
-		else if (evt.event_code == glucose::NDevice_Event_Code::Parameters)
+		else if (evt.event_code() == glucose::NDevice_Event_Code::Time_Segment_Start)
 		{
-			if (mCalculatedSignalGUIDs.find(evt.signal_id) == mCalculatedSignalGUIDs.end())
-				mCalculatedSignalGUIDs.insert(evt.signal_id);
-		}
-		else if (evt.event_code == glucose::NDevice_Event_Code::Time_Segment_Start)
-		{
-			simwin->Start_Time_Segment(evt.segment_id);
+			simwin->Start_Time_Segment(evt.segment_id());
 
 			// enable drawing of this segment by default
 			if (mDraw_Segment_Ids)
-				mDraw_Segment_Ids->add(&evt.segment_id, &evt.segment_id + 1);
+				mDraw_Segment_Ids->add(&evt.segment_id(), &evt.segment_id() + 1);
 		}
-		else if (evt.event_code == glucose::NDevice_Event_Code::Shut_Down)
+		else if (evt.event_code() == glucose::NDevice_Event_Code::Shut_Down)
 		{
 			simwin->Stop_Simulation();
 		}
@@ -154,14 +155,14 @@ void CGUI_Filter_Subchain::Run_Output() {
 		// if the event is containing valid level, propagate it to GUI, if not already there
 		if (evt.is_level_event() /*|| evt.is_parameters_event()*/)
 		{
-			if (m_presentSignals.find(evt.signal_id) == m_presentSignals.end())
+			if (m_presentSignals.find(evt.signal_id()) == m_presentSignals.end())
 			{
-				m_presentSignals.insert(evt.signal_id);
+				m_presentSignals.insert(evt.signal_id());
 				// enable drawing of this signal by default
 				if (mDraw_Signal_Ids)
-					mDraw_Signal_Ids->add(&evt.signal_id, &evt.signal_id + 1);
+					mDraw_Signal_Ids->add(&evt.signal_id(), &evt.signal_id() + 1);
 
-				simwin->Add_Signal(evt.signal_id);
+				simwin->Add_Signal(evt.signal_id());
 			}
 		}
 
@@ -200,7 +201,7 @@ HRESULT CGUI_Filter_Subchain::Run(refcnt::IVector_Container<glucose::TFilter_Par
 		return rc;
 
 	// now we need to retrieve references to inspectionable filters, so we could provide drawings, log, etc.
-	mSubchainMgr->Traverse_Filters([this](glucose::SFilter filter) -> bool {
+	mSubchainMgr->Traverse_Filters([this](glucose::SFilter &filter) -> bool {
 		if (glucose::SDrawing_Filter_Inspection insp = glucose::SDrawing_Filter_Inspection{ filter })
 			mDrawing_Filter_Inspection = insp;
 		else if (glucose::SError_Filter_Inspection insp = glucose::SError_Filter_Inspection{ filter })
@@ -326,7 +327,7 @@ void CGUI_Filter_Subchain::Emit_Marker()
 {
 	glucose::UDevice_Event evt{ glucose::NDevice_Event_Code::Information };
 
-	evt.device_time = Unix_Time_To_Rat_Time(time(nullptr));
+	evt.device_time() = Unix_Time_To_Rat_Time(time(nullptr));
 	evt.info.set(rsInfo_Shut_Down_Marker);
 
 	mSubchainMgr->Send(evt);

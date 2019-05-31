@@ -51,6 +51,7 @@ namespace gui
 {
 	glucose::TFilter_Descriptor GUI_Descriptor = {
 		gui_filter_guid,
+		glucose::NFilter_Flags::None,
 		dsGUI_Filter,
 
 		// parameters of GUI filter will be lazy-loaded from encapsulated filters
@@ -129,9 +130,9 @@ namespace gui
 		return filter_descriptions;
 	}
 
-	HRESULT IfaceCalling create_gui_filter(const GUID *id, glucose::IFilter_Pipe *input, glucose::IFilter_Pipe *output, glucose::IFilter **filter) {
+	HRESULT IfaceCalling create_gui_filter(const GUID *id, glucose::IFilter_Asynchronous_Pipe *input, glucose::IFilter_Asynchronous_Pipe *output, glucose::IAsynchronnous_Filter **filter) {
 		if (*id == gui::GUI_Descriptor.id)
-			return Manufacture_Object<CGUI_Filter_Subchain>(filter, refcnt::make_shared_reference_ext<glucose::SFilter_Pipe, glucose::IFilter_Pipe>( input, true ), refcnt::make_shared_reference_ext<glucose::SFilter_Pipe, glucose::IFilter_Pipe>(output, true));
+			return Manufacture_Object<CGUI_Filter_Subchain>(filter, refcnt::make_shared_reference_ext<glucose::SFilter_Pipe, glucose::IFilter_Asynchronous_Pipe>( input, true ), refcnt::make_shared_reference_ext<glucose::SFilter_Pipe, glucose::IFilter_Asynchronous_Pipe>(output, true));
 	
 		return ENOENT;
 	}

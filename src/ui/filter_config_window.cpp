@@ -160,6 +160,10 @@ void CFilter_Config_Window::Setup_UI() {
 						container = new CGUID_Entity_ComboBox<glucose::TSolver_Descriptor, glucose::get_solver_descriptors>(this, glucose::NParameter_Type::ptSolver_Id);
 						break;
 
+					case glucose::NParameter_Type::ptDevice_Driver_Id:
+						container = new CGUID_Entity_ComboBox<glucose::TDevice_Driver_Descriptor, glucose::get_device_driver_descriptors>(this, glucose::NParameter_Type::ptDevice_Driver_Id);
+						break;
+
 					case glucose::NParameter_Type::ptModel_Signal_Id:
 						// signal selection always requires model selection field
 						if (!model_select)

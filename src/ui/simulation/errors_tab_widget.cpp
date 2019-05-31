@@ -45,7 +45,10 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QScrollBar>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QFileDialog>
 
+#include <iostream>
 #include <fstream>
 #include <cmath>
 
@@ -54,7 +57,7 @@
 
 #include "moc_errors_tab_widget.cpp"
 
-constexpr int Error_Column_Count = static_cast<int>(glucose::NError_Marker::count) + static_cast<int>(glucose::NError_Percentile::count);
+constexpr int Error_Column_Count = static_cast<int>(glucose::NError_Marker::count) + static_cast<int>(glucose::NError_Percentile::count) + static_cast<int>(glucose::NError_Range::count);
 
 // names of error types
 const wchar_t* gError_Names[static_cast<size_t>(glucose::NError_Type::count)] = {
@@ -69,13 +72,18 @@ const wchar_t* gError_Column_Names[] = {
 	dsError_Column_Average,
 	dsError_Column_StdDev,
 	dsError_Column_AIC,
+	dsError_Column_Sum,
 	dsError_Column_Minimum,
 	dsError_Column_First_Quantile,
 	dsError_Column_Median,
 	dsError_Column_Third_Quantile,
 	dsError_Column_95_Quantile,
 	dsError_Column_99_Quantile,
-	dsError_Column_Maximum
+	dsError_Column_Maximum,
+	dsError_Column_Range_5pct,
+	dsError_Column_Range_10pct,
+	dsError_Column_Range_25pct,
+	dsError_Column_Range_50pct
 };
 // ensure array length
 static_assert((sizeof(gError_Column_Names) / sizeof(const wchar_t*)) == Error_Column_Count, "Column count does not match error columns defined");
@@ -119,10 +127,12 @@ QVariant CError_Table_Model::data(const QModelIndex &index, int role) const
 		const int row = index.row();
 		double val;
 
-		if (index.column() <static_cast<int>(glucose::NError_Marker::count))
-			val = mErrors[row /static_cast<int>(glucose::NError_Type::count)][row %static_cast<int>(glucose::NError_Type::count)].markers[index.column()];
-		else
-			val = mErrors[row /static_cast<int>(glucose::NError_Type::count)][row %static_cast<int>(glucose::NError_Type::count)].percentile[index.column() - static_cast<int>(glucose::NError_Marker::count)];
+		if (index.column() < static_cast<int>(glucose::NError_Marker::count))
+			val = mErrors[row /static_cast<int>(glucose::NError_Type::count)][row % static_cast<int>(glucose::NError_Type::count)].markers[index.column()];
+		else if (index.column() < static_cast<int>(glucose::NError_Marker::count) + static_cast<int>(glucose::NError_Percentile::count))
+			val = mErrors[row /static_cast<int>(glucose::NError_Type::count)][row % static_cast<int>(glucose::NError_Type::count)].percentile[index.column() - static_cast<int>(glucose::NError_Marker::count)];
+		else if (index.column() < Error_Column_Count)
+			val = mErrors[row / static_cast<int>(glucose::NError_Type::count)][row % static_cast<int>(glucose::NError_Type::count)].range[index.column() - static_cast<int>(glucose::NError_Marker::count) - static_cast<int>(glucose::NError_Percentile::count)];
 
 		if (role == Qt::DisplayRole)
 			return Format_Error_String((glucose::NError_Type)(row %static_cast<int>(glucose::NError_Type::count)), val);
@@ -132,7 +142,7 @@ QVariant CError_Table_Model::data(const QModelIndex &index, int role) const
 	else if (role == Qt::BackgroundRole)
 	{
 		// use gray background for "average" column
-		if (index.column() >= static_cast<int>(glucose::NError_Marker::count))
+		if (index.column() >= static_cast<int>(glucose::NError_Marker::count) && index.column() < static_cast<int>(glucose::NError_Marker::count) + static_cast<int>(glucose::NError_Percentile::count))
 			return QBrush(QColor(224, 224, 224));
 	}
 	return QVariant();
@@ -175,8 +185,10 @@ bool CError_Table_Model::setData(const QModelIndex &index, const QVariant &value
 
 		if (index.column() < static_cast<int>(glucose::NError_Marker::count))
 			mErrors[row /static_cast<int>(glucose::NError_Type::count)][row %static_cast<int>(glucose::NError_Type::count)].markers[index.column()] = value.toDouble();
+		else if (index.column() < static_cast<int>(glucose::NError_Marker::count) + static_cast<int>(glucose::NError_Percentile::count))
+			mErrors[row / static_cast<int>(glucose::NError_Type::count)][row %static_cast<int>(glucose::NError_Type::count)].percentile[index.column() - static_cast<int>(glucose::NError_Marker::count)] = value.toDouble();
 		else if (index.column() < Error_Column_Count)
-			mErrors[row /static_cast<int>(glucose::NError_Type::count)][row %static_cast<int>(glucose::NError_Type::count)].percentile[index.column() - static_cast<int>(glucose::NError_Marker::count)] = value.toDouble();
+			mErrors[row / static_cast<int>(glucose::NError_Type::count)][row %static_cast<int>(glucose::NError_Type::count)].range[index.column() - static_cast<int>(glucose::NError_Marker::count) - static_cast<int>(glucose::NError_Percentile::count)] = value.toDouble();
 
 		emit(dataChanged(index, index));
 
@@ -214,6 +226,11 @@ void CError_Table_Model::Set_Error(const GUID& signal_id, std::wstring signal_na
 	{
 		idx = index(row*static_cast<int>(glucose::NError_Type::count) + offset, i + static_cast<int>(glucose::NError_Marker::count), QModelIndex());
 		setData(idx, errors.percentile[i], Qt::EditRole);
+	}
+	for (int i = 0; i < static_cast<int>(glucose::NError_Range::count); i++)
+	{
+		idx = index(row*static_cast<int>(glucose::NError_Type::count) + offset, i + static_cast<int>(glucose::NError_Marker::count) + static_cast<int>(glucose::NError_Percentile::count), QModelIndex());
+		setData(idx, errors.range[i], Qt::EditRole);
 	}
 }
 
@@ -257,6 +274,9 @@ CErrors_Tab_Widget::CErrors_Tab_Widget(QWidget *parent) noexcept: CAbstract_Simu
 	mTableView->setModel(mModel);
 	mainLayout->addWidget(mTableView);
 
+	QPushButton* exportBtn = new QPushButton(dsExport_To_CSV);
+	mainLayout->addWidget(exportBtn, 1, 0);
+
 	auto models = glucose::get_model_descriptors();
 	for (auto& model : models)
 	{
@@ -264,10 +284,12 @@ CErrors_Tab_Widget::CErrors_Tab_Widget(QWidget *parent) noexcept: CAbstract_Simu
 			mSignalNames[model.calculated_signal_ids[i]] = model.description + std::wstring(L" - ") + model.calculated_signal_names[i];
 	}
 
-	for (size_t i = 0; i < glucose::signal_Virtual.size(); i++)		
+	for (size_t i = 0; i < glucose::signal_Virtual.size(); i++)
 		mSignalNames[glucose::signal_Virtual[i]] = dsSignal_Prefix_Virtual + std::wstring(L" ") + std::to_wstring(i);
 
 	setLayout(mainLayout);
+
+	connect(exportBtn, SIGNAL(clicked()), this, SLOT(Export_CSV_Button_Clicked()));
 }
 
 void CErrors_Tab_Widget::Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type)
@@ -280,6 +302,76 @@ void CErrors_Tab_Widget::Update_Error_Metrics(const GUID& signal_id, glucose::TE
 
 		mTableView->repaint();
 	});
+}
+
+void CErrors_Tab_Widget::Export_CSV_Button_Clicked()
+{
+	auto path = QFileDialog::getSaveFileName(this, tr(dsExport_CSV_Dialog_Title), dsExport_CSV_Default_File_Name, tr(dsExport_CSV_Ext_Spec));
+	if (path.length() != 0)
+	{
+		std::ofstream fs(path.toStdString());
+
+		int fromRow, fromCol, toRow, toCol;
+		fromRow = 0;
+		fromCol = 0;
+		toRow = mTableView->model()->rowCount() - 1;
+		toCol = mTableView->model()->columnCount() - 1;
+
+		auto* selModel = mTableView->selectionModel();
+		if (selModel->hasSelection())
+		{
+			auto rowList = selModel->selectedRows();
+			if (!rowList.empty())
+			{
+				fromRow = mTableView->model()->rowCount() - 1;
+				toRow = 0;
+
+				for (auto& val : rowList)
+				{
+					if (val.row() > toRow)
+						toRow = val.row();
+					if (val.row() < fromRow)
+						fromRow = val.row();
+				}
+			}
+
+			auto colList = selModel->selectedColumns();
+			if (!colList.empty())
+			{
+				fromCol = mTableView->model()->columnCount() - 1;
+				toCol = 0;
+
+				for (auto& val : colList)
+				{
+					if (val.column() > toCol)
+						toCol = val.column();
+					if (val.column() < fromCol)
+						fromCol = val.column();
+				}
+			}
+		}
+
+		// skip one column
+		fs << ";";
+		for (int j = fromCol; j <= toCol; j++)
+			fs << mTableView->model()->headerData(j, Qt::Orientation::Horizontal).toString().toStdString() << ";";
+
+		fs << std::endl;
+
+		for (int i = fromRow; i <= toRow; i++)
+		{
+			fs << mTableView->model()->headerData(i, Qt::Orientation::Vertical).toString().toStdString() << ";";
+
+			for (int j = fromCol; j <= toCol; j++)
+			{
+				QModelIndex idx = mTableView->model()->index(i, j, QModelIndex());
+
+				fs << mTableView->model()->data(idx).toString().toStdString() << ";";
+			}
+
+			fs << std::endl;
+		}
+	}
 }
 
 CAbstract_Simulation_Tab_Widget* CErrors_Tab_Widget::Clone()

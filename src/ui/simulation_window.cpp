@@ -64,6 +64,8 @@
 	#include "moc_simulation_window.cpp"
 #endif
 
+constexpr size_t Invalid_Value = static_cast<size_t>(-1);
+
 std::atomic<CSimulation_Window*> CSimulation_Window::mInstance = nullptr;
 
 CSimulation_Window* CSimulation_Window::Show_Instance(CFilter_Chain &filter_chain, QWidget *owner)
@@ -275,6 +277,20 @@ void CSimulation_Window::Setup_UI()
 		mErrorsWidget = new CErrors_Tab_Widget(this);
 		mTabWidget->addTab(mErrorsWidget, tr(dsErrors_Tab));
 
+		// profile drawing tabs
+
+		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Profile_Glucose);
+		mDrawingWidgets.push_back(tab);
+		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Profile_Glucose));
+
+		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Profile_Carbs);
+		mDrawingWidgets.push_back(tab);
+		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Profile_Carbs));
+
+		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Profile_Insulin);
+		mDrawingWidgets.push_back(tab);
+		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Profile_Insulin));
+
 		mBase_Tab_Count = mTabWidget->count();
 	}
 
@@ -410,7 +426,7 @@ void CSimulation_Window::On_Start()
 
 	// retrieve GUI subchain shared ptr instance and solver filter instances
 	m_guiSubchain.reset();
-	mFilter_Chain_Manager->Traverse_Filters([this](glucose::SFilter filter) {
+	mFilter_Chain_Manager->Traverse_Filters([this](glucose::SFilter &filter) {
 		if (!m_guiSubchain)
 			m_guiSubchain = SGUI_Filter_Subchain{ filter };
 		if (glucose::SCalculate_Filter_Inspection insp = glucose::SCalculate_Filter_Inspection{ filter })
@@ -496,9 +512,17 @@ void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
 
 	auto itr = mProgressBars.find(solver_id);
 
-	const size_t progress = mSolverProgress[solver_id].progress;
-	const double bestMetric = mSolverProgress[solver_id].bestMetric;
-	const glucose::TSolver_Status status = mSolverProgress[solver_id].status;
+	const auto& solverProgress = mSolverProgress[solver_id];
+
+	const size_t progress = solverProgress.progress;
+	const double bestMetric = solverProgress.bestMetric;
+	const glucose::TSolver_Status status = solverProgress.status;
+
+	QString metricString = tr(dsBest_Metric_Label);
+	if (solverProgress.progress != Invalid_Value)
+		metricString = metricString.arg(bestMetric);
+	else
+		metricString = metricString.arg(dsBest_Metric_NotAvailable);
 
 	std::string statusStr;
 	switch (status)
@@ -517,7 +541,7 @@ void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
 		mProgressBars[solver_id] = pbar;
 
 		QLabel* plabel = new QLabel(StdWStringToQString(mSignal_Names.Get_Name(solver_id)));
-		QLabel* metriclabel = new QLabel(tr(dsBest_Metric_Label).arg(bestMetric));
+		QLabel* metriclabel = new QLabel(metricString);
 		mBestMetricLabels[solver_id] = metriclabel;
 		QLabel* statusLabel = new QLabel(tr(statusStr.c_str()));
 		mSolverStatusLabels[solver_id] = statusLabel;
@@ -537,7 +561,7 @@ void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
 	{
 		itr->second->setValue((int)progress);
 
-		mBestMetricLabels[solver_id]->setText(tr(dsBest_Metric_Label).arg(bestMetric));
+		mBestMetricLabels[solver_id]->setText(metricString);
 		mSolverStatusLabels[solver_id]->setText(tr(statusStr.c_str()));
 	}
 
@@ -668,15 +692,20 @@ void CSimulation_Window::Update_Solver_Progress()
 		if (solvers->Get_Solver_Progress(&progress) != S_OK)
 			continue;
 
-		size_t pct = progress.max_progress != 0 ? (progress.current_progress * 100) / progress.max_progress : progress.current_progress;
+		size_t pct = Invalid_Value;
+		if (progress.max_progress != 0)
+			pct = (progress.current_progress * 100) / progress.max_progress;
+		else if (progress.current_progress != 0)
+			pct = progress.current_progress;
+
 		Update_Solver_Progress(guid, pct, progress.best_metric, status);
 	}
 }
 
 void CSimulation_Window::Inject_Event(const glucose::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info, const uint64_t segment_id) {
 	glucose::UDevice_Event evt{ code };
-	evt.signal_id = signal_id;
-	evt.segment_id = segment_id;
+	evt.signal_id() = signal_id;
+	evt.segment_id() = segment_id;
 	evt.info.set(info);
 	mFilter_Chain_Manager->Send(evt);
 }

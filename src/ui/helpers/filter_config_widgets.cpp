@@ -103,9 +103,14 @@ CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(QWidget *pa
 	mSignalVector.push_back({ glucose::signal_IG, dsSignal_Measured_IG + measSuffix });
 	mSignalVector.push_back({ glucose::signal_ISIG, dsSignal_Measured_ISIG + measSuffix });
 	mSignalVector.push_back({ glucose::signal_Calibration, dsSignal_Measured_Calibration + measSuffix });
-	mSignalVector.push_back({ glucose::signal_Insulin, dsSignal_Measured_Insulin + measSuffix });
+	mSignalVector.push_back({ glucose::signal_Bolus_Insulin, dsSignal_Measured_Bolus_Insulin + measSuffix });
+	mSignalVector.push_back({ glucose::signal_Basal_Insulin, dsSignal_Measured_Basal_Insulin + measSuffix });
+	mSignalVector.push_back({ glucose::signal_Basal_Insulin_Rate, dsSignal_Measured_Basal_Insulin_Rate + measSuffix });
+	mSignalVector.push_back({ glucose::signal_Insulin_Activity, dsSignal_Measured_Insulin_Activity + measSuffix });
+	mSignalVector.push_back({ glucose::signal_IOB, dsSignal_Measured_IOB + measSuffix });
+	mSignalVector.push_back({ glucose::signal_COB, dsSignal_Measured_COB + measSuffix });
 	mSignalVector.push_back({ glucose::signal_Carb_Intake, dsSignal_Measured_Carb_Intake + measSuffix });
-	mSignalVector.push_back({ glucose::signal_Health_Stress, dsSignal_Measured_Health_Stress + measSuffix });
+	mSignalVector.push_back({ glucose::signal_Physical_Activity, dsSignal_Measured_Health_Physical_Activity + measSuffix });
 
 	// append calculated signals of known models
 	std::wstring calcSuffix = dsSignal_Suffix_Calculated;

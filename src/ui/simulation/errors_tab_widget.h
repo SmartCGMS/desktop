@@ -98,6 +98,9 @@ class CErrors_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 		// stored signal names
 		std::map<GUID, std::wstring> mSignalNames;
 
+	public slots:
+		void Export_CSV_Button_Clicked();
+
 	public:
 		explicit CErrors_Tab_Widget(QWidget *parent = 0) noexcept;
 

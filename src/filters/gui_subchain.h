@@ -52,7 +52,7 @@
 #include <set>
 
 // default time in [ms] to update drawing
-constexpr size_t GUI_Subchain_Default_Drawing_Update = 1000;
+constexpr size_t GUI_Subchain_Default_Drawing_Update = 500;
 
 // this is exception from filter decomposition model: this filter is special, in this context it means, it "knows" about several filters
 // typically used by GUI - drawing filter, error metrics filter, log filter
@@ -63,7 +63,7 @@ constexpr size_t GUI_Subchain_Default_Drawing_Update = 1000;
 /*
  * Filter class for managing user interface needs
  */
-class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CReferenced
+class CGUI_Filter_Subchain : public glucose::IAsynchronnous_Filter, public virtual refcnt::CReferenced
 {
 	protected:
 		glucose::SFilter_Pipe mInput;
@@ -122,7 +122,7 @@ class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CRe
 
 	public:
 		CGUI_Filter_Subchain(glucose::SFilter_Pipe in_pipe, glucose::SFilter_Pipe out_pipe);
-		virtual ~CGUI_Filter_Subchain() {};
+		virtual ~CGUI_Filter_Subchain() = default;
 
 		virtual HRESULT Run(refcnt::IVector_Container<glucose::TFilter_Parameter>* const configuration) override;
 		virtual HRESULT IfaceCalling QueryInterface(const GUID*  riid, void ** ppvObj) override;

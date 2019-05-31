@@ -66,7 +66,10 @@ static const std::array<const char*, static_cast<size_t>(glucose::TDrawing_Image
 	dsSave_Image_Default_Filename_Parkes,
 	dsSave_Image_Default_Filename_Clark,
 	dsSave_Image_Default_Filename_AGP,
-	dsSave_Image_Default_Filename_ECDF
+	dsSave_Image_Default_Filename_ECDF,
+	dsSave_Image_Default_Filename_Profile_Glucose,
+	dsSave_Image_Default_Filename_Profile_Carbs,
+	dsSave_Image_Default_Filename_Profile_Insulin
 } };
 
 CDrawing_Graphics_View::CDrawing_Graphics_View()
