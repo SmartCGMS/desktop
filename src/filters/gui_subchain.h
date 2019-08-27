@@ -66,8 +66,8 @@ constexpr size_t GUI_Subchain_Default_Drawing_Update = 500;
 class CGUI_Filter_Subchain : public glucose::IAsynchronnous_Filter, public virtual refcnt::CReferenced
 {
 	protected:
-		glucose::SFilter_Pipe mInput;
-		glucose::SFilter_Pipe mOutput;
+		glucose::SFilter_Asynchronnous_Pipe mInput;
+		glucose::SFilter_Asynchronnous_Pipe mOutput;
 
 		glucose::SDrawing_Filter_Inspection mDrawing_Filter_Inspection;
 		glucose::SError_Filter_Inspection mError_Filter_Inspection;
@@ -121,7 +121,7 @@ class CGUI_Filter_Subchain : public glucose::IAsynchronnous_Filter, public virtu
 		void Emit_Marker();
 
 	public:
-		CGUI_Filter_Subchain(glucose::SFilter_Pipe in_pipe, glucose::SFilter_Pipe out_pipe);
+		CGUI_Filter_Subchain(glucose::SFilter_Asynchronnous_Pipe in_pipe, glucose::SFilter_Asynchronnous_Pipe out_pipe);
 		virtual ~CGUI_Filter_Subchain() = default;
 
 		virtual HRESULT Run(refcnt::IVector_Container<glucose::TFilter_Parameter>* const configuration) override;

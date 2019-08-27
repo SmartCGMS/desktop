@@ -48,7 +48,7 @@ SGUI_Filter_Subchain::SGUI_Filter_Subchain(glucose::SFilter &gui_subchain_filter
 	if (gui_subchain_filter) refcnt::Query_Interface<glucose::IFilter, CGUI_Filter_Subchain>(gui_subchain_filter.get(), gui::gui_filter_guid, *this);
 }
 
-CGUI_Filter_Subchain::CGUI_Filter_Subchain(glucose::SFilter_Pipe in_pipe, glucose::SFilter_Pipe out_pipe)
+CGUI_Filter_Subchain::CGUI_Filter_Subchain(glucose::SFilter_Asynchronnous_Pipe in_pipe, glucose::SFilter_Asynchronnous_Pipe out_pipe)
 	: mInput(in_pipe), mOutput(out_pipe), mChange_Available(false) {
 
 	// take all model-calculated signals and put them into calculated signal guids set
