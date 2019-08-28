@@ -310,7 +310,7 @@ void CSimulation_Window::Setup_UI()
 	mTabWidget->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(mTabWidget->tabBar(), SIGNAL(customContextMenuRequested(const QPoint &)), SLOT(Show_Tab_Context_Menu(const QPoint &)));
 
-	// GUI asynchronnous updaters
+	// GUI asynchronous updaters
 	connect(this, SIGNAL(On_Start_Time_Segment(quint64)), this, SLOT(Slot_Start_Time_Segment(quint64)), Qt::QueuedConnection);
 	connect(this, SIGNAL(On_Add_Signal(QUuid)), this, SLOT(Slot_Add_Signal(QUuid)), Qt::QueuedConnection);
 	connect(this, SIGNAL(On_Update_Solver_Progress(QUuid)), this, SLOT(Slot_Update_Solver_Progress(QUuid)), Qt::QueuedConnection);

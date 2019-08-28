@@ -48,7 +48,7 @@ SGUI_Filter_Subchain::SGUI_Filter_Subchain(glucose::SFilter &gui_subchain_filter
 	if (gui_subchain_filter) refcnt::Query_Interface<glucose::IFilter, CGUI_Filter_Subchain>(gui_subchain_filter.get(), gui::gui_filter_guid, *this);
 }
 
-CGUI_Filter_Subchain::CGUI_Filter_Subchain(glucose::SFilter_Asynchronnous_Pipe in_pipe, glucose::SFilter_Asynchronnous_Pipe out_pipe)
+CGUI_Filter_Subchain::CGUI_Filter_Subchain(glucose::SFilter_Asynchronous_Pipe in_pipe, glucose::SFilter_Asynchronous_Pipe out_pipe)
 	: mInput(in_pipe), mOutput(out_pipe), mChange_Available(false) {
 
 	// take all model-calculated signals and put them into calculated signal guids set
@@ -73,7 +73,7 @@ void CGUI_Filter_Subchain::Run_Input() {
 		// here we may perform some input filtering, but that's not typical for filter input
 		// most of actions will be done in output handler (Run_Output)
 
-		// synchronnously update GUI on Shut_Down event; the filter chain is destroyed after that message, so to not miss
+		// synchronously update GUI on Shut_Down event; the filter chain is destroyed after that message, so to not miss
 		// any updates, send marker, wait for it to come out of subchain output pipe, update GUI and then propagate Shut_Down
 		if (evt.event_code() == glucose::NDevice_Event_Code::Shut_Down) {
 
@@ -107,7 +107,7 @@ void CGUI_Filter_Subchain::Run_Updater()
 {
 	while (mRunning) {
 
-		// since user may asynchronnously request update of any component, we need to lock the mutex before updating
+		// since user may asynchronously request update of any component, we need to lock the mutex before updating
 		std::unique_lock<std::mutex> lck(mUpdater_Mtx);
 
 		// update if there was a change

@@ -130,9 +130,9 @@ namespace gui
 		return filter_descriptions;
 	}
 
-	HRESULT IfaceCalling create_gui_filter(const GUID *id, glucose::IFilter_Asynchronous_Pipe *input, glucose::IFilter_Asynchronous_Pipe *output, glucose::IAsynchronnous_Filter **filter) {
+	HRESULT IfaceCalling create_gui_filter(const GUID *id, glucose::IFilter_Asynchronous_Pipe *input, glucose::IFilter_Asynchronous_Pipe *output, glucose::IAsynchronous_Filter **filter) {
 		if (*id == gui::GUI_Descriptor.id)
-			return Manufacture_Object<CGUI_Filter_Subchain>(filter, refcnt::make_shared_reference_ext<glucose::SFilter_Asynchronnous_Pipe, glucose::IFilter_Asynchronous_Pipe>( input, true ), refcnt::make_shared_reference_ext<glucose::SFilter_Asynchronnous_Pipe, glucose::IFilter_Asynchronous_Pipe>(output, true));
+			return Manufacture_Object<CGUI_Filter_Subchain>(filter, refcnt::make_shared_reference_ext<glucose::SFilter_Asynchronous_Pipe, glucose::IFilter_Asynchronous_Pipe>( input, true ), refcnt::make_shared_reference_ext<glucose::SFilter_Asynchronous_Pipe, glucose::IFilter_Asynchronous_Pipe>(output, true));
 	
 		return ENOENT;
 	}
