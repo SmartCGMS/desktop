@@ -63,11 +63,11 @@ constexpr size_t GUI_Subchain_Default_Drawing_Update = 500;
 /*
  * Filter class for managing user interface needs
  */
-class CGUI_Filter_Subchain : public glucose::IAsynchronous_Filter, public virtual refcnt::CReferenced
+class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CReferenced
 {
 	protected:
-		glucose::SFilter_Asynchronous_Pipe mInput;
-		glucose::SFilter_Asynchronous_Pipe mOutput;
+		glucose::SFilter_Pipe_Reader mInput;
+		glucose::SFilter_Pipe_Writer mOutput;
 
 		glucose::SDrawing_Filter_Inspection mDrawing_Filter_Inspection;
 		glucose::SError_Filter_Inspection mError_Filter_Inspection;
@@ -121,10 +121,12 @@ class CGUI_Filter_Subchain : public glucose::IAsynchronous_Filter, public virtua
 		void Emit_Marker();
 
 	public:
-		CGUI_Filter_Subchain(glucose::SFilter_Asynchronous_Pipe in_pipe, glucose::SFilter_Asynchronous_Pipe out_pipe);
+		CGUI_Filter_Subchain(glucose::SFilter_Pipe_Reader in_pipe, glucose::SFilter_Pipe_Writer out_pipe);
 		virtual ~CGUI_Filter_Subchain() = default;
 
-		virtual HRESULT Run(refcnt::IVector_Container<glucose::TFilter_Parameter>* const configuration) override;
+		virtual HRESULT IfaceCalling Configure(glucose::IFilter_Configuration* configuration) override final;
+		virtual HRESULT IfaceCalling Execute() override final;
+
 		virtual HRESULT IfaceCalling QueryInterface(const GUID*  riid, void ** ppvObj) override;
 
 		void Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds);

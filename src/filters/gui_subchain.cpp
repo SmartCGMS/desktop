@@ -48,8 +48,7 @@ SGUI_Filter_Subchain::SGUI_Filter_Subchain(glucose::SFilter &gui_subchain_filter
 	if (gui_subchain_filter) refcnt::Query_Interface<glucose::IFilter, CGUI_Filter_Subchain>(gui_subchain_filter.get(), gui::gui_filter_guid, *this);
 }
 
-CGUI_Filter_Subchain::CGUI_Filter_Subchain(glucose::SFilter_Asynchronous_Pipe in_pipe, glucose::SFilter_Asynchronous_Pipe out_pipe)
-	: mInput(in_pipe), mOutput(out_pipe), mChange_Available(false) {
+CGUI_Filter_Subchain::CGUI_Filter_Subchain(glucose::SFilter_Pipe_Reader in_pipe, glucose::SFilter_Pipe_Writer out_pipe)	: mInput(in_pipe), mOutput(out_pipe), mChange_Available(false) {
 
 	// take all model-calculated signals and put them into calculated signal guids set
 	const auto models = glucose::get_model_descriptors();
@@ -70,6 +69,8 @@ void CGUI_Filter_Subchain::Run_Input() {
 	mChange_Available = false;
 
 	for (; glucose::UDevice_Event evt = mInput.Receive(); ) {
+		if (!evt) break;
+
 		// here we may perform some input filtering, but that's not typical for filter input
 		// most of actions will be done in output handler (Run_Output)
 
@@ -171,13 +172,12 @@ void CGUI_Filter_Subchain::Run_Output() {
 	}
 }
 
-HRESULT CGUI_Filter_Subchain::Run(refcnt::IVector_Container<glucose::TFilter_Parameter>* const configuration) {
-
+HRESULT IfaceCalling CGUI_Filter_Subchain::Configure(glucose::IFilter_Configuration* configuration) {
 	glucose::SFilter_Parameters shared_configuration = refcnt::make_shared_reference_ext<glucose::SFilter_Parameters, glucose::IFilter_Configuration>(configuration, true);
-	
+
 	CFilter_Chain subchain;
 
-	glucose::TFilter_Descriptor desc = glucose::Null_Filter_Descriptor;	
+	glucose::TFilter_Descriptor desc = glucose::Null_Filter_Descriptor;
 
 	for (size_t i = 0; i < gui::gui_filters.size(); i++) {
 		CFilter_Configuration filter_config;
@@ -196,9 +196,10 @@ HRESULT CGUI_Filter_Subchain::Run(refcnt::IVector_Container<glucose::TFilter_Par
 
 	// initialize and start subchain
 	mSubchainMgr = std::make_unique<CFilter_Chain_Manager>(subchain);
-	HRESULT rc = mSubchainMgr->Init_And_Start_Filters(false);
-	if (rc != S_OK)
-		return rc;
+	return mSubchainMgr->Init_And_Start_Filters(false);
+}
+
+HRESULT IfaceCalling CGUI_Filter_Subchain::Execute() {
 
 	// now we need to retrieve references to inspectionable filters, so we could provide drawings, log, etc.
 	mSubchainMgr->Traverse_Filters([this](glucose::SFilter &filter) -> bool {

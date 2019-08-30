@@ -51,7 +51,7 @@ int MainCalling main(int argc, char *argv[]) {
 
 	QApplication application(argc, argv);
 	// inject GUI-specific loaders to generic code
-	glucose::add_filters(gui::get_gui_filter_descriptors(), &gui::create_gui_filter, nullptr);
+	glucose::add_filters(gui::get_gui_filter_descriptors(), &gui::create_gui_filter);
 
 	//config uses QApp to determine the file path (to be platorm indepenedent) and it has to be initialized first
 	//but it tries to load custom config as well
