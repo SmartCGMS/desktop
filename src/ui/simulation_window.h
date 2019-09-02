@@ -74,7 +74,7 @@ class CSimulation_Window : public QMdiSubWindow {
 		static std::atomic<CSimulation_Window*> mInstance;
 
 		// stored log widget
-		CLog_Tab_Widget* mLogWidget;
+		CLog_Tab_Widget* mLogWidget = nullptr;
 		// stored drawing widgets
 		std::vector<CDrawing_Tab_Widget*> mDrawingWidgets;
 		// stored errors widget

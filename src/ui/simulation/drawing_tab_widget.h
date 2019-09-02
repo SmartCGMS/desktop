@@ -66,7 +66,7 @@ class CDrawing_Graphics_View : public QGraphicsView
 		void animFinished();
 
 	protected:
-		int mNumScheduledScalings;
+		int mNumScheduledScalings = 0;
 
 	public:
 		CDrawing_Graphics_View();

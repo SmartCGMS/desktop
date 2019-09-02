@@ -53,7 +53,8 @@ protected:
 private:
 	static std::atomic<CFilters_Window*> mInstance;
 protected:
-	QListWidget *lbxApplied_Filters, *lbxAvailable_Filters = nullptr;
+	QListWidget *lbxApplied_Filters = nullptr;
+	QListWidget *lbxAvailable_Filters = nullptr;
 	void Setup_UI();
 	void Configure_Filter(QListWidgetItem *item);
 protected slots:

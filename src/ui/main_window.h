@@ -52,8 +52,8 @@ class CMain_Window : public QMainWindow {
 protected:
 	CFilter_Chain mFilter_Configuration;
 private:
-	QMdiArea *pnlMDI_Content;
-	QMenu* mniWindow;
+	QMdiArea *pnlMDI_Content = nullptr;
+	QMenu* mniWindow = nullptr;
 	QAction *actClose_Window, *actClose_All_Windows,
 			*actTile_Vertically, *actTile_Horizontally,
 			*actCascade, *actNext_Window,

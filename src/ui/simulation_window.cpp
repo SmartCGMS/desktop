@@ -376,8 +376,7 @@ void CSimulation_Window::resizeEvent(QResizeEvent* evt)
 	Update_Tab_View();
 }
 
-void CSimulation_Window::On_Start()
-{
+void CSimulation_Window::On_Start() {
 	// clean progress bars and progress bar group box
 	QLayoutItem *wItem;
 	while ((wItem = mProgressGroup->layout()->takeAt(0)) != nullptr)
@@ -422,7 +421,7 @@ void CSimulation_Window::On_Start()
 		// TODO: error message
 		mFilter_Chain_Manager->Terminate_Filters();
 		return;
-	}
+	}	
 
 	// retrieve GUI subchain shared ptr instance and solver filter instances
 	m_guiSubchain.reset();
