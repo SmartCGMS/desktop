@@ -66,8 +66,8 @@ constexpr size_t GUI_Subchain_Default_Drawing_Update = 500;
 class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CReferenced
 {
 	protected:
-		glucose::SFilter_Pipe_Reader mInput;
-		glucose::SFilter_Pipe_Writer mOutput;
+		glucose::SEvent_Receiver mInput;
+		glucose::SEvent_Sender mOutput;
 
 		glucose::SDrawing_Filter_Inspection mDrawing_Filter_Inspection;
 		glucose::SError_Filter_Inspection mError_Filter_Inspection;
@@ -121,7 +121,7 @@ class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CRe
 		void Emit_Marker();
 
 	public:
-		CGUI_Filter_Subchain(glucose::SFilter_Pipe_Reader in_pipe, glucose::SFilter_Pipe_Writer out_pipe);
+		CGUI_Filter_Subchain(glucose::SEvent_Receiver in_pipe, glucose::SEvent_Sender out_pipe);
 		virtual ~CGUI_Filter_Subchain() = default;
 
 		virtual HRESULT IfaceCalling Configure(glucose::IFilter_Configuration* configuration) override final;
