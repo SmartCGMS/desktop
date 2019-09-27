@@ -39,7 +39,6 @@
 #pragma once
 
 #include "../../../common/rtl/FilterLib.h"
-#include "../../../common/desktop-console/filter_chain.h"
 #include "helpers/general_container_edit.h"
 
 #include <vector>

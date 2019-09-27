@@ -45,8 +45,6 @@
 #include <QtWidgets/QMenu>
 #include <QtCore/QSignalMapper>
 
-#include "../../../common/desktop-console/filter_chain.h"
-
 class CMain_Window : public QMainWindow {
 	Q_OBJECT
 protected:

@@ -43,9 +43,6 @@
 #include <QtWidgets/QMdiSubWindow>
 #include <QtWidgets/QListWidget>
 
-#include "../../../common/desktop-console/filter_chain.h"
-
-
 class CFilters_Window : public QMdiSubWindow {
 	Q_OBJECT
 protected:

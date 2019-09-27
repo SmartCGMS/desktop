@@ -47,7 +47,6 @@
 #include <QtSvg/QGraphicsSvgItem>
 #include <QtSvg/QSvgRenderer>
 
-#include "../../../../common/desktop-console/filter_chain.h"
 #include "../../../../common/iface/FilterIface.h"
 #include "abstract_simulation_tab.h"
 

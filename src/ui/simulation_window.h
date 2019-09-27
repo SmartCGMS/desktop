@@ -52,8 +52,6 @@
 #include <QtWidgets/QSpinBox>
 
 #include "../../../common/iface/FilterIface.h"
-#include "../../../common/desktop-console/filter_chain.h"
-#include "../../../common/desktop-console/filter_chain_manager.h"
 #include "../../../common/rtl/UILib.h"
 
 #include "../filters/descriptor.h"

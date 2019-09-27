@@ -42,7 +42,6 @@
 #include "../../../common/rtl/referencedImpl.h"
 #include "../../../common/rtl/FilterLib.h"
 #include "../../../common/rtl/SolverLib.h"
-#include "../../../common/desktop-console/filter_chain_manager.h"
 
 #include <memory>
 #include <thread>

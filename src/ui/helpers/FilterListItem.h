@@ -41,8 +41,6 @@
 
 #include <QtWidgets/QListWidgetItem>
 
-#include "../../../../common/desktop-console/filter_chain.h"
-
 #include "../../../../common/rtl/FilterLib.h"
 
 class CFilter_List_Item : public QListWidgetItem {

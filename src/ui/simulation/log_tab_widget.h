@@ -43,7 +43,6 @@
 #include <QtWidgets/QTableView>
 #include <QtCore/QAbstractTableModel>
 
-#include "../../../../common/desktop-console/filter_chain.h"
 #include "abstract_simulation_tab.h"
 
 /*

@@ -38,7 +38,6 @@
 
 #include "main_window.h"
 
-#include "../../../common/desktop-console/config.h"
 #include "../../../common/lang/dstrings.h"
 #include "../../../common/utils/QtUtils.h"
 #include "filters_window.h"

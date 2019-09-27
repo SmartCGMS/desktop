@@ -38,7 +38,6 @@
 
 #include "ui/main_window.h"
 
-#include "../../common/desktop-console/config.h"
 #include "../../common/utils/winapi_mapping.h"
 #include "../../common/rtl/FilterLib.h"
 #include "../../common/utils/DebugHelper.h"
