@@ -54,9 +54,6 @@
 #include "../../../common/iface/FilterIface.h"
 #include "../../../common/rtl/UILib.h"
 
-#include "../filters/descriptor.h"
-#include "../filters/gui_subchain.h"
-
 #include "simulation/log_tab_widget.h"
 #include "simulation/drawing_tab_widget.h"
 #include "simulation/errors_tab_widget.h"
@@ -80,15 +77,13 @@ class CSimulation_Window : public QMdiSubWindow {
 
 		// is simulation in progress?
 		bool mSimulationInProgress;
-
-		SGUI_Filter_Subchain m_guiSubchain;
+		
 		std::vector<glucose::SCalculate_Filter_Inspection> mSolver_Filters;
 		glucose::CSignal_Names mSignal_Names;
 
 		int mBase_Tab_Count;
-	protected:
-		// chain holder retaining filter configuration
-		std::unique_ptr<CFilter_Chain_Manager> mFilter_Chain_Manager;
+	protected:		
+		glucose::SFilter_Executor mFilter_Executor;
 
 		// tab widget for filter outputs
 		QTabWidget* mTabWidget;
@@ -168,14 +163,13 @@ class CSimulation_Window : public QMdiSubWindow {
 		GUID QUuid_To_GUID(const QUuid& uuid);
 	public:
 		// factory method for singleton initialization
-		static CSimulation_Window* Show_Instance(CFilter_Chain &filter_chain, QWidget *owner);
-		CSimulation_Window(CFilter_Chain &filter_chain, QWidget *owner);
+		static CSimulation_Window* Show_Instance(refcnt::SReferenced<glucose::IFilter_Chain_Configuration> configuration, QWidget *owner);
+		CSimulation_Window(refcnt::SReferenced<glucose::IFilter_Chain_Configuration> configuration, QWidget *owner);
 		virtual ~CSimulation_Window();
 
 		static CSimulation_Window* Get_Instance();
 
 		bool Is_Simulation_In_Progress() const;
-		void Update_Filter_Chain(CFilter_Chain& filter_chain);
 
 		void Drawing_Callback(const glucose::TDrawing_Image_Type type, const glucose::TDiagnosis diagnosis, const std::string &svg);
 		void Log_Callback(std::shared_ptr<refcnt::wstr_list> messages);

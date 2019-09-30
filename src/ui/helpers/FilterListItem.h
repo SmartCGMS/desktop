@@ -46,10 +46,11 @@
 class CFilter_List_Item : public QListWidgetItem {
 protected:
 	const glucose::TFilter_Descriptor mDescriptor;
-	CFilter_Configuration mConfiguration;
+	glucose::SFilter_Configuration_Link mConfiguration;
 public:
-	explicit CFilter_List_Item(const glucose::TFilter_Descriptor &descriptor);
-	CFilter_Configuration& configuration();
+	CFilter_List_Item(glucose::SFilter_Configuration_Link configuration);
+	CFilter_List_Item(const glucose::TFilter_Descriptor descriptor);
+	glucose::SFilter_Configuration_Link configuration();
 	const glucose::TFilter_Descriptor& description() const;
 
 	void Refresh();

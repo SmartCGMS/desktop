@@ -36,29 +36,22 @@
  *       monitoring", Procedia Computer Science, Volume 141C, pp. 279-286, 2018
  */
 
-#include "ui/main_window.h"
-
-#include "../../common/utils/winapi_mapping.h"
-#include "../../common/rtl/FilterLib.h"
-#include "../../common/utils/DebugHelper.h"
-#include "filters/descriptor.h"
-
 #include <QtWidgets/QApplication>
 
+#include "../../common/utils/winapi_mapping.h"
+#include "../../common/utils/DebugHelper.h"
+
+#include "ui/main_window.h"
 
 int MainCalling main(int argc, char *argv[]) {
 
 	QApplication application(argc, argv);
-	// inject GUI-specific loaders to generic code
-	glucose::add_filters(gui::get_gui_filter_descriptors(), &gui::create_gui_filter);
 
-	//config uses QApp to determine the file path (to be platorm indepenedent) and it has to be initialized first
-	//but it tries to load custom config as well
+	// determine config file path
+	const std::wstring config_filepath = argc > 1 ? std::wstring{ argv[1], argv[1] + strlen(argv[1]) } : std::wstring{};
 
-	Configuration.Resolve_And_Load_Config_File(argc > 1 ? std::wstring{ argv[1], argv[1] + strlen(argv[1]) } : std::wstring{});
-
-	//create the GUI
-	CMain_Window main_window{};
+	// create the GUI
+	CMain_Window main_window{ config_filepath };
 	main_window.show();
 	
 	return application.exec();

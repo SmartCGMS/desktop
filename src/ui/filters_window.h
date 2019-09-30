@@ -38,6 +38,8 @@
 
 #pragma once
 
+
+#include "../../../common/rtl/FilterLib.h"
 #include <atomic>
 
 #include <QtWidgets/QMdiSubWindow>
@@ -46,7 +48,7 @@
 class CFilters_Window : public QMdiSubWindow {
 	Q_OBJECT
 protected:
-	CFilter_Chain & mFilter_Chain;
+	glucose::SPersistent_Filter_Chain_Configuration& mFilter_Configuration;
 private:
 	static std::atomic<CFilters_Window*> mInstance;
 protected:
@@ -64,7 +66,7 @@ protected slots:
 	void On_Applied_Filter_Dbl_Click(QListWidgetItem* item);
 	void On_Filter_Configure_Complete();
 public:
-	static CFilters_Window* Show_Instance(CFilter_Chain &filter_chain, QWidget *owner);
-	CFilters_Window(CFilter_Chain &filter_chain, QWidget *owner);
+	static CFilters_Window* Show_Instance(glucose::SPersistent_Filter_Chain_Configuration &filter_configuration, QWidget *owner);
+	CFilters_Window(glucose::SPersistent_Filter_Chain_Configuration &filter_chain, QWidget *owner);
 	virtual ~CFilters_Window();
 };

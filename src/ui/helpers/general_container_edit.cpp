@@ -43,46 +43,70 @@
 #include "../../../../common/lang/dstrings.h"
 
 #include <QtGui/QValidator>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QApplication>
 
 
 #include "moc_general_container_edit.cpp"
 
 namespace filter_config_window {
 	
-	glucose::TFilter_Parameter CWChar_Container_Edit ::get_parameter() {
-		glucose::TFilter_Parameter result;
-		result.type = glucose::NParameter_Type::ptWChar_Container;
-		const std::wstring str = text().toStdWString();
-		result.wstr = refcnt::WString_To_WChar_Container(str.c_str());
-		return result;
-}
 
-	void CWChar_Container_Edit ::set_parameter(const glucose::TFilter_Parameter &param) {
-		setText(QString::fromStdWString(WChar_Container_To_WString(param.wstr)));
-	}
-	
-
-	CDouble_Container_Edit::CDouble_Container_Edit(QWidget *parent) : QLineEdit(parent) {
-		auto validator = new QDoubleValidator(this);
-		// force english locale rules (e.g. dot decimal separator)
-		validator->setLocale(QLocale(QLocale::English));
-		setValidator(validator);
+	CContainer_Edit::CContainer_Edit(glucose::SFilter_Parameter parameter) : mParameter(parameter) {
+		fetch_parameter();
 	}
 
-	glucose::TFilter_Parameter CDouble_Container_Edit::get_parameter() {
-		glucose::TFilter_Parameter result;
-		result.type = glucose::NParameter_Type::ptDouble;
+	void CContainer_Edit::check_rc(const HRESULT rc) {
+		wchar_t *conf_name = nullptr;	
+		mParameter->Get_Config_Name(&conf_name);
+
+		const QString qstr = QString::fromWCharArray(dsParameter_Configuration_Failed_RC).arg(conf_name ? conf_name : L"").arg(rc, 0, 16);
+		QMessageBox::warning(QApplication::activeWindow(), dsInformation, qstr);
+	}
+
+
+	CInteger_Container_Edit::CInteger_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent) : CContainer_Edit(parameter), QLineEdit(parent) {
+		setValidator(new QIntValidator(this));
+	}
+
+	void CInteger_Container_Edit::fetch_parameter() {
+		HRESULT rc;
+		setText(QString::number(mParameter.as_int(rc)));
+		check_rc(rc);
+	}
+
+	void CInteger_Container_Edit::store_parameter() {
+		HRESULT rc;
 		bool ok;
-		result.dbl = text().toDouble(&ok);
-		if (!ok)
-			result.dbl = 0.0;
-		return result;
+		int64_t int64 = text().toLongLong(&ok);
+		if (ok) {
+			mParameter.set_int(int64, rc);
+		} else
+			rc = E_FAIL;
+
+		check_rc(rc);
 	}
 
-	void CDouble_Container_Edit::set_parameter(const glucose::TFilter_Parameter &param) {
-		setText(QString::number(param.dbl));
+	CWChar_Container_Edit::CWChar_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent) : QLineEdit(parent), CContainer_Edit(parameter) {
+		//
 	}
-	
+
+	void CWChar_Container_Edit::fetch_parameter() {
+		HRESULT rc;
+		setText(QString::fromStdWString(mParameter.as_string(rc)));
+		check_rc(rc);
+	}
+
+	void CWChar_Container_Edit::store_parameter() {
+		HRESULT rc;
+		mParameter.set_string(text().toStdWString().c_str(), rc);
+		check_rc(rc);
+	}
+
+
+	CRatTime_Container_Edit::CRatTime_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent) : QDateTimeEdit(parent), CContainer_Edit(parameter) {
+		setDisplayFormat(rsRattime_Edit_Mask);
+	}
 
 	double CRatTime_Container_Edit::QTime2RatTime(const QTime &qdt) {
 		const size_t msecs = qdt.msecsSinceStartOfDay();
@@ -94,61 +118,63 @@ namespace filter_config_window {
 		return tmp.addMSecs((int)(rt*MSecsPerDay));
 	}
 
-	
-	CRatTime_Container_Edit::CRatTime_Container_Edit(QWidget *parent) : QDateTimeEdit(parent) {
-		setDisplayFormat(rsRattime_Edit_Mask);
-	}
-
-	glucose::TFilter_Parameter CRatTime_Container_Edit::get_parameter() {
-		glucose::TFilter_Parameter result;
-		result.type = glucose::NParameter_Type::ptRatTime;
-
-		result.dbl = QTime2RatTime(time());
-		return result;
-	}
-
-	void CRatTime_Container_Edit::set_parameter(const glucose::TFilter_Parameter &param) {
-		setTime(rattime2QTime(param.dbl));
+	void CRatTime_Container_Edit::fetch_parameter() {
+		HRESULT rc;
+		setTime(rattime2QTime(mParameter.as_double(rc));
+		check_rc(rc);
 	}
 	
-
-
-	CInteger_Container_Edit::CInteger_Container_Edit(QWidget *parent) : QLineEdit(parent) {
-		setValidator(new QIntValidator(this));
+	void CRatTime_Container_Edit::store_parameter() {
+		HRESULT rc;
+		mParameter.set_double(QTime2RatTime(this->time()), rc);
+		check_rc(rc);
 	}
 
-	glucose::TFilter_Parameter CInteger_Container_Edit::get_parameter() {
-		glucose::TFilter_Parameter result;
-		result.type = glucose::NParameter_Type::ptInt64;
+
+
+	CDouble_Container_Edit::CDouble_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent) : QLineEdit(parent), CContainer_Edit(parameter) {
+		auto validator = new QDoubleValidator(this);
+		// force english locale rules (e.g. dot decimal separator)
+		validator->setLocale(QLocale(QLocale::English));
+		setValidator(validator);
+	}
+
+	void CDouble_Container_Edit::store_parameter() {
+		HRESULT rc;
+
 		bool ok;
-		result.int64 = text().toLongLong(&ok);
-		if (!ok)
-			result.int64 = 0;
-		return result;
+		const double dbl = text().toDouble(&ok);
+		if (ok) mParameter.set_double(dbl, rc);
+			else rc = E_FAIL;
+		
+		check_rc(rc);
 	}
 
-	void CInteger_Container_Edit::set_parameter(const glucose::TFilter_Parameter &param) {
-		setText(QString::number(param.int64));
-	}
-
-	
-	glucose::TFilter_Parameter CBoolean_Container_Edit::get_parameter() {
-		glucose::TFilter_Parameter result;
-		result.type = glucose::NParameter_Type::ptBool;
-		result.boolean = (checkState() == Qt::Checked);
-		return result;
-	}
-
-	void CBoolean_Container_Edit::set_parameter(const glucose::TFilter_Parameter &param) {
-		setCheckState(param.boolean ? Qt::Checked : Qt::Unchecked);
+	void CDouble_Container_Edit::fetch_parameter() {
+		HRESULT rc;
+		setText(QString::number(mParameter.as_double(rc)));
+		check_rc(rc);
 	}
 	
 
-	glucose::TFilter_Parameter CNull_Container_Edit::get_parameter() {
-		return glucose::Null_Filter_Parameter;
+	CBoolean_Container_Edit::CBoolean_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent) : QCheckBox(parent), CContainer_Edit(parameter) {
+		//
+	}
+	
+
+	void CBoolean_Container_Edit::fetch_parameter() {
+		HRESULT rc;
+		setCheckState(mParameter.as_bool(rc) ? Qt::Checked : Qt::Unchecked);
+		check_rc(rc);
 	}
 
-	void CNull_Container_Edit::set_parameter(const glucose::TFilter_Parameter &param) {
+	void CBoolean_Container_Edit::store_parameter() {
+		HRESULT rc;
+
+		mParameter.set_bool(checkState() == Qt::Checked);
+
+		check_rc(rc);
 	}
+
 	
 }

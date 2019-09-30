@@ -41,13 +41,17 @@
 
 #include <QtCore/QObject>
 
-CFilter_List_Item::CFilter_List_Item(const glucose::TFilter_Descriptor &descriptor) :
-	QListWidgetItem(), mDescriptor(descriptor) {
+CFilter_List_Item::CFilter_List_Item(glucose::SFilter_Configuration_Link configuration) :
+	QListWidgetItem(), mConfiguration(configuration), mDescriptor(configuration.descriptor()) {
 
 	Refresh();
 }
 
-CFilter_Configuration& CFilter_List_Item::configuration() {
+CFilter_List_Item::CFilter_List_Item(const glucose::TFilter_Descriptor descriptor) :QListWidgetItem(), mDescriptor(description) {
+	Refresh();
+}
+
+glucose::SFilter_Configuration_Link CFilter_List_Item::configuration() {
 	return mConfiguration;
 }
 

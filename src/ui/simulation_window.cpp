@@ -110,11 +110,6 @@ bool CSimulation_Window::Is_Simulation_In_Progress() const
 	return mSimulationInProgress;
 }
 
-void CSimulation_Window::Update_Filter_Chain(CFilter_Chain& filter_chain)
-{
-	mFilter_Chain_Manager = std::make_unique<CFilter_Chain_Manager>(filter_chain);
-}
-
 void CSimulation_Window::Setup_Solve_Button_Menu()
 {
 	mSolveSignalMapper = new QSignalMapper(this);

@@ -64,8 +64,8 @@
 
 
 
-CFilter_Config_Window::CFilter_Config_Window(const glucose::TFilter_Descriptor &description, CFilter_Configuration &configuration, QWidget *parent) :
-	QDialog(parent), mConfiguration(configuration), mDescription(description) {
+CFilter_Config_Window::CFilter_Config_Window(glucose::SFilter_Configuration_Link configuration, QWidget *parent) :
+	QDialog(parent), mConfiguration(refcnt::make_shared_reference_ext<glucose::SFilter_Configuration, glucose::IFilter_Configuration>(static_cast<glucose::IFilter_Configuration*>(configuration.get()), true)), mDescription(configuration.descriptor()) {
 
 
 	Setup_UI();

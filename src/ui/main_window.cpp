@@ -56,9 +56,14 @@
   #include "moc_main_window.cpp"
 #endif
 
-CMain_Window::CMain_Window(QWidget *parent) noexcept: QMainWindow(parent) {
-	Configuration.Load(mFilter_Configuration);
+CMain_Window::CMain_Window(const std::wstring& config, QWidget *parent) noexcept : QMainWindow(parent), mFilter_Configuration_File_Path(config) {
 
+	HRESULT rc = mFilter_Configuration ? S_OK : E_FAIL;
+	if (rc == S_OK) mFilter_Configuration->Load_From_File(mFilter_Configuration_File_Path.c_str());
+	if (!SUCCEEDED(rc)) {
+		// we probably could display some warning here; this is not necessarily an error (maybe we just compiled SmartCGMS
+		// and there's no config present yet
+	}
 
 	Setup_UI();
 
@@ -109,11 +114,9 @@ void CMain_Window::Setup_UI() {
 	menuBar->addAction(menu_File->menuAction());
 	menuBar->addAction(menu_Tools->menuAction());
 
-
 	menu_File->addAction(act_Save_Configuration);
 	menu_File->addSeparator();
 	menu_File->addAction(actionQuit);
-
 
 	actClose_Window = new QAction(tr(dsClose), this);
 	actClose_All_Windows = new QAction(tr(dsClose_All), this);
@@ -136,7 +139,7 @@ void CMain_Window::Setup_UI() {
 
 	mWindowMapper = new QSignalMapper(this);
 
-	setWindowTitle(tr(dsGlucose_Prediction).arg(StdWStringToQString(Configuration.Get_Config_File_Name())));
+	setWindowTitle(tr(dsGlucose_Prediction).arg(StdWStringToQString(mFilter_Configuration_File_Path)));
 
 	//and connect the actions
 	connect(act_Save_Configuration, SIGNAL(triggered()), this, SLOT(On_Save_Configuration()));
@@ -260,5 +263,5 @@ void CMain_Window::On_Simulation_Window() {
 }
 
 void CMain_Window::On_Save_Configuration() {
-	Configuration.Save(mFilter_Configuration);
+	mFilter_Configuration->Save_To_File(mFilter_Configuration_File_Path.c_str());
 }

@@ -61,7 +61,7 @@
 
 std::atomic<CFilters_Window*> CFilters_Window::mInstance = nullptr;
 
-CFilters_Window* CFilters_Window::Show_Instance(CFilter_Chain &filter_chain, QWidget *owner) {
+CFilters_Window* CFilters_Window::Show_Instance(glucose::SPersistent_Filter_Chain_Configuration &filter_configuration, QWidget *owner) {
 
 	if (mInstance) {
 		mInstance.load()->showMaximized();
@@ -69,7 +69,7 @@ CFilters_Window* CFilters_Window::Show_Instance(CFilter_Chain &filter_chain, QWi
 	}
 
 	CFilters_Window* tmp = nullptr;
-	bool created = mInstance.compare_exchange_strong(tmp, new CFilters_Window(filter_chain, owner));
+	bool created = mInstance.compare_exchange_strong(tmp, new CFilters_Window(filter_configuration, owner));
 
 	if (created) {
 		mInstance.load()->showMaximized();
@@ -78,7 +78,7 @@ CFilters_Window* CFilters_Window::Show_Instance(CFilter_Chain &filter_chain, QWi
 	return mInstance;
 }
 
-CFilters_Window::CFilters_Window(CFilter_Chain &filter_chain, QWidget *owner) : QMdiSubWindow(owner), mFilter_Chain(filter_chain) {
+CFilters_Window::CFilters_Window(glucose::SPersistent_Filter_Chain_Configuration &filter_chain, QWidget *owner) : QMdiSubWindow(owner), mFilter_Configuration(filter_chain) {
 	Setup_UI();
 }
 
@@ -129,14 +129,12 @@ void CFilters_Window::Setup_UI() {
 	}
 
 	//add the  applied filters
-	{
-		for (size_t i = 0; i < mFilter_Chain.size(); i++) {
-			CFilter_List_Item *tmp = new CFilter_List_Item(mFilter_Chain[i].descriptor);
-			tmp->configuration() = mFilter_Chain[i].configuration;
-			tmp->Refresh();
-			lbxApplied_Filters->addItem(tmp);
-		}
-	}
+	mFilter_Configuration.for_each([this](glucose::SFilter_Configuration_Link link) {
+		CFilter_List_Item *tmp = new CFilter_List_Item(link);
+		tmp->Refresh();
+		lbxApplied_Filters->addItem(tmp);			
+	});
+
 
 	QPushButton *btnAdd_Filter = new QPushButton{tr(dsAdd)};
 
@@ -208,7 +206,7 @@ void CFilters_Window::On_Remove_Filter()
 void CFilters_Window::Configure_Filter(QListWidgetItem *item) {
 	CFilter_List_Item* filter = static_cast<CFilter_List_Item*>(item);
 
-	CFilter_Config_Window *config_wnd = new CFilter_Config_Window{ filter->description(), filter->configuration(), nullptr };
+	CFilter_Config_Window *config_wnd = new CFilter_Config_Window( filter->configuration(), nullptr );
 	connect(config_wnd, SIGNAL(destroyed()), this, SLOT(On_Filter_Configure_Complete()));
 	config_wnd->show();
 }
@@ -239,6 +237,9 @@ void CFilters_Window::On_Commit_Filters() {
 		return;
 	}
 
+	// TODO_Refactor: fix this
+
+	/*
 	CFilter_Chain new_chain;
 	for (int i = 0; i < lbxApplied_Filters->count(); i++) {
 		auto item = reinterpret_cast<CFilter_List_Item*>(lbxApplied_Filters->item(i));
@@ -255,6 +256,7 @@ void CFilters_Window::On_Commit_Filters() {
 
 	if (simWindow)
 		simWindow->Update_Filter_Chain(mFilter_Chain);
+	*/
 }
 
 void CFilters_Window::On_Filter_Configure_Complete()

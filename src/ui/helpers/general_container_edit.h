@@ -38,7 +38,7 @@
 
 #pragma once
 
-#include "../../../../common/iface/FilterIface.h"
+#include "../../../../common/rtl/FilterLib.h"
 
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QLineEdit>
@@ -48,25 +48,29 @@
 namespace filter_config_window {
 
 	class CContainer_Edit {
+	protected:
+		glucose::SFilter_Parameter mParameter;
+		void check_rc(const HRESULT rc);
 	public:
-		virtual glucose::TFilter_Parameter get_parameter() = 0;
-		virtual void set_parameter(const glucose::TFilter_Parameter &param) = 0;
-		virtual void apply() {};	//e.g., on click the Apply button - non-mandatory function
+		CContainer_Edit(glucose::SFilter_Parameter parameter);
+		virtual void fetch_parameter() {};	//e.g., on click the Apply button - non-mandatory function
+		virtual void store_parameter() {};
 	};
 
 	class CInteger_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
 		Q_OBJECT
 	public:
-		CInteger_Container_Edit(QWidget *parent);
-		glucose::TFilter_Parameter get_parameter() override;
-		void set_parameter(const glucose::TFilter_Parameter &param) override;
+		CInteger_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent);		
+		virtual void fetch_parameter() override;
+		virtual void store_parameter() override;
 	};
 
 
 	class CWChar_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
 	public:
-		glucose::TFilter_Parameter get_parameter() override;
-		void set_parameter(const glucose::TFilter_Parameter &param) override;
+		CWChar_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent);
+		virtual void fetch_parameter() override;
+		virtual void store_parameter() override;
 	};
 
 	class CRatTime_Container_Edit : public QDateTimeEdit, public virtual filter_config_window::CContainer_Edit {
@@ -77,27 +81,26 @@ namespace filter_config_window {
 		double QTime2RatTime(const QTime &qdt);
 		QTime rattime2QTime(const double rt);
 	public:
-		CRatTime_Container_Edit(QWidget *parent);
-		glucose::TFilter_Parameter get_parameter() override;
-		void set_parameter(const glucose::TFilter_Parameter &param) override;
+		CRatTime_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent);
+		virtual void fetch_parameter() override;
+		virtual void store_parameter() override;
 	};
 
 
 	class CDouble_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
 	public:
-		CDouble_Container_Edit(QWidget *parent);
-		glucose::TFilter_Parameter get_parameter() override;
-		void set_parameter(const glucose::TFilter_Parameter &param) override;
+		CDouble_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent);
+		virtual void fetch_parameter() override;
+		virtual void store_parameter() override;
 	};
 
 	class CBoolean_Container_Edit : public QCheckBox, public virtual filter_config_window::CContainer_Edit {
-		glucose::TFilter_Parameter get_parameter() override;
-		void set_parameter(const glucose::TFilter_Parameter &param) override;
+		CBoolean_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent);
+		virtual void fetch_parameter() override;
+		virtual void store_parameter() override;
 	};
 
 	class CNull_Container_Edit : public QWidget, public virtual filter_config_window::CContainer_Edit {
 	public:
-		glucose::TFilter_Parameter get_parameter() override;
-		void set_parameter(const glucose::TFilter_Parameter &param) override;
 	};
 }
