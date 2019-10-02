@@ -48,9 +48,8 @@
 
 #include "moc_Model_Bounds_Panel.cpp"
 
-CModel_Bounds_Panel::CModel_Bounds_Panel(QComboBox* modelSelector, QWidget * parent)
-	: QWidget(parent), mModelSelector(modelSelector)
-{
+CModel_Bounds_Panel::CModel_Bounds_Panel(glucose::SFilter_Parameter parameter, QComboBox* modelSelector, QWidget * parent)
+	: CContainer_Edit(parameter), QWidget(parent), mModelSelector(modelSelector) {
 	QVBoxLayout* layout = new QVBoxLayout();
 	setLayout(layout);
 

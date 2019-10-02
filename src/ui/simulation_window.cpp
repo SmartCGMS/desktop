@@ -57,8 +57,6 @@
 #include <QtCore/QEventLoop>
 
 #include "simulation/abstract_simulation_tab.h"
-#include "../filters/descriptor.h"
-#include "../filters/gui_subchain.h"
 
 #ifndef MOC_DIR
 	#include "moc_simulation_window.cpp"

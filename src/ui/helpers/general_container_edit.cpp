@@ -56,12 +56,19 @@ namespace filter_config_window {
 		fetch_parameter();
 	}
 
-	void CContainer_Edit::check_rc(const HRESULT rc) {
-		wchar_t *conf_name = nullptr;	
-		mParameter->Get_Config_Name(&conf_name);
+	bool CContainer_Edit::check_rc(const HRESULT rc) {
+		
+		if (!SUCCEEDED(rc)) {
 
-		const QString qstr = QString::fromWCharArray(dsParameter_Configuration_Failed_RC).arg(conf_name ? conf_name : L"").arg(rc, 0, 16);
-		QMessageBox::warning(QApplication::activeWindow(), dsInformation, qstr);
+			wchar_t *conf_name = nullptr;
+			mParameter->Get_Config_Name(&conf_name);
+
+			const QString qstr = QString::fromWCharArray(dsParameter_Configuration_Failed_RC).arg(conf_name ? conf_name : L"").arg(rc, 0, 16);
+			QMessageBox::warning(QApplication::activeWindow(), dsInformation, qstr);
+			return false;
+		}
+		else
+			return true;
 	}
 
 
@@ -176,5 +183,32 @@ namespace filter_config_window {
 		check_rc(rc);
 	}
 
-	
+
+	CGUIDCombo_Container_Edit::CGUIDCombo_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent) :
+		QComboBox(parent), CContainer_Edit(parameter) {
+		//
+	}
+
+	void CGUIDCombo_Container_Edit::fetch_parameter() {
+		const GUID id = *reinterpret_cast<const GUID*>(currentData().toByteArray().constData());
+		HRESULT rc;
+		mParameter.set_guid(id, rc);
+		check_rc(rc);
+
+	}
+
+	void CGUIDCombo_Container_Edit::store_parameter() {
+		HRESULT rc;
+		const GUID id = mParameter.as_guid(rc);
+
+		if (check_rc(rc)) {
+			for (int i = 0; i < count(); i++) {
+				if (id == *reinterpret_cast<const GUID*>(itemData(i).toByteArray().constData())) {
+					setCurrentIndex(i);
+					break;
+				}
+			}
+		}
+	}
+
 }

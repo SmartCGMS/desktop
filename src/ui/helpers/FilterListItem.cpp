@@ -47,7 +47,7 @@ CFilter_List_Item::CFilter_List_Item(glucose::SFilter_Configuration_Link configu
 	Refresh();
 }
 
-CFilter_List_Item::CFilter_List_Item(const glucose::TFilter_Descriptor descriptor) :QListWidgetItem(), mDescriptor(description) {
+CFilter_List_Item::CFilter_List_Item(const glucose::TFilter_Descriptor descriptor) :QListWidgetItem(), mDescriptor(descriptor) {
 	Refresh();
 }
 

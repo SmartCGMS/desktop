@@ -73,16 +73,14 @@ class CModel_Bounds_Panel : public QWidget, public virtual filter_config_window:
 		bool Get_Current_Selected_Model(glucose::TModel_Descriptor& model);
 
 		void CModel_Bounds_Panel::Reset_Parameters(const std::vector<filter_config_window::CContainer_Edit*> &containers, std::function<const double*(const glucose::TModel_Descriptor&)> get_bounds);
-
 	protected slots:
 		void On_Reset_Lower();
 		void On_Reset_Defaults();
 		void On_Reset_Upper();
 
 	public:
-		CModel_Bounds_Panel(QComboBox* modelSelector, QWidget *parent);
+		CModel_Bounds_Panel(glucose::SFilter_Parameter parameter, QComboBox* modelSelector, QWidget *parent);
 
-		virtual glucose::TFilter_Parameter get_parameter();
-		virtual void set_parameter(const glucose::TFilter_Parameter &param);
-		virtual void apply();
+		virtual void fetch_parameter() override;
+		virtual void store_parameter() override;
 };

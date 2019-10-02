@@ -38,28 +38,6 @@
 
 #include "filter_config_widgets.h"
 
-glucose::TFilter_Parameter CModel_Signal_Select_ComboBox::get_parameter()
-{
-	glucose::TFilter_Parameter result;
-	result.type = glucose::NParameter_Type::ptModel_Signal_Id;
-	result.guid = *reinterpret_cast<const GUID*>(currentData().toByteArray().constData());
-	return result;
-}
-
-void CModel_Signal_Select_ComboBox::set_parameter(const glucose::TFilter_Parameter &param)
-{
-	auto models = glucose::get_model_descriptors();
-
-	for (int i = 0; i < count(); i++)
-	{
-		if (param.guid == *reinterpret_cast<const GUID*>(itemData(i).toByteArray().constData()))
-		{
-			setCurrentIndex(i);
-			break;
-		}
-	}
-}
-
 void CModel_Signal_Select_ComboBox::Refresh_Contents()
 {
 	// always clear contents
@@ -81,9 +59,8 @@ void CModel_Signal_Select_ComboBox::Refresh_Contents()
 	}
 }
 
-CModel_Signal_Select_ComboBox::CModel_Signal_Select_ComboBox(QWidget *parent, QComboBox *modelSelector)
-	: QComboBox(parent), mModelSelector(modelSelector)
-{
+CModel_Signal_Select_ComboBox::CModel_Signal_Select_ComboBox(glucose::SFilter_Parameter parameter, QWidget *parent, QComboBox *modelSelector) :
+	filter_config_window::CGUIDCombo_Container_Edit(parameter, parent), mModelSelector(modelSelector) {
 	Refresh_Contents();
 
 	connect(mModelSelector, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {
@@ -91,9 +68,7 @@ CModel_Signal_Select_ComboBox::CModel_Signal_Select_ComboBox(QWidget *parent, QC
 	});
 }
 
-CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(QWidget *parent)
-	: QComboBox(parent)
-{
+CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(glucose::SFilter_Parameter parameter, QWidget *parent)	: filter_config_window::CGUIDCombo_Container_Edit(parameter, parent) {
 	// append measured signals
 	std::wstring measSuffix = dsSignal_Suffix_Measured;
 	measSuffix = L" (" + measSuffix + L")";
@@ -131,26 +106,4 @@ CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(QWidget *pa
 
 	for (auto const& signal : mSignalVector)
 		addItem(StdWStringToQString(signal.second), QVariant{ QByteArray(reinterpret_cast<const char*>(&signal.first)) });
-}
-
-glucose::TFilter_Parameter CAvailable_Signal_Select_ComboBox::get_parameter()
-{
-	glucose::TFilter_Parameter result;
-	result.type = glucose::NParameter_Type::ptSignal_Id;
-	result.guid = *reinterpret_cast<const GUID*>(currentData().toByteArray().constData());
-	return result;
-}
-
-void CAvailable_Signal_Select_ComboBox::set_parameter(const glucose::TFilter_Parameter &param)
-{
-	auto models = glucose::get_model_descriptors();
-
-	for (int i = 0; i < count(); i++)
-	{
-		if (param.guid == *reinterpret_cast<const GUID*>(itemData(i).toByteArray().constData()))
-		{
-			setCurrentIndex(i);
-			break;
-		}
-	}
 }

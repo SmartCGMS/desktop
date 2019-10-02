@@ -68,28 +68,10 @@ CFilter_Config_Window::CFilter_Config_Window(glucose::SFilter_Configuration_Link
 	QDialog(parent), mConfiguration(refcnt::make_shared_reference_ext<glucose::SFilter_Configuration, glucose::IFilter_Configuration>(static_cast<glucose::IFilter_Configuration*>(configuration.get()), true)), mDescription(configuration.descriptor()) {
 
 
-	Setup_UI();
-
-	//Load configuration, i.e., parameters
-	for (auto &parameter : configuration) {
-		std::wstring name = WChar_Container_To_WString(parameter.config_name);
-		for (auto &container : mContainer_Edits)
-		{
-			if (container.first == name)
-			{
-				container.second->set_parameter(parameter);
-				break;
-			}
-		}
-	}
-
-	//and apply the loaded parameters
-	for (auto &edit : mContainer_Edits)
-		edit.second->apply();
-
+	Setup_UI(configuration);
 }
 
-void CFilter_Config_Window::Setup_UI() {
+void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configuration) {
 
 	setWindowTitle(QString::fromWCharArray(mDescription.description) + QString(" ") + tr(dsConfiguration));
 
@@ -98,8 +80,8 @@ void CFilter_Config_Window::Setup_UI() {
 	// model select combobox is directly connected with signal selector; here we store pointer to model selector to supply it to signal selector
 	filter_config_window::CContainer_Edit *model_select = nullptr;
 
-	auto create_model_select = [&]() {
-		model_select = new CGUID_Entity_ComboBox<glucose::TModel_Descriptor, glucose::get_model_descriptors>(nullptr, glucose::NParameter_Type::ptModel_Id);
+	auto create_model_select = [&](glucose::SFilter_Parameter parameter) {
+		model_select = new CGUID_Entity_ComboBox<glucose::TModel_Descriptor, glucose::get_model_descriptors>(parameter, nullptr);
 	};
 
 	QWidget *main_tab = new QWidget{this};
@@ -110,82 +92,89 @@ void CFilter_Config_Window::Setup_UI() {
 		QGridLayout *main_layout = new QGridLayout();
 		int ui_row = 0;
 		for (int i = 0; i < static_cast<int>(mDescription.parameters_count); i++) {
-			
+			//try to obtain the parameter, if is present in the configuration
+			glucose::SFilter_Parameter parameter = configuration.Resolve_Parameter(mDescription.config_parameter_name[i]);
+			if (!parameter) {
+				//this particular parameter is not configured, hence we need to create it using its default value
+				parameter = configuration.Add_Parameter(mDescription.parameter_type[i], mDescription.config_parameter_name[i]);
+				if (!parameter) continue;	//no way to add it, so let's just ignore it and do not configure it
+			}
+
 			auto add_edit_control = [&]() {
 				filter_config_window::CContainer_Edit *container = nullptr;
 
 				switch (mDescription.parameter_type[i])
 				{
 					case glucose::NParameter_Type::ptNull:
-						container = new filter_config_window::CNull_Container_Edit{};
+						container = new filter_config_window::CNull_Container_Edit();
 						break;
 
 					case glucose::NParameter_Type::ptWChar_Container:
-						container = new filter_config_window::CWChar_Container_Edit{};
+						container = new filter_config_window::CWChar_Container_Edit{ parameter, this };
 						break;
 
 					case glucose::NParameter_Type::ptDouble:
-						container = new filter_config_window::CDouble_Container_Edit{ this};
+						container = new filter_config_window::CDouble_Container_Edit{ parameter, this};
 						break;
 
 					case glucose::NParameter_Type::ptRatTime:
-						container = new filter_config_window::CRatTime_Container_Edit{ this };
+						container = new filter_config_window::CRatTime_Container_Edit{ parameter, this };
 						break;
 
 					case glucose::NParameter_Type::ptInt64:
-						container = new filter_config_window::CInteger_Container_Edit{ this };
+						container = new filter_config_window::CInteger_Container_Edit{ parameter, this };
 						break;
 
 					case glucose::NParameter_Type::ptBool:
-						container = new filter_config_window::CBoolean_Container_Edit{};
+						container = new filter_config_window::CBoolean_Container_Edit{ parameter, this};
 						break;
 					
 					case glucose::NParameter_Type::ptSelect_Time_Segment_ID:
-						container = new CSelect_Time_Segment_Id_Panel{ mConfiguration, this };
+						container = new CSelect_Time_Segment_Id_Panel{ mConfiguration, parameter, this };
 						break;
 
 					case glucose::NParameter_Type::ptModel_Id:
 						// "lazyload" of model selection; if the filter has model selection, it is very likely that it has signal selection as well
 						if (!model_select)
-							create_model_select();
+							create_model_select(parameter);
 
 						container = model_select;
 						break;
 
 					case glucose::NParameter_Type::ptMetric_Id:
-						container = new CGUID_Entity_ComboBox<glucose::TMetric_Descriptor, glucose::get_metric_descriptors>(this, glucose::NParameter_Type::ptMetric_Id);
+						container = new CGUID_Entity_ComboBox<glucose::TMetric_Descriptor, glucose::get_metric_descriptors>(parameter, this);
 						break;
 
 					case glucose::NParameter_Type::ptSolver_Id:
-						container = new CGUID_Entity_ComboBox<glucose::TSolver_Descriptor, glucose::get_solver_descriptors>(this, glucose::NParameter_Type::ptSolver_Id);
+						container = new CGUID_Entity_ComboBox<glucose::TSolver_Descriptor, glucose::get_solver_descriptors>(parameter, this);
 						break;
 
 					case glucose::NParameter_Type::ptDevice_Driver_Id:
-						container = new CGUID_Entity_ComboBox<glucose::TDevice_Driver_Descriptor, glucose::get_device_driver_descriptors>(this, glucose::NParameter_Type::ptDevice_Driver_Id);
+						container = new CGUID_Entity_ComboBox<glucose::TDevice_Driver_Descriptor, glucose::get_device_driver_descriptors>(parameter, this);
 						break;
 
 					case glucose::NParameter_Type::ptModel_Signal_Id:
 						// signal selection always requires model selection field
 						if (!model_select)
-							create_model_select();
+							create_model_select(parameter);
 
-						container = new CModel_Signal_Select_ComboBox(nullptr, dynamic_cast<QComboBox*>(model_select));
+						container = new CModel_Signal_Select_ComboBox(parameter, nullptr, dynamic_cast<QComboBox*>(model_select));
 						break;
 
 					case glucose::NParameter_Type::ptSignal_Id:
-						container = new CAvailable_Signal_Select_ComboBox(nullptr);
+						container = new CAvailable_Signal_Select_ComboBox(parameter, nullptr);
 						break;
 
 					case glucose::NParameter_Type::ptModel_Bounds:
 						// model bounds edit always requires model selection field
 						if (!model_select)
-							create_model_select();
+							create_model_select(parameter);
 
 						container = new CModel_Bounds_Panel(dynamic_cast<QComboBox*>(model_select), this);
 						break;
 
 					case glucose::NParameter_Type::ptSubject_Id:
-						container = new CSelect_Subject_Panel{ mConfiguration, this };
+						container = new CSelect_Subject_Panel{ mConfiguration, parameter, this };
 						break;
 				}
 

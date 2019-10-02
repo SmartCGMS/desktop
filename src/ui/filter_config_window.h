@@ -55,7 +55,7 @@ protected:
 
 	std::vector<TName_Container_Pair> mContainer_Edits;
 
-	void Setup_UI();
+	void Setup_UI(glucose::SFilter_Configuration_Link configuration);
 	void Commit_Parameters();	//from controls to configuration
 protected slots:
 	void On_OK();

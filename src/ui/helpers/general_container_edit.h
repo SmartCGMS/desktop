@@ -44,17 +44,19 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QDateTimeEdit>
 #include <QtWidgets/QCheckBox>
+#include <QtWidgets/QComboBox>
 
 namespace filter_config_window {
 
 	class CContainer_Edit {
 	protected:
 		glucose::SFilter_Parameter mParameter;
-		void check_rc(const HRESULT rc);
+		bool check_rc(const HRESULT rc);	//returns true if rc succeeded, else displays an error message
 	public:
 		CContainer_Edit(glucose::SFilter_Parameter parameter);
-		virtual void fetch_parameter() {};	//e.g., on click the Apply button - non-mandatory function
-		virtual void store_parameter() {};
+		virtual ~CContainer_Edit() {};
+		virtual void fetch_parameter() {};	//loads the parameter into the UI element
+		virtual void store_parameter() {};	//stores the parameter from the UI element
 	};
 
 	class CInteger_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
@@ -95,7 +97,14 @@ namespace filter_config_window {
 	};
 
 	class CBoolean_Container_Edit : public QCheckBox, public virtual filter_config_window::CContainer_Edit {
+	public:
 		CBoolean_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent);
+		virtual void fetch_parameter() override;
+		virtual void store_parameter() override;
+	};
+
+	class CGUIDCombo_Container_Edit : public QComboBox, public virtual filter_config_window::CContainer_Edit {
+		CGUIDCombo_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent);
 		virtual void fetch_parameter() override;
 		virtual void store_parameter() override;
 	};

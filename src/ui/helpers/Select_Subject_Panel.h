@@ -62,15 +62,14 @@ class CSelect_Subject_Panel : public QWidget, public virtual filter_config_windo
 		std::unique_ptr<QSqlDatabase> mDb;
 		std::unique_ptr<QSqlQueryModel> mSubjectsModel;
 		std::unique_ptr<QSqlQuery> mSubjectsQuery;
-		const std::vector<glucose::TFilter_Parameter> &mConfiguration;
+		glucose::SFilter_Configuration mConfiguration;
 
 		QButtonGroup* mButtonGroup;
 		QTableView* mDbSubjects;
 
 	public:
-		CSelect_Subject_Panel(const std::vector<glucose::TFilter_Parameter> &configuration, QWidget *parent);
-
-		virtual glucose::TFilter_Parameter get_parameter();
-		virtual void set_parameter(const glucose::TFilter_Parameter &param) ;
-		virtual void apply();
+		CSelect_Subject_Panel(glucose::SFilter_Configuration configuration, glucose::SFilter_Parameter &parameter, QWidget *parent);
+		
+		virtual void fetch_parameter() override;
+		virtual void store_parameter() override;
 };

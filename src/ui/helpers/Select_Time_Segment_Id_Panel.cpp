@@ -43,7 +43,9 @@
 
 #include "moc_Select_Time_Segment_Id_Panel.cpp"
 
-CSelect_Time_Segment_Id_Panel::CSelect_Time_Segment_Id_Panel(const std::vector<glucose::TFilter_Parameter>& configuration, QWidget * parent) : QTableView(parent), mConfiguration(configuration) {
+CSelect_Time_Segment_Id_Panel::CSelect_Time_Segment_Id_Panel(glucose::SFilter_Configuration configuration, glucose::SFilter_Parameter parameter, QWidget * parent) : 
+	mConfiguration(configuration), QTableView(parent), CContainer_Edit(parameter) {
+	//
 }
 
 
@@ -78,8 +80,8 @@ glucose::TFilter_Parameter CSelect_Time_Segment_Id_Panel::get_parameter() {
 	return result;
 }
 
-void CSelect_Time_Segment_Id_Panel::set_parameter(const glucose::TFilter_Parameter &param) {
-	if (!mDb) apply(); //try to connect first
+void CSelect_Time_Segment_Id_Panel::fetch_parameter() {
+	if (!mDb) Connect_To_Db(); //try to connect first
 
 	int64_t *begin, *end;
 	if (param.select_time_segment_id->get(&begin, &end) == S_OK) {
@@ -99,7 +101,7 @@ void CSelect_Time_Segment_Id_Panel::set_parameter(const glucose::TFilter_Paramet
 	}
 }
 
-void CSelect_Time_Segment_Id_Panel::apply() {
+void CSelect_Time_Segment_Id_Panel::Connect_To_Db() {
 	auto current_selection = get_parameter();
 
 	auto get_attr = [this](const wchar_t* attr_name) -> std::wstring {
