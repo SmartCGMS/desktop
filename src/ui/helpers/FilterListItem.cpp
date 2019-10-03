@@ -79,23 +79,23 @@ void CFilter_List_Item::Refresh()
 	};
 
 	// traverse configuration and find items to put into description
-	for (auto& cfg : mConfiguration)
+	//for (auto& cfg : mConfiguration)
+	mConfiguration.for_each([&](glucose::SFilter_Parameter cfg)
 	{
 		// model signal - append signal name
-		if (cfg.type == glucose::NParameter_Type::ptModel_Signal_Id)
-		{
+		if (cfg.type() == glucose::NParameter_Type::ptModel_Signal_Id) {
 			bool found = false;
 			for (auto& model : models)
 			{
-				for (size_t i = 0; i < model.number_of_calculated_signals; i++)
-				{
-					if (model.calculated_signal_ids[i] == cfg.guid)
-					{
-						appendSplitter();
-						text += QString::fromWCharArray(model.calculated_signal_names[i]);
-						found = true;
-						break;
-					}
+				for (size_t i = 0; i < model.number_of_calculated_signals; i++) {
+					HRESULT rc;
+					if (model.calculated_signal_ids[i] == cfg.as_guid(rc))
+						if (rc == S_OK) {
+							appendSplitter();
+							text += QString::fromWCharArray(model.calculated_signal_names[i]);
+							found = true;
+							break;
+				 		}
 				}
 
 				if (found)
@@ -103,19 +103,19 @@ void CFilter_List_Item::Refresh()
 			}
 		}
 		// model - append model description
-		else if (cfg.type == glucose::NParameter_Type::ptModel_Id)
-		{
-			for (auto& model : models)
-			{
-				if (model.id == cfg.guid)
-				{
-					appendSplitter();
-					text += QString::fromWCharArray(model.description);
-					break;
-				}
+		else if (cfg.type() == glucose::NParameter_Type::ptModel_Id) {
+			for (auto& model : models) {
+				HRESULT rc;
+				if (model.id == cfg.as_guid(rc))
+						if (rc == S_OK)	{
+						appendSplitter();
+						text += QString::fromWCharArray(model.description);
+						break;
+					}
 			}
 		}
 	}
+	);
 
 	setText(text);
 }

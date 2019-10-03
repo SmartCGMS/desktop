@@ -93,9 +93,6 @@ void CModel_Bounds_Panel::set_parameter(const glucose::TFilter_Parameter &param)
 	Refresh_Content(param.parameters);
 }
 
-void CModel_Bounds_Panel::apply()
-{
-}
 
 void CModel_Bounds_Panel::Reset_UI(const glucose::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds)
 {

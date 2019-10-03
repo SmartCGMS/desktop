@@ -106,7 +106,7 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 				switch (mDescription.parameter_type[i])
 				{
 					case glucose::NParameter_Type::ptNull:
-						container = new filter_config_window::CNull_Container_Edit();
+						container = new filter_config_window::CNull_Container_Edit(this);
 						break;
 
 					case glucose::NParameter_Type::ptWChar_Container:
@@ -170,7 +170,7 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 						if (!model_select)
 							create_model_select(parameter);
 
-						container = new CModel_Bounds_Panel(dynamic_cast<QComboBox*>(model_select), this);
+						container = new CModel_Bounds_Panel(parameter, dynamic_cast<QComboBox*>(model_select), this);
 						break;
 
 					case glucose::NParameter_Type::ptSubject_Id:
@@ -178,7 +178,7 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 						break;
 				}
 
-				if (mDescription.parameter_type[i] != glucose::NParameter_Type::ptNull) mContainer_Edits.push_back({ mDescription.config_parameter_name[i], container });
+				if (mDescription.parameter_type[i] != glucose::NParameter_Type::ptNull) mContainer_Edits.push_back(container);
 				switch (mDescription.parameter_type[i])
 				{
 					//special widget, let's add it as a standalone tab
@@ -245,17 +245,9 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 	setAttribute(Qt::WA_DeleteOnClose, true);
 }
 
-void CFilter_Config_Window::Commit_Parameters() {
-	CFilter_Configuration new_parameters;
-	for (auto &edit : mContainer_Edits) {
-		glucose::TFilter_Parameter param = edit.second->get_parameter();
-		param.config_name = refcnt::WString_To_WChar_Container(edit.first.c_str());
-
-		new_parameters.push_back(param);			//does AddRef => we have to call release
-		glucose::Release_Filter_Parameter(param);
-	}
-
-	mConfiguration = std::move(new_parameters);
+void CFilter_Config_Window::Commit_Parameters() {	
+	for (auto &edit : mContainer_Edits) 
+		edit->store_parameter();
 }
 
 void CFilter_Config_Window::On_OK() {
@@ -268,8 +260,5 @@ void CFilter_Config_Window::On_Cancel() {
 }
 
 void CFilter_Config_Window::On_Apply() {
-	Commit_Parameters();
-	//and apply the commited parameters
-	for (auto &edit : mContainer_Edits)
-		edit.second->apply();
+	Commit_Parameters();	
 }

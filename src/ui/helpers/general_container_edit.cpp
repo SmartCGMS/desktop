@@ -87,7 +87,7 @@ namespace filter_config_window {
 		bool ok;
 		int64_t int64 = text().toLongLong(&ok);
 		if (ok) {
-			mParameter.set_int(int64, rc);
+			rc = mParameter->Set_Int64(int64);
 		} else
 			rc = E_FAIL;
 
@@ -100,14 +100,12 @@ namespace filter_config_window {
 
 	void CWChar_Container_Edit::fetch_parameter() {
 		HRESULT rc;
-		setText(QString::fromStdWString(mParameter.as_string(rc)));
+		setText(QString::fromStdWString(mParameter.as_wstring(rc)));
 		check_rc(rc);
 	}
 
-	void CWChar_Container_Edit::store_parameter() {
-		HRESULT rc;
-		mParameter.set_string(text().toStdWString().c_str(), rc);
-		check_rc(rc);
+	void CWChar_Container_Edit::store_parameter() {		
+		check_rc(mParameter.set_wstring(text().toStdWString().c_str()));
 	}
 
 
@@ -127,14 +125,12 @@ namespace filter_config_window {
 
 	void CRatTime_Container_Edit::fetch_parameter() {
 		HRESULT rc;
-		setTime(rattime2QTime(mParameter.as_double(rc));
+		setTime(rattime2QTime(mParameter.as_double(rc)));
 		check_rc(rc);
 	}
 	
 	void CRatTime_Container_Edit::store_parameter() {
-		HRESULT rc;
-		mParameter.set_double(QTime2RatTime(this->time()), rc);
-		check_rc(rc);
+		check_rc(mParameter->Set_Double(QTime2RatTime(this->time())));
 	}
 
 
@@ -151,7 +147,7 @@ namespace filter_config_window {
 
 		bool ok;
 		const double dbl = text().toDouble(&ok);
-		if (ok) mParameter.set_double(dbl, rc);
+		if (ok) rc = mParameter->Set_Double(dbl);
 			else rc = E_FAIL;
 		
 		check_rc(rc);
@@ -176,11 +172,7 @@ namespace filter_config_window {
 	}
 
 	void CBoolean_Container_Edit::store_parameter() {
-		HRESULT rc;
-
-		mParameter.set_bool(checkState() == Qt::Checked);
-
-		check_rc(rc);
+		check_rc(mParameter.set_bool(checkState() == Qt::Checked));
 	}
 
 
@@ -190,14 +182,6 @@ namespace filter_config_window {
 	}
 
 	void CGUIDCombo_Container_Edit::fetch_parameter() {
-		const GUID id = *reinterpret_cast<const GUID*>(currentData().toByteArray().constData());
-		HRESULT rc;
-		mParameter.set_guid(id, rc);
-		check_rc(rc);
-
-	}
-
-	void CGUIDCombo_Container_Edit::store_parameter() {
 		HRESULT rc;
 		const GUID id = mParameter.as_guid(rc);
 
@@ -208,7 +192,23 @@ namespace filter_config_window {
 					break;
 				}
 			}
-		}
+		}		
+
 	}
 
+	void CGUIDCombo_Container_Edit::store_parameter() {
+		const GUID id = *reinterpret_cast<const GUID*>(currentData().toByteArray().constData());		
+		check_rc(mParameter->Set_GUID(&id));
+	}
+
+	CNull_Container_Edit::CNull_Container_Edit(QWidget *parent) : QWidget(parent), CContainer_Edit(glucose::SFilter_Parameter{}) {
+		//
+	}
+
+
+	void CNull_Container_Edit::fetch_parameter() {
+	}
+
+	void CNull_Container_Edit::store_parameter() {
+	}
 }
