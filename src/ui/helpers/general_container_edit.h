@@ -56,8 +56,15 @@ namespace filter_config_window {
 		CContainer_Edit() {};
 		CContainer_Edit(glucose::SFilter_Parameter parameter);
 		virtual ~CContainer_Edit() {};
-		virtual void fetch_parameter() = 0;	//loads the parameter into the UI element
+		virtual void fetch_parameter() {};	//loads the parameter into the UI element
 		virtual void store_parameter() = 0;	//stores the parameter from the UI element
+	};
+
+	class IAs_Double_Container {
+	public:
+		virtual ~IAs_Double_Container() {};
+		virtual double as_double() = 0;
+		virtual void set_double(const double value) = 0;
 	};
 
 	class CInteger_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
@@ -76,7 +83,7 @@ namespace filter_config_window {
 		virtual void store_parameter() override;
 	};
 
-	class CRatTime_Container_Edit : public QDateTimeEdit, public virtual filter_config_window::CContainer_Edit {
+	class CRatTime_Container_Edit : public QDateTimeEdit, public virtual filter_config_window::CContainer_Edit, public virtual IAs_Double_Container {
 	protected:
 		const double MSecsPerDay = 24.0*60.0*60.0*1000.0;
 		const double InvMSecsPerDay = 1.0 / MSecsPerDay;
@@ -85,16 +92,24 @@ namespace filter_config_window {
 		QTime rattime2QTime(const double rt);
 	public:
 		CRatTime_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent);
+		virtual ~CRatTime_Container_Edit() {};
 		virtual void fetch_parameter() override;
 		virtual void store_parameter() override;
+
+		virtual double as_double() override;
+		virtual void set_double(const double value) override;
 	};
 
 
-	class CDouble_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
+	class CDouble_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit, public virtual IAs_Double_Container {
 	public:
 		CDouble_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent);
+		virtual ~CDouble_Container_Edit() {};
 		virtual void fetch_parameter() override;
 		virtual void store_parameter() override;
+
+		virtual double as_double() override;
+		virtual void set_double(const double value) override;
 	};
 
 	class CBoolean_Container_Edit : public QCheckBox, public virtual filter_config_window::CContainer_Edit {

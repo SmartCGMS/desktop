@@ -67,6 +67,7 @@ class CSelect_Subject_Panel : public QWidget, public virtual filter_config_windo
 		QButtonGroup* mButtonGroup;
 		QTableView* mDbSubjects;
 
+		void Connect_To_Db();
 	public:
 		CSelect_Subject_Panel(glucose::SFilter_Configuration configuration, glucose::SFilter_Parameter &parameter, QWidget *parent);
 		

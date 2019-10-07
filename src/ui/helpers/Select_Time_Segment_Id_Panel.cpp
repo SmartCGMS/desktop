@@ -49,7 +49,7 @@ CSelect_Time_Segment_Id_Panel::CSelect_Time_Segment_Id_Panel(glucose::SFilter_Co
 }
 
 
-glucose::TFilter_Parameter CSelect_Time_Segment_Id_Panel::get_parameter() {
+void CSelect_Time_Segment_Id_Panel::store_parameter() {
 	std::vector<int64_t> segment_ids;
 
 	if (mDb && mDb->isOpen()) {
@@ -72,22 +72,19 @@ glucose::TFilter_Parameter CSelect_Time_Segment_Id_Panel::get_parameter() {
 	}
 
 	//then, convert these ids into the array list
-
-	glucose::TFilter_Parameter result;
-	result.config_name = nullptr;
-	result.type = glucose::NParameter_Type::ptSelect_Time_Segment_ID;	
-	result.select_time_segment_id = refcnt::Create_Container<int64_t>(segment_ids.data(), segment_ids.data() + segment_ids.size());
-	return result;
+	check_rc(mParameter.set_int_array(segment_ids));
 }
 
 void CSelect_Time_Segment_Id_Panel::fetch_parameter() {
 	if (!mDb) Connect_To_Db(); //try to connect first
 
-	int64_t *begin, *end;
-	if (param.select_time_segment_id->get(&begin, &end) == S_OK) {
-		auto is_in_selection = [begin, end](const int id)->bool {
-			for (auto iter = begin; iter != end; iter++)
-				if (*iter == id) return true;
+	HRESULT rc;
+	std::vector<int64_t> segment_ids = mParameter.as_int_array(rc);
+
+	if (check_rc(rc)) {
+		auto is_in_selection = [&segment_ids](const int id)->bool {
+			for (const auto segment_id : segment_ids)
+				if (segment_id == id) return true;
 			return false;
 		};
 
@@ -95,25 +92,12 @@ void CSelect_Time_Segment_Id_Panel::fetch_parameter() {
 			for (int data_row = 0;  data_row<mSegmentsModel->rowCount(); data_row++) {
 				if (is_in_selection(mSegmentsModel->data(mSegmentsModel->index(data_row, 0)).toInt()))
 					selectRow(data_row);
-			}
-		
-		
+			}	
 	}
 }
 
 void CSelect_Time_Segment_Id_Panel::Connect_To_Db() {
-	auto current_selection = get_parameter();
-
-	auto get_attr = [this](const wchar_t* attr_name) -> std::wstring {
-
-		for (const auto &param : mConfiguration) {
-			if (WChar_Container_Equals_WString(param.config_name, attr_name)) {
-				return WChar_Container_To_WString(param.wstr);
-			}
-		}
-
-		return std::wstring{};
-	};
+//	auto current_selection = get_parameter();
 
 	mSegmentsModel.reset(nullptr);
 	mSegmentsQuery.reset(nullptr);
@@ -124,11 +108,11 @@ void CSelect_Time_Segment_Id_Panel::Connect_To_Db() {
 		QSqlDatabase::removeDatabase(connection);
 	}
 
-	mDb = std::make_unique<QSqlDatabase>(QSqlDatabase::addDatabase(QString::fromStdWString(get_attr(rsDb_Provider)), mDb_Connection_Name));
-	mDb->setHostName(QString::fromStdWString(get_attr(rsDb_Host)));
-	mDb->setDatabaseName(QString::fromStdWString(get_attr(rsDb_Name)));
-	mDb->setUserName(QString::fromStdWString(get_attr(rsDb_User_Name)));
-	mDb->setPassword(QString::fromStdWString(get_attr(rsDb_Password)));
+	mDb = std::make_unique<QSqlDatabase>(QSqlDatabase::addDatabase(QString::fromStdWString(mConfiguration.Read_String(rsDb_Provider)), mDb_Connection_Name));
+	mDb->setHostName(QString::fromStdWString(mConfiguration.Read_String(rsDb_Host)));
+	mDb->setDatabaseName(QString::fromStdWString(mConfiguration.Read_String(rsDb_Name)));
+	mDb->setUserName(QString::fromStdWString(mConfiguration.Read_String(rsDb_User_Name)));
+	mDb->setPassword(QString::fromStdWString(mConfiguration.Read_String(rsDb_Password)));
 	
 	if (mDb->open()) {
 
@@ -149,8 +133,7 @@ void CSelect_Time_Segment_Id_Panel::Connect_To_Db() {
 		mSegmentsModel->setHeaderData(2, Qt::Horizontal, tr(dsSegment));
 		mSegmentsModel->setHeaderData(3, Qt::Horizontal, tr(dsValue_Count));
 
-		set_parameter(current_selection);
+		//set_parameter(current_selection);
+		fetch_parameter();
 	}
-
-	Release_Filter_Parameter(current_selection);
 }

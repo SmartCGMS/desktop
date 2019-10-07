@@ -124,15 +124,25 @@ namespace filter_config_window {
 	}
 
 	void CRatTime_Container_Edit::fetch_parameter() {
-		HRESULT rc;
-		setTime(rattime2QTime(mParameter.as_double(rc)));
-		check_rc(rc);
+		if (mParameter) {
+			HRESULT rc;
+			setTime(rattime2QTime(mParameter.as_double(rc)));
+			check_rc(rc);
+		}
 	}
 	
 	void CRatTime_Container_Edit::store_parameter() {
 		check_rc(mParameter->Set_Double(QTime2RatTime(this->time())));
 	}
 
+
+	double CRatTime_Container_Edit::as_double() {
+		return QTime2RatTime(this->time());
+	}
+
+	void CRatTime_Container_Edit::set_double(const double value) {
+		setTime(rattime2QTime(value));
+	}
 
 
 	CDouble_Container_Edit::CDouble_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent) : QLineEdit(parent), CContainer_Edit(parameter) {
@@ -154,11 +164,24 @@ namespace filter_config_window {
 	}
 
 	void CDouble_Container_Edit::fetch_parameter() {
-		HRESULT rc;
-		setText(QString::number(mParameter.as_double(rc)));
-		check_rc(rc);
+		if (mParameter) {
+			HRESULT rc;
+			setText(QString::number(mParameter.as_double(rc)));
+			check_rc(rc);
+		}
 	}
 	
+
+	double CDouble_Container_Edit::as_double() {
+		bool ok;
+		const double dbl = text().toDouble(&ok);
+		if (ok) return dbl;
+			else return std::numeric_limits<double>::quiet_NaN();
+	}
+
+	void CDouble_Container_Edit::set_double(const double value) {
+		setText(QString::number(value));
+	}
 
 	CBoolean_Container_Edit::CBoolean_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent) : QCheckBox(parent), CContainer_Edit(parameter) {
 		//

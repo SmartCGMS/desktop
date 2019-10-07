@@ -82,14 +82,12 @@ CSelect_Subject_Panel::CSelect_Subject_Panel(glucose::SFilter_Configuration conf
 	setLayout(layout);
 }
 
-void CSelect_Subject_Panel::On_Radio_Button_Selected()
-{
+void CSelect_Subject_Panel::On_Radio_Button_Selected() {
 	const int selection = mButtonGroup->checkedId();
 	mDbSubjects->setEnabled((selection == Subject_Selection_Existing));
 }
 
-glucose::TFilter_Parameter CSelect_Subject_Panel::get_parameter()
-{
+void CSelect_Subject_Panel::store_parameter() {
 	int64_t subject_id = db::Anonymous_Subject_Identifier;
 	const int selection = mButtonGroup->checkedId();
 	switch (selection)
@@ -123,76 +121,60 @@ glucose::TFilter_Parameter CSelect_Subject_Panel::get_parameter()
 			break;
 	}
 
-	glucose::TFilter_Parameter result;
-	result.config_name = nullptr;
-	result.type = glucose::NParameter_Type::ptSubject_Id;
-	result.int64 = subject_id;
-	return result;
+	check_rc(mParameter->Set_Int64(subject_id));	
 }
 
-void CSelect_Subject_Panel::set_parameter(const glucose::TFilter_Parameter &param)
-{
+void CSelect_Subject_Panel::fetch_parameter() {
 	if (!mDb)
-		apply();
+		Connect_To_Db();
 
-	switch (param.int64)
-	{
-		case db::Anonymous_Subject_Identifier:
-			mButtonGroup->button(Subject_Selection_Anonymous)->click();
-			mDbSubjects->setEnabled(false);
-			break;
-		case db::New_Subject_Identifier:
-			mButtonGroup->button(Subject_Selection_Create_New)->click();
-			mDbSubjects->setEnabled(false);
-			break;
-		default:
-			mButtonGroup->button(Subject_Selection_Existing)->click();
-			mDbSubjects->setEnabled(true);
-			if (mSubjectsModel)
-			{
-				for (int data_row = 0; data_row < mSubjectsModel->rowCount(); data_row++)
+	HRESULT rc;
+	const auto db_id = mParameter.as_int(rc);
+	if (check_rc(rc)) {
+		switch (db_id) {
+			case db::Anonymous_Subject_Identifier:
+				mButtonGroup->button(Subject_Selection_Anonymous)->click();
+				mDbSubjects->setEnabled(false);
+				break;
+			case db::New_Subject_Identifier:
+				mButtonGroup->button(Subject_Selection_Create_New)->click();
+				mDbSubjects->setEnabled(false);
+				break;
+			default:
+				mButtonGroup->button(Subject_Selection_Existing)->click();
+				mDbSubjects->setEnabled(true);
+				if (mSubjectsModel)
 				{
-					if (mSubjectsModel->data(mSubjectsModel->index(data_row, 0)).toInt() == param.int64)
+					for (int data_row = 0; data_row < mSubjectsModel->rowCount(); data_row++)
 					{
-						mDbSubjects->selectRow(data_row);
-						break;
+						if (mSubjectsModel->data(mSubjectsModel->index(data_row, 0)).toInt() == db_id) {
+							mDbSubjects->selectRow(data_row);
+							break;
+						}
 					}
 				}
+				break;
 			}
-			break;
 	}
 }
 
-void CSelect_Subject_Panel::apply()
-{
-	auto current_selection = get_parameter();
-
-	auto get_attr = [this](const wchar_t* attr_name)->std::wstring {
-
-		for (const auto &param : mConfiguration) {
-			if (WChar_Container_Equals_WString(param.config_name, attr_name)) {
-				return WChar_Container_To_WString(param.wstr);
-			}
-		}
-
-		return std::wstring{};
-	};
+void CSelect_Subject_Panel::Connect_To_Db() {
+	//auto current_selection = get_parameter();
 
 	mSubjectsModel.reset(nullptr);
 	mSubjectsQuery.reset(nullptr);
-	if (mDb)
-	{
+	if (mDb) {
 		QString connection;
 		connection = mDb->connectionName();
 		mDb.reset(nullptr);
 		QSqlDatabase::removeDatabase(connection);
 	}
 
-	mDb = std::make_unique<QSqlDatabase>(QSqlDatabase::addDatabase(QString::fromStdWString(get_attr(rsDb_Provider)), mDb_Connection_Name));
-	mDb->setHostName(QString::fromStdWString(get_attr(rsDb_Host)));
-	mDb->setDatabaseName(QString::fromStdWString(get_attr(rsDb_Name)));
-	mDb->setUserName(QString::fromStdWString(get_attr(rsDb_User_Name)));
-	mDb->setPassword(QString::fromStdWString(get_attr(rsDb_Password)));
+	mDb = std::make_unique<QSqlDatabase>(QSqlDatabase::addDatabase(QString::fromStdWString(mConfiguration.Read_String(rsDb_Provider)), mDb_Connection_Name));
+	mDb->setHostName(QString::fromStdWString(mConfiguration.Read_String(rsDb_Host)));
+	mDb->setDatabaseName(QString::fromStdWString(mConfiguration.Read_String(rsDb_Name)));
+	mDb->setUserName(QString::fromStdWString(mConfiguration.Read_String(rsDb_User_Name)));
+	mDb->setPassword(QString::fromStdWString(mConfiguration.Read_String(rsDb_Password)));
 	
 	if (mDb->open())
 	{
@@ -211,8 +193,8 @@ void CSelect_Subject_Panel::apply()
 		mSubjectsModel->setHeaderData(1, Qt::Horizontal, tr(dsSubject));
 		mDbSubjects->horizontalHeader()->setStretchLastSection(true);
 
-		set_parameter(current_selection);
+		//set_parameter(current_selection);
+		fetch_parameter();
 	}
 
-	Release_Filter_Parameter(current_selection);
 }

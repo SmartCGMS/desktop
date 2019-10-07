@@ -38,10 +38,10 @@
 
 #pragma once
 
-#include "../../../common/iface/UIIface.h"
-#include "../../../common/rtl/referencedImpl.h"
-#include "../../../common/rtl/FilterLib.h"
-#include "../../../common/rtl/SolverLib.h"
+#include "../../../../common/iface/UIIface.h"
+#include "../../../../common/rtl/referencedImpl.h"
+#include "../../../../common/rtl/FilterLib.h"
+#include "../../../../common/rtl/SolverLib.h"
 
 #include <memory>
 #include <thread>
@@ -62,12 +62,8 @@ constexpr size_t GUI_Subchain_Default_Drawing_Update = 500;
 /*
  * Filter class for managing user interface needs
  */
-class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CReferenced
-{
+class CGUI_Filter_Subchain {
 	protected:
-		glucose::SEvent_Receiver mInput;
-		glucose::SEvent_Sender mOutput;
-
 		glucose::SDrawing_Filter_Inspection mDrawing_Filter_Inspection;
 		glucose::SError_Filter_Inspection mError_Filter_Inspection;
 		glucose::SLog_Filter_Inspection mLog_Filter_Inspection;
@@ -108,8 +104,6 @@ class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CRe
 		std::shared_ptr<refcnt::IVector_Container<uint64_t>> mDraw_Segment_Ids;
 		std::shared_ptr<refcnt::IVector_Container<GUID>> mDraw_Signal_Ids;
 
-		std::unique_ptr<CFilter_Chain_Manager> mSubchainMgr;
-
 		void Update_GUI();
 
 		void Update_Drawing();
@@ -117,24 +111,15 @@ class CGUI_Filter_Subchain : public glucose::IFilter, public virtual refcnt::CRe
 		void Update_Error_Metrics();
 		void Hint_Update_Solver_Progress();
 
-		void Emit_Marker();
-
 	public:
-		CGUI_Filter_Subchain(glucose::SEvent_Receiver in_pipe, glucose::SEvent_Sender out_pipe);
-		virtual ~CGUI_Filter_Subchain() = default;
+		CGUI_Filter_Subchain();
+		virtual ~CGUI_Filter_Subchain();
 
-		virtual HRESULT IfaceCalling Configure(glucose::IFilter_Configuration* configuration) override final;
-		virtual HRESULT IfaceCalling Execute() override final;
-
-		virtual HRESULT IfaceCalling QueryInterface(const GUID*  riid, void ** ppvObj) override;
+		void On_Filter_Configured(glucose::IFilter *filter);
+			
 
 		void Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds);
 };
 
-class SGUI_Filter_Subchain : public std::shared_ptr<CGUI_Filter_Subchain> {
-	public:
-		SGUI_Filter_Subchain() noexcept {};
-		SGUI_Filter_Subchain(glucose::SFilter &gui_subchain_filter);
-};
 
 #pragma warning( pop )

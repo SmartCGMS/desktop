@@ -51,7 +51,7 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpinBox>
 
-#include "../../../common/iface/FilterIface.h"
+#include "../../../common/rtl/FilterLib.h"
 #include "../../../common/rtl/UILib.h"
 
 #include "simulation/log_tab_widget.h"
@@ -59,6 +59,8 @@
 #include "simulation/errors_tab_widget.h"
 #include "helpers/Time_Segment_Group_Widget.h"
 #include "helpers/Signal_Group_Widget.h"
+#include "helpers/gui_subchain.h"
+
 
 /*
  * Simulation control and results window
@@ -78,12 +80,18 @@ class CSimulation_Window : public QMdiSubWindow {
 		// is simulation in progress?
 		bool mSimulationInProgress;
 		
+
+		glucose::SFilter_Executor mFilter_Executor;
+		refcnt::SReferenced<glucose::IFilter_Chain_Configuration> mConfiguration;
+
 		std::vector<glucose::SCalculate_Filter_Inspection> mSolver_Filters;
 		glucose::CSignal_Names mSignal_Names;
 
+		CGUI_Filter_Subchain mGUI_Filter_Subchain;
 		int mBase_Tab_Count;
+
+		void On_Filter_Configured(glucose::IFilter *filter);
 	protected:		
-		glucose::SFilter_Executor mFilter_Executor;
 
 		// tab widget for filter outputs
 		QTabWidget* mTabWidget;

@@ -41,6 +41,7 @@
 #include "../../../common/lang/dstrings.h"
 #include "../../../common/rtl/FilterLib.h"
 #include "../../../common/rtl/UILib.h"
+#include "../../../common/rtl/qdb_connector.h"
 #include "../../../common/rtl/referencedImpl.h"
 #include "../../../common/utils/QtUtils.h"
 #include "../../../common/rtl/rattime.h"
@@ -66,7 +67,7 @@ constexpr size_t Invalid_Value = static_cast<size_t>(-1);
 
 std::atomic<CSimulation_Window*> CSimulation_Window::mInstance = nullptr;
 
-CSimulation_Window* CSimulation_Window::Show_Instance(CFilter_Chain &filter_chain, QWidget *owner)
+CSimulation_Window* CSimulation_Window::Show_Instance(refcnt::SReferenced<glucose::IFilter_Chain_Configuration> configuration, QWidget *owner)
 {
 	if (mInstance)
 	{
@@ -75,7 +76,7 @@ CSimulation_Window* CSimulation_Window::Show_Instance(CFilter_Chain &filter_chai
 	}
 
 	CSimulation_Window* tmp = nullptr;
-	bool created = mInstance.compare_exchange_strong(tmp, new CSimulation_Window(filter_chain, owner));
+	bool created = mInstance.compare_exchange_strong(tmp, new CSimulation_Window(configuration, owner));
 
 	if (created)
 		mInstance.load()->showMaximized();
@@ -83,10 +84,8 @@ CSimulation_Window* CSimulation_Window::Show_Instance(CFilter_Chain &filter_chai
 	return mInstance;
 }
 
-CSimulation_Window::CSimulation_Window(CFilter_Chain &filter_chain, QWidget *owner) : QMdiSubWindow{ owner }, mTabWidget(nullptr)
-{
-	mFilter_Chain_Manager = std::make_unique<CFilter_Chain_Manager>(filter_chain);
-
+CSimulation_Window::CSimulation_Window(refcnt::SReferenced<glucose::IFilter_Chain_Configuration> configuration, QWidget *owner) : 
+	mConfiguration(configuration), QMdiSubWindow{ owner }, mTabWidget(nullptr) {	
 	Setup_UI();
 
 	mStopButton->setEnabled(false);
@@ -98,7 +97,7 @@ CSimulation_Window::~CSimulation_Window()
 {
 	for (const auto& solvers : mSolver_Filters)
 		solvers->Cancel_Solver();
-	mFilter_Chain_Manager->Terminate_Filters();
+	mFilter_Executor->Terminate();	
 
 	mInstance = nullptr;
 }
@@ -409,22 +408,12 @@ void CSimulation_Window::On_Start() {
 		lay->addStretch();
 
 	// initialize and start filter holder, this will start filters
-	if (mFilter_Chain_Manager->Init_And_Start_Filters() != S_OK)
-	{
+	mFilter_Executor = glucose::SFilter_Executor{ mConfiguration, Setup_Filter_DB_Access, nullptr };
+	if (!mFilter_Executor)	{
 		// TODO: error message
-		mFilter_Chain_Manager->Terminate_Filters();
+		mFilter_Executor->Terminate();
 		return;
 	}	
-
-	// retrieve GUI subchain shared ptr instance and solver filter instances
-	m_guiSubchain.reset();
-	mFilter_Chain_Manager->Traverse_Filters([this](glucose::SFilter &filter) {
-		if (!m_guiSubchain)
-			m_guiSubchain = SGUI_Filter_Subchain{ filter };
-		if (glucose::SCalculate_Filter_Inspection insp = glucose::SCalculate_Filter_Inspection{ filter })
-			mSolver_Filters.push_back(insp);
-		return true;
-	});
 
 	mSimulationInProgress = true;
 	mStopButton->setEnabled(true);
@@ -436,6 +425,14 @@ void CSimulation_Window::On_Start() {
 	// hide all signal solve actions
 	for (auto& action : mSignalSolveActions)
 		action.second->setVisible(false);
+}
+
+void CSimulation_Window::On_Filter_Configured(glucose::IFilter *filter) {
+	Setup_Filter_DB_Access(filter, this);
+	mGUI_Filter_Subchain.On_Filter_Configured(filter);
+
+	if (glucose::SCalculate_Filter_Inspection insp = glucose::SCalculate_Filter_Inspection{ glucose::SFilter{filter} })
+		mSolver_Filters.push_back(insp);
 }
 
 void CSimulation_Window::On_Stop() {
@@ -451,13 +448,12 @@ void CSimulation_Window::Stop_Simulation() {
 }
 
 void CSimulation_Window::Slot_Simulation_Terminate()
-{
-	mFilter_Chain_Manager->Terminate_Filters();
+{	
+	mFilter_Executor->Terminate();
 	mSimulationInProgress = false;
 	mStopButton->setEnabled(false);
 	mStartButton->setEnabled(true);
 
-	m_guiSubchain.reset();
 	mSolver_Filters.clear();
 }
 
@@ -586,9 +582,8 @@ void CSimulation_Window::On_Segments_Draw_Request()
 		if (ctrl.second->Is_Checked())
 			signalsToDraw.push_back(ctrl.second->Get_Signal_Id());
 	}
-
-	if (m_guiSubchain)
-		m_guiSubchain->Request_Redraw(segmentsToDraw, signalsToDraw);
+	
+	mGUI_Filter_Subchain.Request_Redraw(segmentsToDraw, signalsToDraw);
 }
 
 void CSimulation_Window::On_Select_Segments_All()
@@ -699,7 +694,7 @@ void CSimulation_Window::Inject_Event(const glucose::NDevice_Event_Code &code, c
 	evt.signal_id() = signal_id;
 	evt.segment_id() = segment_id;
 	evt.info.set(info);
-	mFilter_Chain_Manager->Send(evt);
+	mFilter_Executor.Execute(std::move(evt));
 }
 
 QUuid CSimulation_Window::GUID_To_QUuid(const GUID& guid)

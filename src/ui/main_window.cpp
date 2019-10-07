@@ -259,7 +259,7 @@ void CMain_Window::On_Filters_Window() {
 }
 
 void CMain_Window::On_Simulation_Window() {
-	CSimulation_Window::Show_Instance(mFilter_Configuration, pnlMDI_Content);
+	CSimulation_Window::Show_Instance(mFilter_Configuration.get(), pnlMDI_Content);
 }
 
 void CMain_Window::On_Save_Configuration() {

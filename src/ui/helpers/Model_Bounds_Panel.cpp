@@ -61,38 +61,25 @@ CModel_Bounds_Panel::CModel_Bounds_Panel(glucose::SFilter_Parameter parameter, Q
 	layout->addStretch();
 
 	connect(mModelSelector, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {
-		Refresh_Content();
+		fetch_parameter();
 	});
 
-	Refresh_Content();
+	fetch_parameter();
 }
 
-glucose::TFilter_Parameter CModel_Bounds_Panel::get_parameter() {
+void CModel_Bounds_Panel::store_parameter() {
 	std::vector<double> values;
 
 	// "serialize" fields
 	for (auto& container : { mLowerBoundEdits, mDefaultsEdits, mUpperBoundEdits })
 	{
 		for (size_t i = 0; i < container.size(); i++) {			
-			const glucose::TFilter_Parameter val = container[i]->get_parameter();
-			values.push_back(val.dbl);
+			values.push_back(container[i]->as_double());
 		}
 	}
 
-	glucose::TFilter_Parameter result;
-	result.type = glucose::NParameter_Type::ptModel_Bounds;
-	result.parameters = refcnt::Create_Container<double>(values.data(), values.data() + values.size());
-	return result;
+	check_rc(mParameter.set_double_array(values));
 }
-
-void CModel_Bounds_Panel::set_parameter(const glucose::TFilter_Parameter &param)
-{
-	if (param.type != glucose::NParameter_Type::ptModel_Bounds)
-		return;
-
-	Refresh_Content(param.parameters);
-}
-
 
 void CModel_Bounds_Panel::Reset_UI(const glucose::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds)
 {
@@ -120,27 +107,21 @@ void CModel_Bounds_Panel::Reset_UI(const glucose::TModel_Descriptor& model, cons
 	mLayout->addWidget(new QLabel(dsDefault_Parameters), 0, 2);
 	mLayout->addWidget(new QLabel(dsUpper_Bounds), 0, 3);
 
-	auto create_edit = [this](const glucose::NModel_Parameter_Value parameter_type, const double val) -> filter_config_window::CContainer_Edit* {
+	auto create_edit = [this](const glucose::NModel_Parameter_Value parameter_type, const double val) -> filter_config_window::IAs_Double_Container* {
 
-		filter_config_window::CContainer_Edit* container = nullptr;
+		filter_config_window::IAs_Double_Container* container = nullptr;
 
 		switch (parameter_type) {
 		case glucose::NModel_Parameter_Value::mptDouble:
-			container = new filter_config_window::CDouble_Container_Edit{ this };
+			container = new filter_config_window::CDouble_Container_Edit{ glucose::SFilter_Parameter{}, this };
 			break;
 
 		case glucose::NModel_Parameter_Value::mptTime:
-			container = new filter_config_window::CRatTime_Container_Edit{ this };
-			break;
-
-		default:
-			container = new filter_config_window::CNull_Container_Edit{  };
-			break;
+			container = new filter_config_window::CRatTime_Container_Edit{ glucose::SFilter_Parameter{}, this };
+			break;		
 		}
-
-		glucose::TFilter_Parameter converted_val;				
-		converted_val.dbl = val;
-		container->set_parameter(converted_val);
+		
+		if (container) container->set_double(val);
 		
 		return container;
 	};
@@ -183,17 +164,15 @@ void CModel_Bounds_Panel::Reset_UI(const glucose::TModel_Descriptor& model, cons
 		mLayout->setRowStretch((int)i, 1);
 }
 
-void CModel_Bounds_Panel::Reset_Parameters(const std::vector<filter_config_window::CContainer_Edit*> &containers, std::function<const double*(const glucose::TModel_Descriptor&)> get_bounds) {
+void CModel_Bounds_Panel::Reset_Parameters(const std::vector<filter_config_window::IAs_Double_Container*> &containers, std::function<const double*(const glucose::TModel_Descriptor&)> get_bounds) {
 	glucose::TModel_Descriptor model = glucose::Null_Model_Descriptor;
 	if (!Get_Current_Selected_Model(model))
 		return;
 
 	const double* bounds = get_bounds(model);
 
-	for (size_t i = 0; i < model.number_of_parameters; i++) {
-		glucose::TFilter_Parameter val;
-		val.dbl = bounds[i];
-		containers[i]->set_parameter(val);
+	for (size_t i = 0; i < model.number_of_parameters; i++) {		
+		containers[i]->set_double(bounds[i]);
 	}		
 }
 
@@ -223,28 +202,27 @@ bool CModel_Bounds_Panel::Get_Current_Selected_Model(glucose::TModel_Descriptor&
 	return false;
 }
 
-void CModel_Bounds_Panel::Refresh_Content(glucose::IModel_Parameter_Vector* inputs)
-{
+void CModel_Bounds_Panel::fetch_parameter() {
+
+	HRESULT rc;
+	std::vector<double> parameters = mParameter.as_double_array(rc);
+
 	glucose::TModel_Descriptor model = glucose::Null_Model_Descriptor;
 
-	if (Get_Current_Selected_Model(model))
-	{
+	if ((rc == S_OK) && Get_Current_Selected_Model(model)) {
 		const double* lb = model.lower_bound;
 		const double* def = model.default_values;
 		const double* ub = model.upper_bound;
 
-		double *beg, *end;
-
-		if (inputs && inputs->get(&beg, &end) == S_OK)
-		{
-			if (static_cast<size_t>(std::distance(beg, end)) == model.number_of_parameters * 3)
-			{
-				lb = beg;
-				def = beg + model.number_of_parameters;
-				ub = beg + 2 * model.number_of_parameters;
-			}
+		
+		if (parameters.size() == model.number_of_parameters * 3) {
+			lb = parameters.data();
+			def = lb + model.number_of_parameters;
+			ub = lb + 2 * model.number_of_parameters;
 		}
+		
 
 		Reset_UI(model, lb, def, ub);
-	}
+	} else 
+		check_rc(rc);
 }
