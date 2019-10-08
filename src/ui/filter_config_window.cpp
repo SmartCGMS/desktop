@@ -69,6 +69,8 @@ CFilter_Config_Window::CFilter_Config_Window(glucose::SFilter_Configuration_Link
 
 
 	Setup_UI(configuration);
+	for (const auto &edit : mContainer_Edits)
+		edit->fetch_parameter();
 }
 
 void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configuration) {
@@ -94,8 +96,9 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 		for (int i = 0; i < static_cast<int>(mDescription.parameters_count); i++) {
 			//try to obtain the parameter, if is present in the configuration
 			glucose::SFilter_Parameter parameter = configuration.Resolve_Parameter(mDescription.config_parameter_name[i]);
-			if (!parameter) {
+			if ((!parameter) && (mDescription.parameter_type[i] != glucose::NParameter_Type::ptNull)) {
 				//this particular parameter is not configured, hence we need to create it using its default value
+				//unless it is a null parameter
 				parameter = configuration.Add_Parameter(mDescription.parameter_type[i], mDescription.config_parameter_name[i]);
 				if (!parameter) continue;	//no way to add it, so let's just ignore it and do not configure it
 			}

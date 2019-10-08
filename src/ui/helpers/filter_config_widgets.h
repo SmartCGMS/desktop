@@ -58,7 +58,7 @@
 template <typename TDesc, typename std::vector<TDesc>(*G)()>
 class CGUID_Entity_ComboBox : public virtual filter_config_window::CGUIDCombo_Container_Edit {
 public:
-	CGUID_Entity_ComboBox(glucose::SFilter_Parameter parameter, QWidget *parent) : CGUIDCombo_Container_Edit(parameter, parent)	{
+	CGUID_Entity_ComboBox(glucose::SFilter_Parameter parameter, QWidget *parent) : CGUIDCombo_Container_Edit(parameter, parent) {		
 		auto entities = G();
 
 		// add entities retrieved using template function

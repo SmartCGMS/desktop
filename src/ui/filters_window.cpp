@@ -61,7 +61,7 @@
 
 std::atomic<CFilters_Window*> CFilters_Window::mInstance = nullptr;
 
-CFilters_Window* CFilters_Window::Show_Instance(glucose::SPersistent_Filter_Chain_Configuration &filter_configuration, QWidget *owner) {
+CFilters_Window* CFilters_Window::Show_Instance(glucose::SPersistent_Filter_Chain_Configuration &filter_chain_configuration, QWidget *owner) {
 
 	if (mInstance) {
 		mInstance.load()->showMaximized();
@@ -69,7 +69,7 @@ CFilters_Window* CFilters_Window::Show_Instance(glucose::SPersistent_Filter_Chai
 	}
 
 	CFilters_Window* tmp = nullptr;
-	bool created = mInstance.compare_exchange_strong(tmp, new CFilters_Window(filter_configuration, owner));
+	bool created = mInstance.compare_exchange_strong(tmp, new CFilters_Window(filter_chain_configuration, owner));
 
 	if (created) {
 		mInstance.load()->showMaximized();
@@ -78,7 +78,7 @@ CFilters_Window* CFilters_Window::Show_Instance(glucose::SPersistent_Filter_Chai
 	return mInstance;
 }
 
-CFilters_Window::CFilters_Window(glucose::SPersistent_Filter_Chain_Configuration &filter_chain, QWidget *owner) : QMdiSubWindow(owner), mFilter_Configuration(filter_chain) {
+CFilters_Window::CFilters_Window(glucose::SPersistent_Filter_Chain_Configuration &filter_chain_configuration, QWidget *owner) : QMdiSubWindow(owner), mFilter_Chain_Configuration(filter_chain_configuration) {
 	Setup_UI();
 }
 
@@ -129,7 +129,7 @@ void CFilters_Window::Setup_UI() {
 	}
 
 	//add the  applied filters
-	mFilter_Configuration.for_each([this](glucose::SFilter_Configuration_Link link) {
+	mFilter_Chain_Configuration.for_each([this](glucose::SFilter_Configuration_Link link) {
 		CFilter_List_Item *tmp = new CFilter_List_Item(link);
 		tmp->Refresh();
 		lbxApplied_Filters->addItem(tmp);			
@@ -173,7 +173,7 @@ void CFilters_Window::On_Add_Filter() {
 	const auto selection = lbxAvailable_Filters->selectedItems();
 	for (const auto &selected : selection) {
 		const auto &desc = reinterpret_cast<CFilter_List_Item*>(selected)->description();
-		CFilter_List_Item *tmp = new CFilter_List_Item{ desc};
+		CFilter_List_Item *tmp = new CFilter_List_Item{ mFilter_Chain_Configuration.Add_Link(desc.id)};
 		lbxApplied_Filters->addItem(tmp);
 	}
 }
@@ -199,8 +199,14 @@ void CFilters_Window::On_Move_Filter_Down()
 void CFilters_Window::On_Remove_Filter()
 {
 	const auto selection = lbxApplied_Filters->selectedItems();
-	for (auto* item : selection)
-		delete lbxApplied_Filters->takeItem(lbxApplied_Filters->row(item));
+	for (auto* item : selection) {
+		//1. delete the item from the configuration
+		const auto row_index = lbxApplied_Filters->row(item);
+
+		if (SUCCEEDED(mFilter_Chain_Configuration->remove(row_index)))
+			//2. and delete the item from the list if everythign went OK
+			delete lbxApplied_Filters->takeItem(row_index);
+	}
 }
 
 void CFilters_Window::Configure_Filter(QListWidgetItem *item) {

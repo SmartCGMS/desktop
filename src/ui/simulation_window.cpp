@@ -93,11 +93,10 @@ CSimulation_Window::CSimulation_Window(refcnt::SReferenced<glucose::IFilter_Chai
 	mSimulationInProgress = false;
 }
 
-CSimulation_Window::~CSimulation_Window()
-{
+CSimulation_Window::~CSimulation_Window() {
 	for (const auto& solvers : mSolver_Filters)
 		solvers->Cancel_Solver();
-	mFilter_Executor->Terminate();	
+	if (mFilter_Executor) mFilter_Executor->Terminate();
 
 	mInstance = nullptr;
 }

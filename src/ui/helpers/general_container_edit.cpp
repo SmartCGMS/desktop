@@ -201,7 +201,7 @@ namespace filter_config_window {
 
 	CGUIDCombo_Container_Edit::CGUIDCombo_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent) :
 		QComboBox(parent), CContainer_Edit(parameter) {
-		//
+		mParameter = parameter; //fixing some strange behavior, may be Qt implied, that enforces default ctor of cont_edit, thus not setting mParameter
 	}
 
 	void CGUIDCombo_Container_Edit::fetch_parameter() {

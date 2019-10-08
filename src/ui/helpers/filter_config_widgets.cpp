@@ -60,7 +60,7 @@ void CModel_Signal_Select_ComboBox::Refresh_Contents()
 }
 
 CModel_Signal_Select_ComboBox::CModel_Signal_Select_ComboBox(glucose::SFilter_Parameter parameter, QWidget *parent, QComboBox *modelSelector) :
-	filter_config_window::CGUIDCombo_Container_Edit(parameter, parent), mModelSelector(modelSelector) {
+	filter_config_window::CGUIDCombo_Container_Edit(parameter, parent), mModelSelector(modelSelector) {	
 	Refresh_Contents();
 
 	connect(mModelSelector, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {
