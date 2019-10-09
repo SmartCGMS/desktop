@@ -125,7 +125,7 @@ QVariant CError_Table_Model::data(const QModelIndex &index, int role) const
 	if (role == Qt::DisplayRole || role == Qt::EditRole)
 	{
 		const int row = index.row();
-		double val;
+		double val = std::numeric_limits<double>::quiet_NaN();
 
 		if (index.column() < static_cast<int>(glucose::NError_Marker::count))
 			val = mErrors[row /static_cast<int>(glucose::NError_Type::count)][row % static_cast<int>(glucose::NError_Type::count)].markers[index.column()];

@@ -75,7 +75,7 @@ class CSimulation_Window : public QMdiSubWindow {
 		// stored drawing widgets
 		std::vector<CDrawing_Tab_Widget*> mDrawingWidgets;
 		// stored errors widget
-		CErrors_Tab_Widget* mErrorsWidget;
+		CErrors_Tab_Widget* mErrorsWidget = nullptr;
 
 		// is simulation in progress?
 		bool mSimulationInProgress;
@@ -89,10 +89,8 @@ class CSimulation_Window : public QMdiSubWindow {
 
 		CGUI_Filter_Subchain mGUI_Filter_Subchain;
 		int mBase_Tab_Count;
-
-		void On_Filter_Configured(glucose::IFilter *filter);
-	protected:		
-
+		
+	protected:					
 		// tab widget for filter outputs
 		QTabWidget* mTabWidget;
 		// progress bar layout
@@ -169,6 +167,7 @@ class CSimulation_Window : public QMdiSubWindow {
 	protected:
 		QUuid GUID_To_QUuid(const GUID& guid);
 		GUID QUuid_To_GUID(const QUuid& uuid);
+		static HRESULT IfaceCalling On_Filter_Configured(glucose::IFilter *filter, const void* data);
 	public:
 		// factory method for singleton initialization
 		static CSimulation_Window* Show_Instance(refcnt::SReferenced<glucose::IFilter_Chain_Configuration> configuration, QWidget *owner);
@@ -186,7 +185,7 @@ class CSimulation_Window : public QMdiSubWindow {
 		void Update_Solver_Progress();
 
 		void Start_Time_Segment(uint64_t segmentId);
-		void Add_Signal(const GUID& signalId);
-
+		void Add_Signal(const GUID& signalId);		
+		
 		void Stop_Simulation();
 };

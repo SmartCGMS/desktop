@@ -94,9 +94,7 @@ CSimulation_Window::CSimulation_Window(refcnt::SReferenced<glucose::IFilter_Chai
 }
 
 CSimulation_Window::~CSimulation_Window() {
-	for (const auto& solvers : mSolver_Filters)
-		solvers->Cancel_Solver();
-	if (mFilter_Executor) mFilter_Executor->Terminate();
+	On_Stop();
 
 	mInstance = nullptr;
 }
@@ -407,7 +405,7 @@ void CSimulation_Window::On_Start() {
 		lay->addStretch();
 
 	// initialize and start filter holder, this will start filters
-	mFilter_Executor = glucose::SFilter_Executor{ mConfiguration, Setup_Filter_DB_Access, nullptr };
+	mFilter_Executor = glucose::SFilter_Executor{ mConfiguration, CSimulation_Window::On_Filter_Configured, nullptr };
 	if (!mFilter_Executor)	{
 		// TODO: error message
 		mFilter_Executor->Terminate();
@@ -426,20 +424,29 @@ void CSimulation_Window::On_Start() {
 		action.second->setVisible(false);
 }
 
-void CSimulation_Window::On_Filter_Configured(glucose::IFilter *filter) {
-	Setup_Filter_DB_Access(filter, this);
-	mGUI_Filter_Subchain.On_Filter_Configured(filter);
+HRESULT IfaceCalling CSimulation_Window::On_Filter_Configured(glucose::IFilter *filter, const void* data) {
+	CSimulation_Window * local_instance = mInstance.operator CSimulation_Window *();
+	if (!local_instance) return E_INVALIDARG;
+
+	Setup_Filter_DB_Access(filter, data);
+	local_instance->mGUI_Filter_Subchain.On_Filter_Configured(filter);
 
 	if (glucose::SCalculate_Filter_Inspection insp = glucose::SCalculate_Filter_Inspection{ glucose::SFilter{filter} })
-		mSolver_Filters.push_back(insp);
+		local_instance->mSolver_Filters.push_back(insp);
+
+	return S_OK;
 }
 
 void CSimulation_Window::On_Stop() {
-	mStopButton->setEnabled(false);
-	Inject_Event(glucose::NDevice_Event_Code::Shut_Down, glucose::signal_All, nullptr);
+	mGUI_Filter_Subchain.Release_Filters();
 
 	for (const auto& solvers : mSolver_Filters)
 		solvers->Cancel_Solver();
+
+	if (SUCCEEDED(mFilter_Executor->Terminate())) {
+		mStartButton->setEnabled(true);
+		mStopButton->setEnabled(false);
+	}
 }
 
 void CSimulation_Window::Stop_Simulation() {

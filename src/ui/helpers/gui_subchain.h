@@ -76,13 +76,9 @@ class CGUI_Filter_Subchain {
 		// thread of periodic updater
 		std::unique_ptr<std::thread> mUpdater_Thread;
 		// updater mutex
-		std::mutex mUpdater_Mtx;
-		// shut down synchronization mutex
-		std::mutex mShut_Down_Mtx;
+		std::mutex mUpdater_Mtx;		
 		// condition variable of periodic updater
-		std::condition_variable mUpdater_Cv;
-		// condition variable of shutdown marker
-		std::condition_variable mShut_Down_Cv;
+		std::condition_variable mUpdater_Cv;		
 		// flag to know whether to resume the updating thread
 		std::atomic<bool> mChange_Available;
 
@@ -94,11 +90,7 @@ class CGUI_Filter_Subchain {
 		// was marker received?
 		bool mMarker_Received = false;
 
-		// main function for managing input pipe
-		void Run_Input();
-		// second thread function for managing output pipe
-		void Run_Output();
-		// third thread function for managing periodic updates (drawing)
+		//  thread function for managing periodic updates (drawing)
 		void Run_Updater();
 
 		std::shared_ptr<refcnt::IVector_Container<uint64_t>> mDraw_Segment_Ids;
@@ -119,6 +111,7 @@ class CGUI_Filter_Subchain {
 			
 
 		void Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds);
+		void Release_Filters();
 };
 
 

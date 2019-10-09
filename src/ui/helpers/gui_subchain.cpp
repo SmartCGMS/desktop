@@ -80,9 +80,9 @@ void CGUI_Filter_Subchain::Run_Updater()
 		std::unique_lock<std::mutex> lck(mUpdater_Mtx);
 
 		// update if there was a change
-		if (mChange_Available.exchange(false)) {
+		//if (mChange_Available.exchange(false)) {
 			Update_GUI();
-		}
+		//}
 
 		// TODO: configurable delay, maybe even during simulation?
 		mUpdater_Cv.wait_for(lck, std::chrono::milliseconds(GUI_Subchain_Default_Drawing_Update));
@@ -101,6 +101,12 @@ void CGUI_Filter_Subchain::On_Filter_Configured(glucose::IFilter *filter) {
 		mLog_Filter_Inspection = insp;
 }
 
+
+void CGUI_Filter_Subchain::Release_Filters() {
+	mDrawing_Filter_Inspection = glucose::SDrawing_Filter_Inspection{ };
+	mError_Filter_Inspection = glucose::SError_Filter_Inspection{};
+	mLog_Filter_Inspection = glucose::SLog_Filter_Inspection{};
+}
 
 void CGUI_Filter_Subchain::Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds)
 {
@@ -121,11 +127,12 @@ void CGUI_Filter_Subchain::Update_GUI()
 	Hint_Update_Solver_Progress();
 }
 
-void CGUI_Filter_Subchain::Update_Drawing()
-{
+void CGUI_Filter_Subchain::Update_Drawing() {
+	if (!mDrawing_Filter_Inspection) return;
+	if (mDrawing_Filter_Inspection->New_Data_Available() != S_OK) return;	//nothing to update
+
 	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
-	if (!simwin || !mDrawing_Filter_Inspection)
-		return;
+	if (!simwin) return;
 
 	auto svg = refcnt::Create_Container_shared<char>(nullptr, nullptr);
 
@@ -153,11 +160,12 @@ void CGUI_Filter_Subchain::Update_Log()
 	}
 }
 
-void CGUI_Filter_Subchain::Update_Error_Metrics()
-{
+void CGUI_Filter_Subchain::Update_Error_Metrics() {
+	if (!mError_Filter_Inspection) return;
+	if (mError_Filter_Inspection->New_Data_Available() != S_OK) return;	//nothing to update
+
 	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
-	if (!simwin || !mError_Filter_Inspection)
-		return;
+	if (!simwin) return;
 
 	glucose::TError_Markers err;
 	for (auto& signal_id : mCalculatedSignalGUIDs) {
