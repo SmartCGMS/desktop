@@ -139,7 +139,6 @@ class CSimulation_Window : public QMdiSubWindow {
 		void On_Start_Time_Segment(quint64 id);
 		void On_Add_Signal(QUuid id);
 		void On_Update_Solver_Progress(QUuid solver);
-		void On_Simulation_Terminate();
 
 	protected slots:
 		void On_Start();
@@ -159,8 +158,7 @@ class CSimulation_Window : public QMdiSubWindow {
 
 		void Slot_Start_Time_Segment(quint64 id);
 		void Slot_Add_Signal(QUuid id);
-		void Slot_Update_Solver_Progress(QUuid solver);
-		void Slot_Simulation_Terminate();
+		void Slot_Update_Solver_Progress(QUuid solver);		
 
 	protected:
 		void Inject_Event(const glucose::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info, const uint64_t segment_id = glucose::Invalid_Segment_Id);

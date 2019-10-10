@@ -302,8 +302,7 @@ void CSimulation_Window::Setup_UI()
 	// GUI asynchronous updaters
 	connect(this, SIGNAL(On_Start_Time_Segment(quint64)), this, SLOT(Slot_Start_Time_Segment(quint64)), Qt::QueuedConnection);
 	connect(this, SIGNAL(On_Add_Signal(QUuid)), this, SLOT(Slot_Add_Signal(QUuid)), Qt::QueuedConnection);
-	connect(this, SIGNAL(On_Update_Solver_Progress(QUuid)), this, SLOT(Slot_Update_Solver_Progress(QUuid)), Qt::QueuedConnection);
-	connect(this, SIGNAL(On_Simulation_Terminate()), this, SLOT(Slot_Simulation_Terminate()), Qt::QueuedConnection);
+	connect(this, SIGNAL(On_Update_Solver_Progress(QUuid)), this, SLOT(Slot_Update_Solver_Progress(QUuid)), Qt::QueuedConnection);	
 }
 
 void CSimulation_Window::Show_Tab_Context_Menu(const QPoint &point)
@@ -366,6 +365,8 @@ void CSimulation_Window::resizeEvent(QResizeEvent* evt)
 }
 
 void CSimulation_Window::On_Start() {
+	mGUI_Filter_Subchain.Stop();
+
 	// clean progress bars and progress bar group box
 	QLayoutItem *wItem;
 	while ((wItem = mProgressGroup->layout()->takeAt(0)) != nullptr)
@@ -422,6 +423,8 @@ void CSimulation_Window::On_Start() {
 	// hide all signal solve actions
 	for (auto& action : mSignalSolveActions)
 		action.second->setVisible(false);
+
+	mGUI_Filter_Subchain.Start();
 }
 
 HRESULT IfaceCalling CSimulation_Window::On_Filter_Configured(glucose::IFilter *filter, const void* data) {
@@ -438,29 +441,19 @@ HRESULT IfaceCalling CSimulation_Window::On_Filter_Configured(glucose::IFilter *
 }
 
 void CSimulation_Window::On_Stop() {
-	mGUI_Filter_Subchain.Release_Filters();
-
+	mSimulationInProgress = false;
+	mGUI_Filter_Subchain.Stop();	
+	
 	for (const auto& solvers : mSolver_Filters)
 		solvers->Cancel_Solver();
+	mSolver_Filters.clear();
 
-	if (SUCCEEDED(mFilter_Executor->Terminate())) {
+	Inject_Event(glucose::NDevice_Event_Code::Shut_Down, Invalid_GUID, nullptr);
+
+	if (SUCCEEDED(mFilter_Executor->Terminate())) {	
 		mStartButton->setEnabled(true);
 		mStopButton->setEnabled(false);
 	}
-}
-
-void CSimulation_Window::Stop_Simulation() {
-	emit On_Simulation_Terminate();
-}
-
-void CSimulation_Window::Slot_Simulation_Terminate()
-{	
-	mFilter_Executor->Terminate();
-	mSimulationInProgress = false;
-	mStopButton->setEnabled(false);
-	mStartButton->setEnabled(true);
-
-	mSolver_Filters.clear();
 }
 
 void CSimulation_Window::On_Reset_And_Solve_Params() {
@@ -667,9 +660,8 @@ void CSimulation_Window::On_Solve_Signal(QString str)
 	Inject_Event(glucose::NDevice_Event_Code::Solve_Parameters, signalId, nullptr, glucose::All_Segments_Id);
 }
 
-void CSimulation_Window::Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type)
-{
-	mErrorsWidget->Update_Error_Metrics(signal_id, container, type);
+void CSimulation_Window::Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type) {
+	if (mSimulationInProgress) mErrorsWidget->Update_Error_Metrics(signal_id, container, type);
 }
 
 void CSimulation_Window::Update_Solver_Progress()

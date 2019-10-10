@@ -110,8 +110,10 @@ class CGUI_Filter_Subchain {
 		void On_Filter_Configured(glucose::IFilter *filter);
 			
 
-		void Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds);
-		void Release_Filters();
+		void Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds);		
+
+		void Start();
+		void Stop();
 };
 
 

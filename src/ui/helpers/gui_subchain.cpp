@@ -1,4 +1,4 @@
-/**
+/**	
  * SmartCGMS - continuous glucose monitoring and controlling framework
  * https://diabetes.zcu.cz/
  *
@@ -43,7 +43,7 @@
 #include "../../../../common/rtl/rattime.h"
 #include "../../ui/simulation_window.h"
 
-CGUI_Filter_Subchain::CGUI_Filter_Subchain() : mChange_Available(false) {
+CGUI_Filter_Subchain::CGUI_Filter_Subchain() : mChange_Available(false), mRunning(false) {
 
 	// take all model-calculated signals and put them into calculated signal guids set
 	const auto models = glucose::get_model_descriptors();
@@ -51,14 +51,26 @@ CGUI_Filter_Subchain::CGUI_Filter_Subchain() : mChange_Available(false) {
 		for (size_t i = 0; i < model.number_of_calculated_signals; i++)
 			mCalculatedSignalGUIDs.insert(model.calculated_signal_ids[i]);
 	}
+	
+}
+
+
+CGUI_Filter_Subchain::~CGUI_Filter_Subchain() {
+	Stop();	
+}
+
+
+void CGUI_Filter_Subchain::Start() {
+	if (mRunning) Stop();
 
 	mRunning = true;
 
 	mUpdater_Thread = std::make_unique<std::thread>(&CGUI_Filter_Subchain::Run_Updater, this);
 }
 
+void CGUI_Filter_Subchain::Stop() {
+	if (!mRunning) return;
 
-CGUI_Filter_Subchain::~CGUI_Filter_Subchain() {
 	// terminate updater thread
 	{
 		std::unique_lock<std::mutex> lck(mUpdater_Mtx);
@@ -67,9 +79,15 @@ CGUI_Filter_Subchain::~CGUI_Filter_Subchain() {
 		mUpdater_Cv.notify_all();
 	}
 
-	if (mUpdater_Thread->joinable())
-		mUpdater_Thread->join();
+	if (mUpdater_Thread)
+		if (mUpdater_Thread->joinable()) {
+			mUpdater_Thread->join();
+			mUpdater_Thread.reset();
+		}
 
+	mDrawing_Filter_Inspection = glucose::SDrawing_Filter_Inspection{ };
+	mError_Filter_Inspection = glucose::SError_Filter_Inspection{};
+	mLog_Filter_Inspection = glucose::SLog_Filter_Inspection{};
 }
 
 void CGUI_Filter_Subchain::Run_Updater()
@@ -102,11 +120,6 @@ void CGUI_Filter_Subchain::On_Filter_Configured(glucose::IFilter *filter) {
 }
 
 
-void CGUI_Filter_Subchain::Release_Filters() {
-	mDrawing_Filter_Inspection = glucose::SDrawing_Filter_Inspection{ };
-	mError_Filter_Inspection = glucose::SError_Filter_Inspection{};
-	mLog_Filter_Inspection = glucose::SLog_Filter_Inspection{};
-}
 
 void CGUI_Filter_Subchain::Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds)
 {
