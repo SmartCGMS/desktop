@@ -112,7 +112,7 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 						container = new filter_config_window::CNull_Container_Edit(this);
 						break;
 
-					case glucose::NParameter_Type::ptWChar_Container:
+					case glucose::NParameter_Type::ptWChar_Array:
 						container = new filter_config_window::CWChar_Container_Edit{ parameter, this };
 						break;
 
@@ -132,7 +132,7 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 						container = new filter_config_window::CBoolean_Container_Edit{ parameter, this};
 						break;
 					
-					case glucose::NParameter_Type::ptSelect_Time_Segment_ID:
+					case glucose::NParameter_Type::ptInt64_Array:
 						container = new CSelect_Time_Segment_Id_Panel{ mConfiguration, parameter, this };
 						break;
 
@@ -152,10 +152,6 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 						container = new CGUID_Entity_ComboBox<glucose::TSolver_Descriptor, glucose::get_solver_descriptors>(parameter, this);
 						break;
 
-					case glucose::NParameter_Type::ptDevice_Driver_Id:
-						container = new CGUID_Entity_ComboBox<glucose::TDevice_Driver_Descriptor, glucose::get_device_driver_descriptors>(parameter, this);
-						break;
-
 					case glucose::NParameter_Type::ptModel_Signal_Id:
 						// signal selection always requires model selection field
 						if (!model_select)
@@ -168,7 +164,7 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 						container = new CAvailable_Signal_Select_ComboBox(parameter, nullptr);
 						break;
 
-					case glucose::NParameter_Type::ptModel_Bounds:
+					case glucose::NParameter_Type::ptDouble_Array:
 						// model bounds edit always requires model selection field
 						if (!model_select)
 							create_model_select(parameter);
@@ -185,8 +181,8 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 				switch (mDescription.parameter_type[i])
 				{
 					//special widget, let's add it as a standalone tab
-					case glucose::NParameter_Type::ptSelect_Time_Segment_ID:
-					case glucose::NParameter_Type::ptModel_Bounds:
+					case glucose::NParameter_Type::ptInt64_Array:
+					case glucose::NParameter_Type::ptDouble_Array:
 					case glucose::NParameter_Type::ptSubject_Id:
 					{
 						tabs->addTab(dynamic_cast<QWidget*>(container), QString::fromWCharArray(mDescription.ui_parameter_name[i]));
