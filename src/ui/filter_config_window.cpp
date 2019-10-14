@@ -92,6 +92,7 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 		const int idxEdit_col = 1;
 
 		QGridLayout *main_layout = new QGridLayout();
+		main_layout->setAlignment(Qt::AlignTop);
 		int ui_row = 0;
 		for (int i = 0; i < static_cast<int>(mDescription.parameters_count); i++) {
 			//try to obtain the parameter, if is present in the configuration

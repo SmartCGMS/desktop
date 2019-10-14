@@ -441,6 +441,8 @@ HRESULT IfaceCalling CSimulation_Window::On_Filter_Configured(glucose::IFilter *
 }
 
 void CSimulation_Window::On_Stop() {
+	if (!mSimulationInProgress) return;
+
 	mSimulationInProgress = false;
 	mGUI_Filter_Subchain.Stop();	
 	
@@ -688,11 +690,13 @@ void CSimulation_Window::Update_Solver_Progress()
 }
 
 void CSimulation_Window::Inject_Event(const glucose::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info, const uint64_t segment_id) {
-	glucose::UDevice_Event evt{ code };
-	evt.signal_id() = signal_id;
-	evt.segment_id() = segment_id;
-	evt.info.set(info);
-	mFilter_Executor.Execute(std::move(evt));
+	if (mFilter_Executor) {
+		glucose::UDevice_Event evt{ code };
+		evt.signal_id() = signal_id;
+		evt.segment_id() = segment_id;
+		evt.info.set(info);
+		mFilter_Executor.Execute(std::move(evt));
+	}
 }
 
 QUuid CSimulation_Window::GUID_To_QUuid(const GUID& guid)

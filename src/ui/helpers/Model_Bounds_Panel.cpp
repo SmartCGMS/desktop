@@ -209,7 +209,7 @@ void CModel_Bounds_Panel::fetch_parameter() {
 
 	glucose::TModel_Descriptor model = glucose::Null_Model_Descriptor;
 
-	if ((rc == S_OK) && Get_Current_Selected_Model(model)) {
+	if (SUCCEEDED(rc) && Get_Current_Selected_Model(model)) {
 		const double* lb = model.lower_bound;
 		const double* def = model.default_values;
 		const double* ub = model.upper_bound;
