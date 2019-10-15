@@ -128,6 +128,9 @@ void CFilters_Window::Setup_UI() {
 		}
 	}
 
+	lbxAvailable_Filters->sortItems();
+
+
 	//add the  applied filters
 	mFilter_Chain_Configuration.for_each([this](glucose::SFilter_Configuration_Link link) {
 		CFilter_List_Item *tmp = new CFilter_List_Item(link);
