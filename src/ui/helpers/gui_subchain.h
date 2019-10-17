@@ -67,6 +67,7 @@ class CGUI_Filter_Subchain {
 		glucose::SDrawing_Filter_Inspection mDrawing_Filter_Inspection;
 		glucose::SError_Filter_Inspection mError_Filter_Inspection;
 		glucose::SLog_Filter_Inspection mLog_Filter_Inspection;
+		;
 
 		// set of all GUIDs of calculated signals that came through pipe
 		std::set<GUID> mCalculatedSignalGUIDs;

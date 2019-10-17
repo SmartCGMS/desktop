@@ -57,7 +57,8 @@
 
 #include "moc_errors_tab_widget.cpp"
 
-constexpr int Error_Column_Count = static_cast<int>(glucose::NError_Marker::count) + static_cast<int>(glucose::NError_Percentile::count) + static_cast<int>(glucose::NError_Range::count);
+constexpr int Error_Column_Count = 18;
+//= static_cast<int>(glucose::NError_Marker::count) + static_cast<int>(glucose::NError_Percentile::count) + static_cast<int>(glucose::NError_Range::count);
 
 // names of error types
 const wchar_t* gError_Names[static_cast<size_t>(glucose::NError_Type::count)] = {
@@ -65,13 +66,15 @@ const wchar_t* gError_Names[static_cast<size_t>(glucose::NError_Type::count)] = 
 	dsError_Relative
 };
 // ensure array length
-static_assert((sizeof(gError_Names) / sizeof(const wchar_t*)) == static_cast<size_t>(glucose::NError_Type::count), "Error type names count does not match error types defined");
+//static_assert((sizeof(gError_Names) / sizeof(const wchar_t*)) == static_cast<size_t>(glucose::NError_Type::count), "Error type names count does not match error types defined");
 
 // names of columns in table
-const wchar_t* gError_Column_Names[] = {
+const wchar_t* gError_Column_Names[Error_Column_Count] = {
+	dsError,
+	dsReference_Signal,
+	dsSignal_Error,
 	dsError_Column_Average,
-	dsError_Column_StdDev,
-	dsError_Column_AIC,
+	dsError_Column_StdDev,	
 	dsError_Column_Sum,
 	dsError_Column_Minimum,
 	dsError_Column_First_Quantile,
@@ -86,18 +89,18 @@ const wchar_t* gError_Column_Names[] = {
 	dsError_Column_Range_50pct
 };
 // ensure array length
-static_assert((sizeof(gError_Column_Names) / sizeof(const wchar_t*)) == Error_Column_Count, "Column count does not match error columns defined");
+//static_assert((sizeof(gError_Column_Names) / sizeof(const wchar_t*)) == Error_Column_Count, "Column count does not match error columns defined");
 
-CError_Table_Model::CError_Table_Model(QObject *parent) noexcept : QAbstractTableModel(parent), mMaxSignalRow(0) {
+CErrors_Tab_Widget_internal::CError_Table_Model::CError_Table_Model(QObject *parent) noexcept : QAbstractTableModel(parent), mMaxSignalRow(0) {
 }
 
-int CError_Table_Model::rowCount(const QModelIndex &idx) const
+int CErrors_Tab_Widget_internal::CError_Table_Model::rowCount(const QModelIndex &idx) const
 {
-	return mMaxSignalRow * static_cast<int>(glucose::NError_Type::count);
+	//return mMaxSignalRow * static_cast<int>(glucose::NError_Type::count);
+	return 3 * static_cast<int>(mSignal_Errors.size());
 }
 
-int CError_Table_Model::columnCount(const QModelIndex &idx) const
-{
+int CErrors_Tab_Widget_internal::CError_Table_Model::columnCount(const QModelIndex &idx) const {
 	return Error_Column_Count;
 }
 
@@ -119,8 +122,10 @@ QString Format_Error_String(glucose::NError_Type type, double val)
 	}
 }
 
-QVariant CError_Table_Model::data(const QModelIndex &index, int role) const
-{
+QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex &index, int role) const {
+
+	/*
+
 	// content of error cells
 	if (role == Qt::DisplayRole || role == Qt::EditRole)
 	{
@@ -145,10 +150,12 @@ QVariant CError_Table_Model::data(const QModelIndex &index, int role) const
 		if (index.column() >= static_cast<int>(glucose::NError_Marker::count) && index.column() < static_cast<int>(glucose::NError_Marker::count) + static_cast<int>(glucose::NError_Percentile::count))
 			return QBrush(QColor(224, 224, 224));
 	}
+
+	*/
 	return QVariant();
 }
 
-QVariant CError_Table_Model::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant CErrors_Tab_Widget_internal::CError_Table_Model::headerData(int section, Qt::Orientation orientation, int role) const
 {
 	if (role == Qt::DisplayRole)
 	{
@@ -166,7 +173,7 @@ QVariant CError_Table_Model::headerData(int section, Qt::Orientation orientation
 	return QVariant();
 }
 
-bool CError_Table_Model::insertRows(int position, int rows, const QModelIndex &index)
+bool CErrors_Tab_Widget_internal::CError_Table_Model::insertRows(int position, int rows, const QModelIndex &index)
 {
 	beginInsertRows(QModelIndex(), position, position + rows - 1);
 
@@ -177,8 +184,11 @@ bool CError_Table_Model::insertRows(int position, int rows, const QModelIndex &i
 	return true;
 }
 
-bool CError_Table_Model::setData(const QModelIndex &index, const QVariant &value, int role)
-{
+bool CErrors_Tab_Widget_internal::CError_Table_Model::setData(const QModelIndex &index, const QVariant &value, int role) {
+	return false;
+
+
+	/* why did we allowed any editation?
 	if (index.isValid())
 	{
 		int row = index.row();
@@ -196,9 +206,10 @@ bool CError_Table_Model::setData(const QModelIndex &index, const QVariant &value
 	}
 
 	return false;
+	*/
 }
 
-void CError_Table_Model::Set_Error(const GUID& signal_id, std::wstring signal_name, const glucose::TError_Markers& errors, const glucose::NError_Type type)
+void CErrors_Tab_Widget_internal::CError_Table_Model::Set_Error(const GUID& signal_id, std::wstring signal_name, const glucose::TError_Markers& errors, const glucose::NError_Type type)
 {
 	int row;
 
@@ -234,7 +245,7 @@ void CError_Table_Model::Set_Error(const GUID& signal_id, std::wstring signal_na
 	}
 }
 
-void CError_Table_Model::Set_From_Model(const std::map<GUID, int>& srcSignalMap, const std::vector<std::wstring>& srcSignalNameMap, CError_Table_Model* source)
+void CErrors_Tab_Widget_internal::CError_Table_Model::Set_From_Model(const std::map<GUID, int>& srcSignalMap, const std::vector<std::wstring>& srcSignalNameMap, CError_Table_Model* source)
 {
 	int row;
 
@@ -258,11 +269,32 @@ void CError_Table_Model::Set_From_Model(const std::map<GUID, int>& srcSignalMap,
 	}
 }
 
-void CError_Table_Model::Clone_To_Model(CError_Table_Model* dest)
+void CErrors_Tab_Widget_internal::CError_Table_Model::Clone_To_Model(CError_Table_Model* dest)
 {
 	dest->Set_From_Model(mSignalRow, mSignalNameList, this);
 }
 
+
+void CErrors_Tab_Widget_internal::CError_Table_Model::On_Filter_Configured(glucose::IFilter *filter) {
+	if (glucose::SSignal_Error_Inspection insp = glucose::SSignal_Error_Inspection{ glucose::SFilter{filter} }) {
+		CErrors_Tab_Widget_internal::TSignal_Error_Inspection tmp{ insp };		
+
+		je treba nastavit vsechny polozoky obou recent errors to nan
+
+		mSignal_Errors.push_back(tmp);
+	}
+}
+
+void CErrors_Tab_Widget_internal::CError_Table_Model::Update_Errors() {
+
+	for (auto &signal_error : mSignal_Errors) {		
+		if (signal_error.signal_error->Peek_New_Data_Available() == S_OK) {
+			if (signal_error.signal_error->Calculate_Signal_Error(&signal_error.recent_abs_error, &signal_error.recent_rel_error) == S_OK) {
+
+			}
+		}
+	}
+}
 
 
 
@@ -270,7 +302,7 @@ CErrors_Tab_Widget::CErrors_Tab_Widget(QWidget *parent) noexcept: CAbstract_Simu
 	QGridLayout *mainLayout = new QGridLayout();
 
 	mTableView = new QTableView();
-	mModel = new CError_Table_Model(this);
+	mModel = new CErrors_Tab_Widget_internal::CError_Table_Model(this);
 	mTableView->setModel(mModel);
 	mainLayout->addWidget(mTableView);
 
@@ -382,7 +414,7 @@ CAbstract_Simulation_Tab_Widget* CErrors_Tab_Widget::Clone()
 	return cloned;
 }
 
-void CErrors_Tab_Widget::Clone_From_Model(CError_Table_Model* source)
+void CErrors_Tab_Widget::Clone_From_Model(CErrors_Tab_Widget_internal::CError_Table_Model* source)
 {
 	source->Clone_To_Model(mModel);
 }
@@ -393,10 +425,19 @@ void CErrors_Tab_Widget::Reset()
 	Q_UNUSED(loop);
 	QTimer::singleShot(0, this, [this]()
 	{
-		auto newModel = new CError_Table_Model(this);
+		auto newModel = new CErrors_Tab_Widget_internal::CError_Table_Model(this);
 		mTableView->setModel(newModel);
 
 		delete mModel;
 		mModel = newModel;
 	});
+}
+
+
+void CErrors_Tab_Widget::On_Filter_Configured(glucose::IFilter *filter) {
+	if (mModel) mModel->On_Filter_Configured(filter);
+}
+
+void CErrors_Tab_Widget::Refresh() {
+	if (mModel) mModel->Update_Errors();
 }

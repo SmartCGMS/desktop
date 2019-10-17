@@ -174,11 +174,16 @@ void CGUI_Filter_Subchain::Update_Log()
 }
 
 void CGUI_Filter_Subchain::Update_Error_Metrics() {
+	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
+	if (!simwin) return;
+	simwin->Update_Errors();
+
+	//the staff below is now a legacy code that is supposed to go away, once we completely relplace the ErrorFilter
+
 	if (!mError_Filter_Inspection) return;
 	if (mError_Filter_Inspection->New_Data_Available() != S_OK) return;	//nothing to update
 
-	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
-	if (!simwin) return;
+	
 
 	glucose::TError_Markers err;
 	for (auto& signal_id : mCalculatedSignalGUIDs) {

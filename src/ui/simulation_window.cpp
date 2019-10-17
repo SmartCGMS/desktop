@@ -433,6 +433,7 @@ HRESULT IfaceCalling CSimulation_Window::On_Filter_Configured(glucose::IFilter *
 
 	Setup_Filter_DB_Access(filter, data);
 	local_instance->mGUI_Filter_Subchain.On_Filter_Configured(filter);
+	local_instance->mErrorsWidget->On_Filter_Configured(filter);
 
 	if (glucose::SCalculate_Filter_Inspection insp = glucose::SCalculate_Filter_Inspection{ glucose::SFilter{filter} })
 		local_instance->mSolver_Filters.push_back(insp);
@@ -711,4 +712,8 @@ GUID CSimulation_Window::QUuid_To_GUID(const QUuid& uuid)
 		uuid.data4[0], uuid.data4[1], uuid.data4[2], uuid.data4[3], uuid.data4[4], uuid.data4[5],
 		uuid.data4[6], uuid.data4[7]
 	};
+}
+
+void CSimulation_Window::Update_Errors() {
+	if (mErrorsWidget) mErrorsWidget->Refresh();
 }
