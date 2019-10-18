@@ -57,22 +57,22 @@
 
 #include "moc_errors_tab_widget.cpp"
 
-constexpr int Error_Column_Count = 18;
+constexpr int Error_Column_Count = 15;
 //= static_cast<int>(glucose::NError_Marker::count) + static_cast<int>(glucose::NError_Percentile::count) + static_cast<int>(glucose::NError_Range::count);
 
+/*
 // names of error types
 const wchar_t* gError_Names[static_cast<size_t>(glucose::NError_Type::count)] = {
 	dsError_Absolute,
 	dsError_Relative
 };
+*/
 // ensure array length
 //static_assert((sizeof(gError_Names) / sizeof(const wchar_t*)) == static_cast<size_t>(glucose::NError_Type::count), "Error type names count does not match error types defined");
 
 // names of columns in table
-const wchar_t* gError_Column_Names[Error_Column_Count] = {
-	dsError,
-	dsReference_Signal,
-	dsSignal_Error,
+const std::array<const wchar_t*, Error_Column_Count>  gError_Column_Names = {
+	dsDescription,	
 	dsError_Column_Average,
 	dsError_Column_StdDev,	
 	dsError_Column_Sum,
@@ -123,7 +123,32 @@ QString Format_Error_String(glucose::NError_Type type, double val)
 }
 
 QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex &index, int role) const {
+	if (role == Qt::DisplayRole) {
+		const int row = index.row();
+		const int col = index.column();
 
+		const int row_role = row % 3;	//0 is absolute error, then relative error
+
+		constexpr int absolute_role = 0;
+		constexpr int relative_role = 1;
+		constexpr int spacing_role = 2;
+
+		constexpr int desc_col = 0;		
+
+		switch (row_role) {
+			case absolute_role:
+				switch (col) {					
+				//case err_col: return QString::fromWCharArray(dsAbsolute); break;
+				}
+						
+			case relative_role: break;
+				switch (col) {
+					//case err_col: return QString::fromWCharArray(dsRelative); break;
+				}
+
+			default: return QVariant();	//spacing role
+		}
+	}
 	/*
 
 	// content of error cells
@@ -166,8 +191,15 @@ QVariant CErrors_Tab_Widget_internal::CError_Table_Model::headerData(int section
 				return StdWStringToQString(gError_Column_Names[section]);
 		}
 		// vertical - use signal names and error type names
-		else if (orientation == Qt::Vertical)
-			return StdWStringToQString(mSignalNameList[section / static_cast<int>(glucose::NError_Type::count)] + L" (" + gError_Names[section % static_cast<int>(glucose::NError_Type::count)] + L")");
+		else if (orientation == Qt::Vertical) {
+			switch (section % 3) {
+				case 0:	return QString::fromWCharArray(dsAbsolute); break;
+				case 1: return QString::fromWCharArray(dsRelative); break;
+			}
+		}
+
+
+//			return StdWStringToQString(mSignalNameList[section / static_cast<int>(glucose::NError_Type::count)] + L" (" + gError_Names[section % static_cast<int>(glucose::NError_Type::count)] + L")");
 	}
 
 	return QVariant();
@@ -277,10 +309,10 @@ void CErrors_Tab_Widget_internal::CError_Table_Model::Clone_To_Model(CError_Tabl
 
 void CErrors_Tab_Widget_internal::CError_Table_Model::On_Filter_Configured(glucose::IFilter *filter) {
 	if (glucose::SSignal_Error_Inspection insp = glucose::SSignal_Error_Inspection{ glucose::SFilter{filter} }) {
-		CErrors_Tab_Widget_internal::TSignal_Error_Inspection tmp{ insp };		
-
-		je treba nastavit vsechny polozoky obou recent errors to nan
-
+		wchar_t *tmp_desc;
+		insp->Get_Description(&tmp_desc);		
+		CErrors_Tab_Widget_internal::TSignal_Error_Inspection tmp{ tmp_desc, insp };
+		insp->Calculate_Signal_Error(&tmp.recent_abs_error, &tmp.recent_rel_error);
 		mSignal_Errors.push_back(tmp);
 	}
 }

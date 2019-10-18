@@ -59,6 +59,7 @@
 namespace CErrors_Tab_Widget_internal {
 
 	struct TSignal_Error_Inspection{
+		std::wstring description;
 		glucose::SSignal_Error_Inspection signal_error;
 		glucose::TSignal_Error recent_abs_error;
 		glucose::TSignal_Error recent_rel_error;
