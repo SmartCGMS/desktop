@@ -68,36 +68,20 @@ namespace CErrors_Tab_Widget_internal {
 	class CError_Table_Model : public QAbstractTableModel {
 		Q_OBJECT
 	protected:
-		// signal row mapping (for fast lookup)
-		std::map<GUID, int> mSignalRow;
-		// signal name vector; the order matches with errors vector below and with display order
-		std::vector<std::wstring> mSignalNameList;
-		// errors container; the order matches with signal name list above and with display order
-		std::vector<std::array<glucose::TError_Markers, static_cast<size_t>(glucose::NError_Type::count)>> mErrors;
-
-		// next row to be assigned to signal
-		int mMaxSignalRow;
-
-	protected:
 		std::vector<TSignal_Error_Inspection> mSignal_Errors;
 	public:
 		explicit CError_Table_Model(QObject *parent = 0) noexcept;
+
 		int rowCount(const QModelIndex &parent = QModelIndex()) const;
 		int columnCount(const QModelIndex &parent = QModelIndex()) const;
 		QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-		bool setData(const QModelIndex &index, const QVariant &value, int role);
 		QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-		bool insertRows(int position, int rows, const QModelIndex &index);
-
-		// sets error values from given container for given signal and type
-		void Set_Error(const GUID& signal_id, std::wstring signal_name, const glucose::TError_Markers& errors, const glucose::NError_Type type); //remove
-		// clones signal map and stores errors from another model
-		void Set_From_Model(const std::map<GUID, int>& srcSignalMap, const std::vector<std::wstring>& srcSignalNameMap, CError_Table_Model* source); //remove
-		// just calls Set_From_Model from within
-		void Clone_To_Model(CError_Table_Model* dest); //remove?
-
+		
+		CError_Table_Model* Clone(QObject *parent = 0);
+		
 		void On_Filter_Configured(glucose::IFilter *filter);
 		void Update_Errors();
+		void Clear_Filters();
 	};
 
 }
@@ -105,34 +89,23 @@ namespace CErrors_Tab_Widget_internal {
 /*
  * Error metrics display widget
  */
-class CErrors_Tab_Widget : public CAbstract_Simulation_Tab_Widget
-{
-		Q_OBJECT
+class CErrors_Tab_Widget : public CAbstract_Simulation_Tab_Widget {
+	Q_OBJECT
+protected:
+	// table view for error metrics
+	QTableView* mTableView;
+	// table model for error metrics
+	CErrors_Tab_Widget_internal::CError_Table_Model* mModel;
+	// stored signal names
+	std::map<GUID, std::wstring> mSignalNames;
 
-	protected:
-		// table view for error metrics
-		QTableView* mTableView;
-		// table model for error metrics
-		CErrors_Tab_Widget_internal::CError_Table_Model* mModel;
-		// stored signal names
-		std::map<GUID, std::wstring> mSignalNames;
+public slots:
+	void Export_CSV_Button_Clicked();
 
-	public slots:
-		void Export_CSV_Button_Clicked();
-
-	public:
-		explicit CErrors_Tab_Widget(QWidget *parent = 0) noexcept;
-
-		virtual CAbstract_Simulation_Tab_Widget* Clone() override; //should we remove this one as well?
-		// updates error metrics of given signal - legacy method to be removed
-		void Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type);
-
-		void Refresh();
-
-		// resets the model (i.e. on simulation start)
-		void Reset();
-
-		void Clone_From_Model(CErrors_Tab_Widget_internal::CError_Table_Model* source);
-
-		void On_Filter_Configured(glucose::IFilter *filter);
+public:
+	explicit CErrors_Tab_Widget(QWidget *parent = 0) noexcept;
+	virtual CAbstract_Simulation_Tab_Widget* Clone() override; 		
+	void Refresh();	
+	void On_Filter_Configured(glucose::IFilter *filter);
+	void Clear_Filters();
 };

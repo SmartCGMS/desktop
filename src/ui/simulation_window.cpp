@@ -365,7 +365,7 @@ void CSimulation_Window::resizeEvent(QResizeEvent* evt)
 }
 
 void CSimulation_Window::On_Start() {
-	mGUI_Filter_Subchain.Stop();
+	On_Stop();
 
 	// clean progress bars and progress bar group box
 	QLayoutItem *wItem;
@@ -417,8 +417,6 @@ void CSimulation_Window::On_Start() {
 	mStopButton->setEnabled(true);
 	mStartButton->setEnabled(false);
 
-	if (mErrorsWidget)
-		mErrorsWidget->Reset();
 
 	// hide all signal solve actions
 	for (auto& action : mSignalSolveActions)
@@ -445,7 +443,9 @@ void CSimulation_Window::On_Stop() {
 	if (!mSimulationInProgress) return;
 
 	mSimulationInProgress = false;
-	mGUI_Filter_Subchain.Stop();	
+	mGUI_Filter_Subchain.Stop();
+
+	mErrorsWidget->Clear_Filters();
 	
 	for (const auto& solvers : mSolver_Filters)
 		solvers->Cancel_Solver();
@@ -663,8 +663,9 @@ void CSimulation_Window::On_Solve_Signal(QString str)
 	Inject_Event(glucose::NDevice_Event_Code::Solve_Parameters, signalId, nullptr, glucose::All_Segments_Id);
 }
 
+
 void CSimulation_Window::Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type) {
-	if (mSimulationInProgress) mErrorsWidget->Update_Error_Metrics(signal_id, container, type);
+//	if (mSimulationInProgress) mErrorsWidget->Update_Error_Metrics(signal_id, container, type);
 }
 
 void CSimulation_Window::Update_Solver_Progress()

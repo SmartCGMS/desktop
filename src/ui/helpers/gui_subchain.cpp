@@ -177,28 +177,6 @@ void CGUI_Filter_Subchain::Update_Error_Metrics() {
 	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
 	if (!simwin) return;
 	simwin->Update_Errors();
-
-	//the staff below is now a legacy code that is supposed to go away, once we completely relplace the ErrorFilter
-
-	if (!mError_Filter_Inspection) return;
-	if (mError_Filter_Inspection->New_Data_Available() != S_OK) return;	//nothing to update
-
-	
-
-	glucose::TError_Markers err;
-	for (auto& signal_id : mCalculatedSignalGUIDs) {
-		for (size_t i = 0; i < static_cast<size_t>(glucose::NError_Type::count); i++) {
-			if (mError_Filter_Inspection->Get_Errors(&signal_id, static_cast<glucose::NError_Type>(i), &err) == S_OK)
-				simwin->Update_Error_Metrics(signal_id, err, static_cast<glucose::NError_Type>(i));
-		}
-	}
-
-	for (auto& signal_id : glucose::signal_Virtual) {
-		for (size_t i = 0; i < static_cast<size_t>(glucose::NError_Type::count); i++) {
-			if (mError_Filter_Inspection->Get_Errors(&signal_id, static_cast<glucose::NError_Type>(i), &err) == S_OK)
-				simwin->Update_Error_Metrics(signal_id, err, static_cast<glucose::NError_Type>(i));
-		}
-	}
 }
 
 void CGUI_Filter_Subchain::Hint_Update_Solver_Progress()
