@@ -108,7 +108,7 @@ QString Format_Error_String(double val, bool relative)
 
 QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex &index, int role) const {
 
-	auto display_signal = [](const int col, const glucose::TSignal_Error &error, bool relative) {
+	auto display_signal = [](const int col, const glucose::TSignal_Error &error, bool is_relative) {
 		constexpr int avg_col = 1;
 		constexpr int stdev_col = 2;
 		constexpr int sum_col = 3;
@@ -116,25 +116,25 @@ QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex
 		
 		constexpr int min_col = 5;
 		constexpr int p25_col = 6;
-		constexpr int mad_col = 7;
+		constexpr int med_col = 7;
 		constexpr int p75_col = 8;
 		constexpr int p95_col = 9;
 		constexpr int p99_col = 10;
-		constexpr int max_col = 11;
+		constexpr int max_col = 11;		
 
 		switch (col) {
-			case avg_col:	return Format_Error_String(error.avg, relative);
-			case stdev_col: return Format_Error_String(error.stddev, relative);
-			case sum_col:	return Format_Error_String(error.sum, relative);
+			case avg_col:	return Format_Error_String(error.avg, is_relative);
+			case stdev_col: return Format_Error_String(error.stddev, is_relative);
+			case sum_col:	return Format_Error_String(error.sum, is_relative);
 			case count_col: return Format_Error_String(error.count, false);	
 
-			case min_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::min_value)], relative);
-			case p25_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::p25)], relative);
-			case mad_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::median)], relative);
-			case p75_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::p75)], relative);
-			case p95_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::p95)], relative);
-			case p99_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::p99)], relative);
-			case max_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::max_value)], relative);
+			case min_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::min_value)], is_relative);
+			case p25_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::p25)], is_relative);
+			case med_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::median)], is_relative);
+			case p75_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::p75)], is_relative);
+			case p95_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::p95)], is_relative);
+			case p99_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::p99)], is_relative);
+			case max_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::max_value)], is_relative);
 			default:		return QString{};
 		}
 	};
@@ -152,7 +152,11 @@ QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex
 		constexpr int spacing_role = 2;
 
 		constexpr int desc_col = 0;		
+
 		constexpr int rel5_col = 12;
+		constexpr int rel10_col = 13;
+		constexpr int rel25_col = 14;
+		constexpr int rel50_col = 15;
 		
 		if (col == desc_col) {
 			return QVariant{ QString::fromStdWString(mSignal_Errors[error_index].description) };
@@ -161,13 +165,19 @@ QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex
 
 			switch (row_role) {
 				case absolute_role: return display_signal(col, mSignal_Errors[error_index].recent_abs_error, false); break;
-				case relative_role: return display_signal(col, mSignal_Errors[error_index].recent_rel_error, true); break;
+				case relative_role:	return display_signal(col, mSignal_Errors[error_index].recent_rel_error, true); break;
 				default: return QVariant();	//spacing role				
 			}
 		}
-		else if (col>= rel5_col) {
-			//relative errors
-			
+		else if ((col>= rel5_col) && (row_role == relative_role)) {
+			//relative errors			
+				switch (col) {
+					case rel5_col: return Format_Error_String(mSignal_Errors[error_index].r5, true); break;
+					case rel10_col: return Format_Error_String(mSignal_Errors[error_index].r10, true); break;
+					case rel25_col: return Format_Error_String(mSignal_Errors[error_index].r25, true); break;
+					case rel50_col: return Format_Error_String(mSignal_Errors[error_index].r50, true); break;
+					default: return display_signal(col, mSignal_Errors[error_index].recent_rel_error, true); break;
+				}						
 		} else
 			return QVariant{};	//default value							
 	}	//end of Qt display role
@@ -212,6 +222,7 @@ void CErrors_Tab_Widget_internal::CError_Table_Model::On_Filter_Configured(gluco
 		wchar_t *tmp_desc;
 		inspection.description = inspection.signal_error->Get_Description(&tmp_desc) == S_OK ? tmp_desc : dsSignal_Unknown;		
 		inspection.signal_error->Calculate_Signal_Error(&inspection.recent_abs_error, &inspection.recent_rel_error);
+		inspection.r5 = inspection.r10 = inspection.r25 = inspection.r50 = std::numeric_limits<double>::quiet_NaN();
 		mSignal_Errors.push_back(inspection);
 	}
 }
@@ -221,7 +232,22 @@ void CErrors_Tab_Widget_internal::CError_Table_Model::Update_Errors() {
 	for (auto &signal_error : mSignal_Errors) {		
 		if (signal_error.signal_error->Peek_New_Data_Available() == S_OK) {
 			if (signal_error.signal_error->Calculate_Signal_Error(&signal_error.recent_abs_error, &signal_error.recent_rel_error) == S_OK) {
+				if (signal_error.recent_rel_error.count > 0) {
 
+					auto inv_ecdf = [&signal_error](const double threshold)->double {
+						auto found = std::lower_bound(signal_error.recent_rel_error.ecdf.begin(), signal_error.recent_rel_error.ecdf.end(), threshold);
+						if (found != signal_error.recent_rel_error.ecdf.end()) {
+							return 0.01*static_cast<double>(std::distance(signal_error.recent_rel_error.ecdf.begin(), found));
+						}
+						else
+							return 1.0;	//100% relative
+					};
+
+					signal_error.r5 = inv_ecdf(0.05);
+					signal_error.r10 = inv_ecdf(0.1);
+					signal_error.r25 = inv_ecdf(0.25);
+					signal_error.r50 = inv_ecdf(0.50);
+				}
 			}
 		}
 	}
@@ -344,8 +370,8 @@ void CErrors_Tab_Widget::On_Filter_Configured(glucose::IFilter *filter) {
 }
 
 void CErrors_Tab_Widget::Refresh() {
-	if (mModel) mModel->Update_Errors();
-	mTableView->update();	
+	if (mModel) mModel->Update_Errors();	
+	mTableView->reset();		
 }
 
 void CErrors_Tab_Widget::Clear_Filters() {

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SmartCGMS - continuous glucose monitoring and controlling framework
  * https://diabetes.zcu.cz/
  *
@@ -63,6 +63,7 @@ namespace CErrors_Tab_Widget_internal {
 		glucose::SSignal_Error_Inspection signal_error;
 		glucose::TSignal_Error recent_abs_error;
 		glucose::TSignal_Error recent_rel_error;
+		double r5, r10, r25, r50;	//inverse ECDF for relative errors
 	};
 
 	class CError_Table_Model : public QAbstractTableModel {
