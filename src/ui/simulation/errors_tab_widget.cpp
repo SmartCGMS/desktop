@@ -229,8 +229,16 @@ void CErrors_Tab_Widget_internal::CError_Table_Model::On_Filter_Configured(gluco
 
 void CErrors_Tab_Widget_internal::CError_Table_Model::Update_Errors() {
 
+	bool called_begin_reset = false;
+
 	for (auto &signal_error : mSignal_Errors) {		
 		if (signal_error.signal_error->Peek_New_Data_Available() == S_OK) {
+
+			if (!called_begin_reset) {
+				beginResetModel();
+				called_begin_reset = true;
+			}
+
 			if (signal_error.signal_error->Calculate_Signal_Error(&signal_error.recent_abs_error, &signal_error.recent_rel_error) == S_OK) {
 				if (signal_error.recent_rel_error.count > 0) {
 
@@ -251,6 +259,10 @@ void CErrors_Tab_Widget_internal::CError_Table_Model::Update_Errors() {
 			}
 		}
 	}
+
+	emit dataChanged(createIndex(0, 0), createIndex(rowCount() - 1, Error_Column_Count-1));	
+
+	if (called_begin_reset) endResetModel();
 }
 
 
@@ -371,7 +383,6 @@ void CErrors_Tab_Widget::On_Filter_Configured(glucose::IFilter *filter) {
 
 void CErrors_Tab_Widget::Refresh() {
 	if (mModel) mModel->Update_Errors();	
-	mTableView->reset();		
 }
 
 void CErrors_Tab_Widget::Clear_Filters() {

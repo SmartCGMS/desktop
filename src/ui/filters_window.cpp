@@ -185,8 +185,10 @@ void CFilters_Window::On_Move_Filter_Up()
 {
 	for (int i = 1; i < lbxApplied_Filters->count(); i++)
 	{
-		if (lbxApplied_Filters->item(i)->isSelected())
+		if (lbxApplied_Filters->item(i)->isSelected()) {
 			lbxApplied_Filters->insertItem(i, lbxApplied_Filters->takeItem(i - 1));
+			mFilter_Chain_Configuration->move(i, i - 1);
+		}
 	}
 }
 
@@ -194,8 +196,10 @@ void CFilters_Window::On_Move_Filter_Down()
 {
 	for (int i = lbxApplied_Filters->count() - 2; i >= 0; i--)
 	{
-		if (lbxApplied_Filters->item(i)->isSelected())
+		if (lbxApplied_Filters->item(i)->isSelected()) {
 			lbxApplied_Filters->insertItem(i, lbxApplied_Filters->takeItem(i + 1));
+			mFilter_Chain_Configuration->move(i, i + 1);
+		}
 	}
 }
 
@@ -246,26 +250,7 @@ void CFilters_Window::On_Commit_Filters() {
 		return;
 	}
 
-	// TODO_Refactor: fix this
-
-	/*
-	CFilter_Chain new_chain;
-	for (int i = 0; i < lbxApplied_Filters->count(); i++) {
-		auto item = reinterpret_cast<CFilter_List_Item*>(lbxApplied_Filters->item(i));
-
-		CFilter_Configuration config;
-		config.operator=(item->configuration());
-		const TFilter_Chain_Link link{ item->description(), config };
-
-		new_chain.push_back(link);
-	}
-
-	//and replace the current one
-	mFilter_Chain = std::move(new_chain);
-
-	if (simWindow)
-		simWindow->Update_Filter_Chain(mFilter_Chain);
-	*/
+	
 }
 
 void CFilters_Window::On_Filter_Configure_Complete()
