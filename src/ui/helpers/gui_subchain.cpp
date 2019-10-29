@@ -86,7 +86,6 @@ void CGUI_Filter_Subchain::Stop() {
 		}
 
 	mDrawing_Filter_Inspection = glucose::SDrawing_Filter_Inspection{ };
-	mError_Filter_Inspection = glucose::SError_Filter_Inspection{};
 	mLog_Filter_Inspection = glucose::SLog_Filter_Inspection{};
 }
 
@@ -111,10 +110,7 @@ void CGUI_Filter_Subchain::Run_Updater()
 void CGUI_Filter_Subchain::On_Filter_Configured(glucose::IFilter *filter) {
 	if (glucose::SDrawing_Filter_Inspection insp = glucose::SDrawing_Filter_Inspection{ glucose::SFilter{filter} })
 		mDrawing_Filter_Inspection = insp;
-	
-	if (glucose::SError_Filter_Inspection insp = glucose::SError_Filter_Inspection{ glucose::SFilter{filter} })
-		mError_Filter_Inspection = insp;
-	
+		
 	if (glucose::SLog_Filter_Inspection insp = glucose::SLog_Filter_Inspection{ glucose::SFilter{filter} })
 		mLog_Filter_Inspection = insp;
 }

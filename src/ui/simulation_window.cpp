@@ -406,7 +406,7 @@ void CSimulation_Window::On_Start() {
 		lay->addStretch();
 
 	// initialize and start filter holder, this will start filters
-	mFilter_Executor = glucose::SFilter_Executor{ mConfiguration, CSimulation_Window::On_Filter_Configured, nullptr };
+	mFilter_Executor = glucose::SFilter_Executor{ mConfiguration, CSimulation_Window::On_Filter_Configured, this };
 	if (!mFilter_Executor)	{
 		// TODO: error message
 		mFilter_Executor->Terminate();
@@ -426,10 +426,9 @@ void CSimulation_Window::On_Start() {
 }
 
 HRESULT IfaceCalling CSimulation_Window::On_Filter_Configured(glucose::IFilter *filter, const void* data) {
-	CSimulation_Window * local_instance = mInstance.operator CSimulation_Window *();
-	if (!local_instance) return E_INVALIDARG;
+	CSimulation_Window * local_instance = static_cast<CSimulation_Window *>(const_cast<void*>(data));
 
-	Setup_Filter_DB_Access(filter, data);
+	Setup_Filter_DB_Access(filter, nullptr);
 	local_instance->mGUI_Filter_Subchain.On_Filter_Configured(filter);
 	local_instance->mErrorsWidget->On_Filter_Configured(filter);
 
