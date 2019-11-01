@@ -42,6 +42,7 @@
 #include "../../../common/utils/QtUtils.h"
 #include "filters_window.h"
 #include "simulation_window.h"
+#include "parameters_optimization_dialog.h"
 
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QList>
@@ -75,6 +76,7 @@ void CMain_Window::Setup_UI() {
 	QAction *actionQuit = new QAction{tr(dsQuit), this };
 	QAction* act_filters = new QAction{ tr(dsFilters), this };
 	QAction* act_simulation = new QAction{ tr(dsSimulation), this };
+	QAction* actOptimize_Parameters = new QAction{tr(dsOptimize_Parameters), this};
 
 	QWidget *centralWidget;
 	QVBoxLayout *verticalLayout;
@@ -104,6 +106,7 @@ void CMain_Window::Setup_UI() {
 
 	menu_Tools->addAction(act_filters);
 	menu_Tools->addAction(act_simulation);
+	menu_Tools->addAction(actOptimize_Parameters);
 
 	setMenuBar(menuBar);
 	mainToolBar = new QToolBar();
@@ -154,7 +157,7 @@ void CMain_Window::Setup_UI() {
 	connect(mniWindow, SIGNAL(aboutToShow()), this, SLOT(On_Update_Window_Menu()));
 	connect(actHelpAbout, SIGNAL(triggered()), this, SLOT(On_Help_About()));
 	connect(act_filters, SIGNAL(triggered()), this, SLOT(On_Filters_Window()));
-	connect(act_simulation, SIGNAL(triggered()), this, SLOT(On_Simulation_Window()));
+	connect(actOptimize_Parameters, SIGNAL(triggered()), this, SLOT(On_Optimize_Parameters_Dialog()));
 
 	connect(mWindowMapper, SIGNAL(mapped(QWidget*)), this, SLOT(Set_Active_Sub_Window(QWidget*)));
 }
@@ -264,4 +267,9 @@ void CMain_Window::On_Simulation_Window() {
 
 void CMain_Window::On_Save_Configuration() {
 	mFilter_Configuration->Save_To_File(mFilter_Configuration_File_Path.c_str());
+}
+
+void CMain_Window::On_Optimize_Parameters_Dialog() {
+	CParameters_Optimization_Dialog *dlg = new CParameters_Optimization_Dialog{ refcnt::make_shared_reference_ext<glucose::SFilter_Chain_Configuration, glucose::IFilter_Chain_Configuration>(mFilter_Configuration.get(), true), this };
+	dlg->show();
 }

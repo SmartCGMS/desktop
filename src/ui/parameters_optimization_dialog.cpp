@@ -38,53 +38,69 @@
 
 #pragma once
 
-#include <QtWidgets/QMainWindow>
-#include <QtWidgets/QMdiArea>
-#include <QtGui/QCloseEvent>
-#include <QtWidgets/QAction>
-#include <QtWidgets/QMenu>
-#include <QtCore/QSignalMapper>
+#include "parameters_optimization_dialog.h"
 
-#include "../../../common/rtl/FilterLib.h"
+#include "..\..\..\common\lang\dstrings.h"
 
-class CMain_Window : public QMainWindow
-{
-	Q_OBJECT
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QBoxLayout>
+#include <QtWidgets/QPushButton>
 
-	protected:
-		std::wstring mFilter_Configuration_File_Path;
-		glucose::SPersistent_Filter_Chain_Configuration mFilter_Configuration;
+#include "moc_parameters_optimization_dialog.cpp"
 
-	private:
-		QMdiArea *pnlMDI_Content = nullptr;
-		QMenu* mniWindow = nullptr;
-		QAction *actClose_Window, *actClose_All_Windows,
-				*actTile_Vertically, *actTile_Horizontally,
-				*actCascade, *actNext_Window,
-				*actPrevious_Window, *actWindow_Menu_Separator;
-		QSignalMapper *mWindowMapper;
-	
-		void Setup_UI();
-		void Close_Event(QCloseEvent *event);
+CParameters_Optimization_Dialog::CParameters_Optimization_Dialog(glucose::SFilter_Chain_Configuration configuration, QWidget *parent) :
+	mConfiguration(configuration), QDialog(parent) {
 
-	protected:
-		void Tile_Window(std::function<QRect()> rect_fnc);
 
-	private slots:
-		void On_Save_Configuration();
-		void On_Quit();
-		void On_Update_Actions();
-		void On_Close_All();
-		void On_Tile_Vertically();
-		void On_Tile_Horizontally();
-		void On_Update_Window_Menu();
-		void On_Help_About();
-		void On_Filters_Window();
-		void On_Simulation_Window();
-		void On_Optimize_Parameters_Dialog();
+	Setup_UI(configuration);
+}
 
-		void Set_Active_Sub_Window(QWidget *window);
+void CParameters_Optimization_Dialog::Setup_UI(glucose::SFilter_Chain_Configuration configuration) {
+	setWindowTitle(dsOptimize_Parameters);
 
-	public:
-		CMain_Window(const std::wstring& config, QWidget *parent = nullptr) noexcept;
-};
+
+	QVBoxLayout* vertical_layout = new QVBoxLayout();
+	setLayout(vertical_layout);
+
+	QWidget* edits = new QWidget();	
+	QGridLayout *edits_layout = new QGridLayout();
+	edits->setLayout(edits_layout);
+
+
+	QWidget* progress = new QWidget();
+	QHBoxLayout *progress_layout = new QHBoxLayout();
+	progress->setLayout(progress_layout);
+
+	QWidget* buttons = new QWidget();
+	QHBoxLayout *buttons_layout = new QHBoxLayout();
+	buttons->setLayout(buttons_layout);
+
+
+	auto add_separator = [](QWidget *parent) {QFrame *line;
+										 line = new QFrame(parent);
+										 line->setFrameShape(QFrame::HLine);
+										 line->setFrameShadow(QFrame::Sunken);
+										 return line; };
+
+	vertical_layout->addWidget(edits);	
+	vertical_layout->addWidget(add_separator(this));
+	vertical_layout->addWidget(progress);
+	vertical_layout->addWidget(add_separator(this));
+	vertical_layout->addWidget(buttons);
+	vertical_layout->addStretch();
+
+}
+
+
+void CParameters_Optimization_Dialog::On_Solve() {
+
+}
+
+void CParameters_Optimization_Dialog::On_Cancel() {
+
+}
+
+void CParameters_Optimization_Dialog::On_Close() {
+
+}
+
