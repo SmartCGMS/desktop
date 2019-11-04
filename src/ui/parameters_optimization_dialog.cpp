@@ -41,6 +41,8 @@
 #include "parameters_optimization_dialog.h"
 
 #include "..\..\..\common\lang\dstrings.h"
+#include "..\..\..\common\rtl\UILib.h"
+#include "..\..\..\common\utils\QtUtils.h"
 
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QBoxLayout>
@@ -51,21 +53,69 @@
 CParameters_Optimization_Dialog::CParameters_Optimization_Dialog(glucose::SFilter_Chain_Configuration configuration, QWidget *parent) :
 	mConfiguration(configuration), QDialog(parent) {
 
-
-	Setup_UI(configuration);
+	Populate_Parameters_Info(configuration);
+	Setup_UI();
 }
 
-void CParameters_Optimization_Dialog::Setup_UI(glucose::SFilter_Chain_Configuration configuration) {
+void CParameters_Optimization_Dialog::Populate_Parameters_Info(glucose::SFilter_Chain_Configuration configuration) {
+
+	size_t filter_index = 0;
+	configuration.for_each([this, &filter_index](glucose::SFilter_Configuration_Link link) {
+
+		link.for_each([this, filter_index, &link](glucose::SFilter_Parameter parameter) {
+			if (parameter.type() == glucose::NParameter_Type::ptDouble_Array) {
+				TParameters_Info info;
+				
+				info.filter_name = link.descriptor().description;
+				info.filter_index = filter_index;
+				info.parameters_name = parameter.configuration_name();
+
+				mParameters_Info.push_back(info);
+			}
+
+		});
+
+
+		filter_index++;
+	});
+}
+
+void CParameters_Optimization_Dialog::Setup_UI() {
 	setWindowTitle(dsOptimize_Parameters);
 
-
+	
 	QVBoxLayout* vertical_layout = new QVBoxLayout();
 	setLayout(vertical_layout);
 
-	QWidget* edits = new QWidget();	
-	QGridLayout *edits_layout = new QGridLayout();
-	edits->setLayout(edits_layout);
+	QWidget* edits = new QWidget();
+	
+	cmbParameters = new QComboBox{ edits };
+	for (size_t i = 0; i < mParameters_Info.size(); i++)
+		cmbParameters->addItem(QString::fromStdWString(mParameters_Info[i].filter_name + L"/" + mParameters_Info[i].parameters_name), QVariant(i));
 
+	cmbSolver = new QComboBox{ edits };
+	for (const auto &item : glucose::get_solver_descriptors())
+		cmbSolver->addItem(QString::fromStdWString(item.description), QVariant(GUID_To_QUuid(item.id)));
+	
+	
+	edtMax_Generations = new QLineEdit{ edits };
+	edtMax_Generations->setValidator(new QIntValidator(edits));
+	edtMax_Generations->setText("10000");
+	edtPopulation_Size = new QLineEdit{ edits };
+	edtPopulation_Size->setValidator(new QIntValidator(edits));
+	edtPopulation_Size->setText("100");
+	
+	{
+		QGridLayout *edits_layout = new QGridLayout();
+		edits->setLayout(edits_layout);
+
+		edits_layout->addWidget(new QLabel{ QString::fromStdWString(dsParameters), edits }, 0, 0);			edits_layout->addWidget(cmbParameters, 0, 1);
+		edits_layout->addWidget(new QLabel{ QString::fromStdWString(dsSelected_Solver), edits }, 1, 0);		edits_layout->addWidget(cmbSolver, 1, 1);
+		edits_layout->addWidget(new QLabel{ dsMax_Generations, edits }, 2, 0);								edits_layout->addWidget(edtMax_Generations, 2, 1);
+		edits_layout->addWidget(new QLabel{ dsPopulation_Size, edits }, 3, 0);								edits_layout->addWidget(edtPopulation_Size, 3, 1);
+	}
+
+	
 
 	QWidget* progress = new QWidget();
 	QHBoxLayout *progress_layout = new QHBoxLayout();
@@ -89,6 +139,7 @@ void CParameters_Optimization_Dialog::Setup_UI(glucose::SFilter_Chain_Configurat
 	vertical_layout->addWidget(buttons);
 	vertical_layout->addStretch();
 
+	setMinimumSize(200, 200);	//keeping Qt happy although it should already calculate from the controls
 }
 
 
@@ -96,7 +147,7 @@ void CParameters_Optimization_Dialog::On_Solve() {
 
 }
 
-void CParameters_Optimization_Dialog::On_Cancel() {
+void CParameters_Optimization_Dialog::On_Abort() {
 
 }
 

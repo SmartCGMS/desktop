@@ -700,20 +700,6 @@ void CSimulation_Window::Inject_Event(const glucose::NDevice_Event_Code &code, c
 	}
 }
 
-QUuid CSimulation_Window::GUID_To_QUuid(const GUID& guid)
-{
-	return QUuid(guid.Data1, guid.Data2, guid.Data3, guid.Data4[0], guid.Data4[1], guid.Data4[2],
-		guid.Data4[3], guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
-}
-
-GUID CSimulation_Window::QUuid_To_GUID(const QUuid& uuid)
-{
-	return { uuid.data1, uuid.data2, uuid.data3,
-		uuid.data4[0], uuid.data4[1], uuid.data4[2], uuid.data4[3], uuid.data4[4], uuid.data4[5],
-		uuid.data4[6], uuid.data4[7]
-	};
-}
-
 void CSimulation_Window::Update_Errors() {
 	if (mErrorsWidget) mErrorsWidget->Refresh();
 }

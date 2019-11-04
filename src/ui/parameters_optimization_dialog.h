@@ -41,16 +41,36 @@
 #include "..\..\..\common\rtl\FilterLib.h"
 
 #include <QtWidgets/QDialog>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QProgressBar>
+
+#include <vector>
 
 class CParameters_Optimization_Dialog : public QDialog {
 	Q_OBJECT
 protected:
 	glucose::SFilter_Chain_Configuration mConfiguration;
 	
-	void Setup_UI(glucose::SFilter_Chain_Configuration configuration);
+	struct TParameters_Info {
+		std::wstring filter_name;
+		size_t filter_index;
+		std::wstring parameters_name;
+	};
+
+	std::vector<TParameters_Info> mParameters_Info;
+	void Populate_Parameters_Info(glucose::SFilter_Chain_Configuration configuration);
+
+protected:
+	QComboBox *cmbParameters, *cmbSolver;
+	QLineEdit *edtMax_Generations, *edtPopulation_Size;
+	QLabel *lblSolver_Info;
+	QProgressBar *barProgress;
+	void Setup_UI();
 protected slots:
 	void On_Solve();
-	void On_Cancel();
+	void On_Abort();
 	void On_Close ();
 public:
 	CParameters_Optimization_Dialog(glucose::SFilter_Chain_Configuration configuration, QWidget *parent);

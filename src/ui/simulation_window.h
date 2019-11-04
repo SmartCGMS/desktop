@@ -42,7 +42,6 @@
 #include <vector>
 #include <memory>
 
-#include <QtCore/QUuid>
 #include <QtCore/QSignalMapper>
 #include <QtWidgets/QMdiSubWindow>
 #include <QtWidgets/QListWidget>
@@ -163,8 +162,6 @@ class CSimulation_Window : public QMdiSubWindow {
 	protected:
 		void Inject_Event(const glucose::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info, const uint64_t segment_id = glucose::Invalid_Segment_Id);
 	protected:
-		QUuid GUID_To_QUuid(const GUID& guid);
-		GUID QUuid_To_GUID(const QUuid& uuid);
 		static HRESULT IfaceCalling On_Filter_Configured(glucose::IFilter *filter, const void* data);
 	public:
 		// factory method for singleton initialization
