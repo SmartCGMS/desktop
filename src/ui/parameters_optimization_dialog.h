@@ -38,6 +38,7 @@
 
 #pragma once
 
+#include "..\..\..\common\iface\SolverIface.h"
 #include "..\..\..\common\rtl\FilterLib.h"
 
 #include <QtWidgets/QDialog>
@@ -47,6 +48,7 @@
 #include <QtWidgets/QProgressBar>
 
 #include <vector>
+#include <thread>
 
 class CParameters_Optimization_Dialog : public QDialog {
 	Q_OBJECT
@@ -61,17 +63,23 @@ protected:
 
 	std::vector<TParameters_Info> mParameters_Info;
 	void Populate_Parameters_Info(glucose::SFilter_Chain_Configuration configuration);
-
 protected:
 	QComboBox *cmbParameters, *cmbSolver;
 	QLineEdit *edtMax_Generations, *edtPopulation_Size;
 	QLabel *lblSolver_Info;
 	QProgressBar *barProgress;
+	QPushButton *btnSolve, *btnStop, *btnClose;
 	void Setup_UI();
+protected:
+	std::unique_ptr<std::thread> mSolver_Thread, mProgress_Update_Thread;
+	solver::TSolver_Progress mProgress;
+	bool mIs_Solving;
+
+	void Stop_Threads();
 protected slots:
 	void On_Solve();
-	void On_Abort();
-	void On_Close ();
+	void On_Stop();	
 public:
 	CParameters_Optimization_Dialog(glucose::SFilter_Chain_Configuration configuration, QWidget *parent);
+	~CParameters_Optimization_Dialog();
 };

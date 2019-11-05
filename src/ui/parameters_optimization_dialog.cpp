@@ -41,20 +41,28 @@
 #include "parameters_optimization_dialog.h"
 
 #include "..\..\..\common\lang\dstrings.h"
+#include "..\..\..\common\rtl\SolverLib.h"
 #include "..\..\..\common\rtl\UILib.h"
+#include "..\..\..\common\rtl\qdb_connector.h"
 #include "..\..\..\common\utils\QtUtils.h"
 
-#include <QtWidgets/QLabel>
 #include <QtWidgets/QBoxLayout>
 #include <QtWidgets/QPushButton>
+
+
 
 #include "moc_parameters_optimization_dialog.cpp"
 
 CParameters_Optimization_Dialog::CParameters_Optimization_Dialog(glucose::SFilter_Chain_Configuration configuration, QWidget *parent) :
 	mConfiguration(configuration), QDialog(parent) {
 
+	mIs_Solving = false;
 	Populate_Parameters_Info(configuration);
 	Setup_UI();
+}
+
+CParameters_Optimization_Dialog::~CParameters_Optimization_Dialog() {
+	Stop_Threads();
 }
 
 void CParameters_Optimization_Dialog::Populate_Parameters_Info(glucose::SFilter_Chain_Configuration configuration) {
@@ -109,8 +117,8 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 		QGridLayout *edits_layout = new QGridLayout();
 		edits->setLayout(edits_layout);
 
-		edits_layout->addWidget(new QLabel{ QString::fromStdWString(dsParameters), edits }, 0, 0);			edits_layout->addWidget(cmbParameters, 0, 1);
-		edits_layout->addWidget(new QLabel{ QString::fromStdWString(dsSelected_Solver), edits }, 1, 0);		edits_layout->addWidget(cmbSolver, 1, 1);
+		edits_layout->addWidget(new QLabel{ tr(Narrow_WChar(dsParameters).c_str()), edits }, 0, 0);			edits_layout->addWidget(cmbParameters, 0, 1);
+		edits_layout->addWidget(new QLabel{ tr(Narrow_WChar(dsSelected_Solver).c_str()), edits }, 1, 0);		edits_layout->addWidget(cmbSolver, 1, 1);
 		edits_layout->addWidget(new QLabel{ dsMax_Generations, edits }, 2, 0);								edits_layout->addWidget(edtMax_Generations, 2, 1);
 		edits_layout->addWidget(new QLabel{ dsPopulation_Size, edits }, 3, 0);								edits_layout->addWidget(edtPopulation_Size, 3, 1);
 	}
@@ -118,12 +126,33 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 	
 
 	QWidget* progress = new QWidget();
-	QHBoxLayout *progress_layout = new QHBoxLayout();
-	progress->setLayout(progress_layout);
+	{
+		QVBoxLayout *progress_layout = new QVBoxLayout();
+		progress->setLayout(progress_layout);
+
+		lblSolver_Info = new QLabel{ QString::fromStdWString(dsSolver_Progress_Box_Title), progress };
+		barProgress = new QProgressBar{ progress };
+		barProgress->setMinimum(0);
+		barProgress->setMaximum(100);
+
+		progress_layout->addWidget(lblSolver_Info);
+		progress_layout->addWidget(barProgress);
+	}
 
 	QWidget* buttons = new QWidget();
-	QHBoxLayout *buttons_layout = new QHBoxLayout();
-	buttons->setLayout(buttons_layout);
+	{
+		QHBoxLayout *buttons_layout = new QHBoxLayout();
+		buttons->setLayout(buttons_layout);
+
+		btnSolve = new QPushButton{ dsSolve, buttons };
+		btnStop = new QPushButton{ dsStop, buttons };
+		btnClose = new QPushButton{ dsClose, buttons };
+
+		buttons_layout->addWidget(btnSolve);	buttons_layout->addWidget(btnStop);	buttons_layout->addWidget(btnClose);
+		connect(btnSolve, SIGNAL(clicked()), this, SLOT(On_Solve()));
+		connect(btnStop, SIGNAL(clicked()), this, SLOT(On_Stop()));
+		connect(btnClose, SIGNAL(clicked()), this, SLOT(close()));
+	}
 
 
 	auto add_separator = [](QWidget *parent) {QFrame *line;
@@ -144,14 +173,65 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 
 
 void CParameters_Optimization_Dialog::On_Solve() {
+	if (!mIs_Solving) {		
+		mProgress = solver::Null_Solver_Progress;
+		const QVariant solver_variant = cmbSolver->currentData();
+		const size_t filter_info_index = static_cast<size_t>(cmbParameters->currentIndex());
 
+		if (!solver_variant.isNull() && (filter_info_index < mParameters_Info.size())) {
+			mIs_Solving = true;
+
+			Stop_Threads();
+
+			//mSolver_Thread.reset();
+			mSolver_Thread = std::make_unique<std::thread>(
+				[this, &solver_variant, filter_info_index]() {
+				if (glucose::Optimize_Parameters(mConfiguration, mParameters_Info[filter_info_index].filter_index, mParameters_Info[filter_info_index].parameters_name.c_str(),
+					Setup_Filter_DB_Access, nullptr,
+					QUuid_To_GUID(solver_variant.toUuid()),
+					edtPopulation_Size->text().toInt(),
+					edtMax_Generations->text().toInt(),
+					mProgress) != S_OK)
+					lblSolver_Info->setText(tr(dsSolver_Status_Failed));
+
+				mProgress.cancelled = 1;	//stops mProgress_Update_Thread 
+				mIs_Solving = false;
+			});
+
+			mProgress_Update_Thread = std::make_unique<std::thread>([this]() {
+				while (mProgress.cancelled == 0) {
+					if (mProgress.max_progress > 0) {						
+						barProgress->setValue(static_cast<int>(round(mProgress.current_progress / mProgress.max_progress)));
+						lblSolver_Info->setText(QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric));
+					}
+
+					Sleep(1000);
+				}
+			});
+		
+		}
+		
+	}
 }
 
-void CParameters_Optimization_Dialog::On_Abort() {
-
+void CParameters_Optimization_Dialog::On_Stop() {
+	if (mIs_Solving) {
+		Stop_Threads();
+		mIs_Solving = false;			
+	}	
 }
 
-void CParameters_Optimization_Dialog::On_Close() {
 
+void CParameters_Optimization_Dialog::Stop_Threads() {
+	auto wait_for_thread = [](std::unique_ptr<std::thread> &thread) {
+		if (thread) {
+			if (thread->joinable())
+				thread->join();
+			thread.reset();
+		}
+	};
+
+	mProgress.cancelled = 1;
+	wait_for_thread(mSolver_Thread);
+	wait_for_thread(mProgress_Update_Thread);
 }
-
