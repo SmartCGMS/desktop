@@ -76,9 +76,12 @@ protected:
 	bool mIs_Solving;
 
 	void Stop_Threads();
+signals:
+	void Update_Progress_Signal();
 protected slots:
 	void On_Solve();
 	void On_Stop();	
+	void On_Update_Progress();
 public:
 	CParameters_Optimization_Dialog(glucose::SFilter_Chain_Configuration configuration, QWidget *parent);
 	~CParameters_Optimization_Dialog();

@@ -118,7 +118,7 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 		edits->setLayout(edits_layout);
 
 		edits_layout->addWidget(new QLabel{ tr(Narrow_WChar(dsParameters).c_str()), edits }, 0, 0);			edits_layout->addWidget(cmbParameters, 0, 1);
-		edits_layout->addWidget(new QLabel{ tr(Narrow_WChar(dsSelected_Solver).c_str()), edits }, 1, 0);		edits_layout->addWidget(cmbSolver, 1, 1);
+		edits_layout->addWidget(new QLabel{ tr(Narrow_WChar(dsSelected_Solver).c_str()), edits }, 1, 0);	edits_layout->addWidget(cmbSolver, 1, 1);
 		edits_layout->addWidget(new QLabel{ dsMax_Generations, edits }, 2, 0);								edits_layout->addWidget(edtMax_Generations, 2, 1);
 		edits_layout->addWidget(new QLabel{ dsPopulation_Size, edits }, 3, 0);								edits_layout->addWidget(edtPopulation_Size, 3, 1);
 	}
@@ -133,7 +133,7 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 		lblSolver_Info = new QLabel{ QString::fromStdWString(dsSolver_Progress_Box_Title), progress };
 		barProgress = new QProgressBar{ progress };
 		barProgress->setMinimum(0);
-		barProgress->setMaximum(100);
+		barProgress->setMaximum(100);		
 
 		progress_layout->addWidget(lblSolver_Info);
 		progress_layout->addWidget(barProgress);
@@ -169,12 +169,13 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 	vertical_layout->addStretch();
 
 	setMinimumSize(200, 200);	//keeping Qt happy although it should already calculate from the controls
+
+	connect(this, SIGNAL(Update_Progress_Signal()), this, SLOT(On_Update_Progress()), Qt::BlockingQueuedConnection);
 }
 
 
 void CParameters_Optimization_Dialog::On_Solve() {
-	if (!mIs_Solving) {		
-		mProgress = solver::Null_Solver_Progress;
+	if (!mIs_Solving) {				
 		const QVariant solver_variant = cmbSolver->currentData();
 		const size_t filter_info_index = static_cast<size_t>(cmbParameters->currentIndex());
 
@@ -183,7 +184,7 @@ void CParameters_Optimization_Dialog::On_Solve() {
 
 			Stop_Threads();
 
-			//mSolver_Thread.reset();
+			mProgress = solver::Null_Solver_Progress;
 			mSolver_Thread = std::make_unique<std::thread>(
 				[this, &solver_variant, filter_info_index]() {
 				if (glucose::Optimize_Parameters(mConfiguration, mParameters_Info[filter_info_index].filter_index, mParameters_Info[filter_info_index].parameters_name.c_str(),
@@ -196,21 +197,31 @@ void CParameters_Optimization_Dialog::On_Solve() {
 
 				mProgress.cancelled = 1;	//stops mProgress_Update_Thread 
 				mIs_Solving = false;
+				emit Update_Progress_Signal();
 			});
 
 			mProgress_Update_Thread = std::make_unique<std::thread>([this]() {
-				while (mProgress.cancelled == 0) {
-					if (mProgress.max_progress > 0) {						
-						barProgress->setValue(static_cast<int>(round(mProgress.current_progress / mProgress.max_progress)));
-						lblSolver_Info->setText(QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric));
-					}
-
+				while (mProgress.cancelled == 0) {					
+					emit Update_Progress_Signal();
 					Sleep(1000);
 				}
 			});
 		
 		}
 		
+	}
+}
+
+void CParameters_Optimization_Dialog::On_Update_Progress() {
+	if (mIs_Solving) {
+		if (mProgress.max_progress > 0) {
+			barProgress->setValue(static_cast<int>(round(100.0*mProgress.current_progress / mProgress.max_progress)));			
+			lblSolver_Info->setText(QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric));
+		} else
+			lblSolver_Info->setText(QString(tr(dsSolver_Status_In_Progress)));		
+	} else {
+		lblSolver_Info->setText(QString(tr(dsSolver_Status_Stopped)) + ", "+ QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric));
+		barProgress->reset();
 	}
 }
 

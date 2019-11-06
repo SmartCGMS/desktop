@@ -157,6 +157,7 @@ void CMain_Window::Setup_UI() {
 	connect(mniWindow, SIGNAL(aboutToShow()), this, SLOT(On_Update_Window_Menu()));
 	connect(actHelpAbout, SIGNAL(triggered()), this, SLOT(On_Help_About()));
 	connect(act_filters, SIGNAL(triggered()), this, SLOT(On_Filters_Window()));
+	connect(act_simulation, SIGNAL(triggered()), this, SLOT(On_Simulation_Window()));
 	connect(actOptimize_Parameters, SIGNAL(triggered()), this, SLOT(On_Optimize_Parameters_Dialog()));
 
 	connect(mWindowMapper, SIGNAL(mapped(QWidget*)), this, SLOT(Set_Active_Sub_Window(QWidget*)));
