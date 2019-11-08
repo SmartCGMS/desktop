@@ -187,7 +187,7 @@ void CFilters_Window::On_Move_Filter_Up()
 	{
 		if (lbxApplied_Filters->item(i)->isSelected()) {
 			lbxApplied_Filters->insertItem(i, lbxApplied_Filters->takeItem(i - 1));
-			mFilter_Chain_Configuration->move(i, i - 1);
+			mFilter_Chain_Configuration->move(static_cast<size_t>(i), static_cast<size_t>(i - 1));
 		}
 	}
 }
@@ -198,7 +198,7 @@ void CFilters_Window::On_Move_Filter_Down()
 	{
 		if (lbxApplied_Filters->item(i)->isSelected()) {
 			lbxApplied_Filters->insertItem(i, lbxApplied_Filters->takeItem(i + 1));
-			mFilter_Chain_Configuration->move(i, i + 1);
+			mFilter_Chain_Configuration->move(static_cast<size_t>(i), static_cast<size_t>(i + 1));
 		}
 	}
 }

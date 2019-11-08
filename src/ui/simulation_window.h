@@ -87,7 +87,7 @@ class CSimulation_Window : public QMdiSubWindow {
 		glucose::CSignal_Names mSignal_Names;
 
 		CGUI_Filter_Subchain mGUI_Filter_Subchain;
-		int mBase_Tab_Count;
+		int mBase_Tab_Count = 0;
 		
 	protected:					
 		// tab widget for filter outputs

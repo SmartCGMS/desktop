@@ -57,14 +57,14 @@ protected:
 	
 	struct TParameters_Info {
 		std::wstring filter_name;
-		size_t filter_index;
+		size_t filter_index = std::numeric_limits<size_t>::max();
 		std::wstring parameters_name;
 	};
 
 	std::vector<TParameters_Info> mParameters_Info;
 	void Populate_Parameters_Info(glucose::SFilter_Chain_Configuration configuration);
 protected:
-	QComboBox *cmbParameters, *cmbSolver;
+	QComboBox *cmbParameters = nullptr, *cmbSolver;
 	QLineEdit *edtMax_Generations, *edtPopulation_Size;
 	QLabel *lblSolver_Info;
 	QProgressBar *barProgress;

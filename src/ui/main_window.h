@@ -58,7 +58,7 @@ class CMain_Window : public QMainWindow
 	private:
 		QMdiArea *pnlMDI_Content = nullptr;
 		QMenu* mniWindow = nullptr;
-		QAction *actClose_Window, *actClose_All_Windows,
+		QAction *actClose_Window = nullptr, *actClose_All_Windows,
 				*actTile_Vertically, *actTile_Horizontally,
 				*actCascade, *actNext_Window,
 				*actPrevious_Window, *actWindow_Menu_Separator;
