@@ -195,14 +195,13 @@ void CParameters_Optimization_Dialog::On_Solve() {
 					mProgress) != S_OK)
 					lblSolver_Info->setText(tr(dsSolver_Status_Failed));
 
-				mProgress.cancelled = 1;	//stops mProgress_Update_Thread 
-				mIs_Solving = false;
-				emit Update_Progress_Signal();
+				mProgress.cancelled = 1;	//stops mProgress_Update_Thread 				
+				mIs_Solving = false;				
 			});
 
 			mProgress_Update_Thread = std::make_unique<std::thread>([this]() {
 				while (mProgress.cancelled == 0) {					
-					emit Update_Progress_Signal();
+					if (mIs_Solving) emit Update_Progress_Signal();
 					Sleep(1000);
 				}
 			});
@@ -221,15 +220,16 @@ void CParameters_Optimization_Dialog::On_Update_Progress() {
 			lblSolver_Info->setText(QString(tr(dsSolver_Status_In_Progress)));		
 	} else {
 		lblSolver_Info->setText(QString(tr(dsSolver_Status_Stopped)) + ", "+ QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric));
-		barProgress->reset();
+		barProgress->setValue(0);
 	}
 }
 
 void CParameters_Optimization_Dialog::On_Stop() {
 	if (mIs_Solving) {
-		Stop_Threads();
-		mIs_Solving = false;			
-	}	
+		mIs_Solving = false;
+		Stop_Threads();		
+	}		
+	On_Update_Progress();
 }
 
 
