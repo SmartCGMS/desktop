@@ -236,7 +236,8 @@ void CDrawing_Tab_Widget::Show_Context_Menu(const QPoint& pos)
 		auto path = QFileDialog::getSaveFileName(this, tr(dsSave_Viewport_To_File), dsDefault_Viewport_File_Name, tr(dsSave_Viewport_Ext_Spec));
 		if (path.length() != 0)
 		{
-			QPixmap pixMap = QPixmap::grabWidget(mView->viewport());
+			//QPixmap pixMap = QPixmap::grabWidget(mView->viewport());	
+			QPixmap pixMap = mView->grab();				
 			pixMap.save(path);
 		}
 	});

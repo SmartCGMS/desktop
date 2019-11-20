@@ -45,6 +45,7 @@
 #include "..\..\..\common\rtl\UILib.h"
 #include "..\..\..\common\rtl\qdb_connector.h"
 #include "..\..\..\common\utils\QtUtils.h"
+#include "..\..\..\common\utils\string_utils.h"
 
 #include <QtWidgets/QBoxLayout>
 #include <QtWidgets/QPushButton>
