@@ -409,9 +409,8 @@ void CSimulation_Window::On_Start() {
 	mFilter_Executor = glucose::SFilter_Executor{ mConfiguration, CSimulation_Window::On_Filter_Configured, this };
 	if (!mFilter_Executor)	{
 		// TODO: error message
-		mFilter_Executor->Terminate();
 		return;
-	}	
+	}
 
 	mSimulationInProgress = true;
 	mStopButton->setEnabled(true);

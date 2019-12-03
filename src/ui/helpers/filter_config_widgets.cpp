@@ -86,6 +86,8 @@ CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(glucose::SF
 	mSignalVector.push_back({ glucose::signal_COB, dsSignal_Measured_COB + measSuffix });
 	mSignalVector.push_back({ glucose::signal_Carb_Intake, dsSignal_Measured_Carb_Intake + measSuffix });
 	mSignalVector.push_back({ glucose::signal_Physical_Activity, dsSignal_Measured_Health_Physical_Activity + measSuffix });
+	mSignalVector.push_back({ glucose::signal_Insulin_Sensitivity, dsSignal_Measured_Insulin_Sensitivity + measSuffix });
+	mSignalVector.push_back({ glucose::signal_Carb_Ratio, dsSignal_Measured_Carb_Ratio + measSuffix });
 
 	// append calculated signals of known models
 	std::wstring calcSuffix = dsSignal_Suffix_Calculated;

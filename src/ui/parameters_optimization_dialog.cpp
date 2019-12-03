@@ -50,6 +50,8 @@
 #include <QtWidgets/QBoxLayout>
 #include <QtWidgets/QPushButton>
 
+#include <thread>
+#include <chrono>
 
 
 #include "moc_parameters_optimization_dialog.cpp"
@@ -176,7 +178,7 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 
 
 void CParameters_Optimization_Dialog::On_Solve() {
-	if (!mIs_Solving) {				
+	if (!mIs_Solving) {
 		const QVariant solver_variant = cmbSolver->currentData();
 		const size_t filter_info_index = static_cast<size_t>(cmbParameters->currentIndex());
 
@@ -188,22 +190,26 @@ void CParameters_Optimization_Dialog::On_Solve() {
 			mProgress = solver::Null_Solver_Progress;
 			mSolver_Thread = std::make_unique<std::thread>(
 				[this, &solver_variant, filter_info_index]() {
-				if (glucose::Optimize_Parameters(mConfiguration, mParameters_Info[filter_info_index].filter_index, mParameters_Info[filter_info_index].parameters_name.c_str(),
-					Setup_Filter_DB_Access, nullptr,
-					QUuid_To_GUID(solver_variant.toUuid()),
-					edtPopulation_Size->text().toInt(),
-					edtMax_Generations->text().toInt(),
-					mProgress) != S_OK)
-					lblSolver_Info->setText(tr(dsSolver_Status_Failed));
+					HRESULT res = glucose::Optimize_Parameters(mConfiguration, mParameters_Info[filter_info_index].filter_index, mParameters_Info[filter_info_index].parameters_name.c_str(),
+						Setup_Filter_DB_Access, nullptr,
+						QUuid_To_GUID(solver_variant.toUuid()),
+						edtPopulation_Size->text().toInt(),
+						edtMax_Generations->text().toInt(),
+						mProgress);
 
-				mProgress.cancelled = 1;	//stops mProgress_Update_Thread 				
-				mIs_Solving = false;				
+					mIs_Solving = false;
+					mProgress.cancelled = 1;	//stops mProgress_Update_Thread
+
+					if (res != S_OK)
+						lblSolver_Info->setText(tr(dsSolver_Status_Failed));
+					else
+						emit Update_Progress_Signal();
 			});
 
 			mProgress_Update_Thread = std::make_unique<std::thread>([this]() {
-				while (mProgress.cancelled == 0) {					
+				while (mProgress.cancelled == 0) {
 					if (mIs_Solving) emit Update_Progress_Signal();
-					Sleep(1000);
+					std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 				}
 			});
 		
@@ -215,10 +221,10 @@ void CParameters_Optimization_Dialog::On_Solve() {
 void CParameters_Optimization_Dialog::On_Update_Progress() {
 	if (mIs_Solving) {
 		if (mProgress.max_progress > 0) {
-			barProgress->setValue(static_cast<int>(round(100.0*mProgress.current_progress / mProgress.max_progress)));			
+			barProgress->setValue(static_cast<int>(round(100.0*mProgress.current_progress / mProgress.max_progress)));
 			lblSolver_Info->setText(QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric));
 		} else
-			lblSolver_Info->setText(QString(tr(dsSolver_Status_In_Progress)));		
+			lblSolver_Info->setText(QString(tr(dsSolver_Status_In_Progress)));
 	} else {
 		lblSolver_Info->setText(QString(tr(dsSolver_Status_Stopped)) + ", "+ QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric));
 		barProgress->setValue(0);
@@ -228,8 +234,8 @@ void CParameters_Optimization_Dialog::On_Update_Progress() {
 void CParameters_Optimization_Dialog::On_Stop() {
 	if (mIs_Solving) {
 		mIs_Solving = false;
-		Stop_Threads();		
-	}		
+		Stop_Threads();
+	}
 	On_Update_Progress();
 }
 
