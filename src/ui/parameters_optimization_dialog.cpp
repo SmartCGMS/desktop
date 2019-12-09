@@ -69,15 +69,57 @@ CParameters_Optimization_Dialog::~CParameters_Optimization_Dialog() {
 }
 
 void CParameters_Optimization_Dialog::Populate_Parameters_Info(glucose::SFilter_Chain_Configuration configuration) {
+	auto models = glucose::get_model_descriptors();
+
+	auto complete_description = [&models](std::wstring &description, glucose::SFilter_Configuration_Link link) {
+
+		link.for_each([&models, &description](glucose::SFilter_Parameter parameter) {
+			// model signal - append signal name
+			if (parameter.type() == glucose::NParameter_Type::ptModel_Signal_Id) {
+				bool found = false;
+				for (auto& model : models)
+				{
+					for (size_t i = 0; i < model.number_of_calculated_signals; i++) {
+						HRESULT rc;
+						if (model.calculated_signal_ids[i] == parameter.as_guid(rc))
+							if (rc == S_OK) {
+								description += L" - ";
+								description += model.calculated_signal_names[i];
+								found = true;
+								break;
+							}
+					}
+
+					if (found)
+						break;
+				}
+			}
+			// model - append model description
+			else if (parameter.type() == glucose::NParameter_Type::ptModel_Id) {
+				for (auto& model : models) {
+					HRESULT rc;
+					if (model.id == parameter.as_guid(rc))
+						if (rc == S_OK) {
+							description += L" - ";
+							description += model.description;
+							break;
+						}
+				}
+			}
+		});
+	};
+
 
 	size_t filter_index = 0;
-	configuration.for_each([this, &filter_index](glucose::SFilter_Configuration_Link link) {
+	configuration.for_each([this, &filter_index, &complete_description](glucose::SFilter_Configuration_Link link) {
 
-		link.for_each([this, filter_index, &link](glucose::SFilter_Parameter parameter) {
+		link.for_each([this, filter_index, &link, &complete_description](glucose::SFilter_Parameter parameter) {
 			if (parameter.type() == glucose::NParameter_Type::ptDouble_Array) {
 				TParameters_Info info;
 				
 				info.filter_name = link.descriptor().description;
+				complete_description(info.filter_name, link);
+
 				info.filter_index = filter_index;
 				info.parameters_name = parameter.configuration_name();
 
@@ -102,7 +144,7 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 	
 	cmbParameters = new QComboBox{ edits };
 	for (size_t i = 0; i < mParameters_Info.size(); i++)
-		cmbParameters->addItem(QString::fromStdWString(mParameters_Info[i].filter_name + L"/" + mParameters_Info[i].parameters_name), QVariant(i));
+		cmbParameters->addItem(QString::fromStdWString(mParameters_Info[i].filter_name + L" / " + mParameters_Info[i].parameters_name), QVariant(i));
 
 	cmbSolver = new QComboBox{ edits };
 	for (const auto &item : glucose::get_solver_descriptors())
