@@ -60,7 +60,7 @@
 #include "moc_drawing_tab_widget.cpp"
 
 // array of default names for image files by type
-static const std::array<const char*, static_cast<size_t>(glucose::TDrawing_Image_Type::count)> Default_Filename_For_Type = { {
+static const std::array<const char*, static_cast<size_t>(scgms::TDrawing_Image_Type::count)> Default_Filename_For_Type = { {
 	dsSave_Image_Default_Filename_Graph,
 	dsSave_Image_Default_Filename_Day,
 	dsSave_Image_Default_Filename_Parkes,
@@ -107,8 +107,8 @@ void CDrawing_Graphics_View::animFinished()
 	sender()->~QObject();
 }
 
-CDrawing_Tab_Widget::CDrawing_Tab_Widget(const glucose::TDrawing_Image_Type type, QWidget *parent)
-	: CAbstract_Simulation_Tab_Widget(parent), mType(type), mItem(nullptr), mDiagnosis_Box(nullptr), mCurrent_Diagnosis(glucose::TDiagnosis::Type1)
+CDrawing_Tab_Widget::CDrawing_Tab_Widget(const scgms::TDrawing_Image_Type type, QWidget *parent)
+	: CAbstract_Simulation_Tab_Widget(parent), mType(type), mItem(nullptr), mDiagnosis_Box(nullptr), mCurrent_Diagnosis(scgms::TDiagnosis::Type1)
 {
 	mView = new CDrawing_Graphics_View();
 	mScene = new QGraphicsScene(mView);
@@ -124,12 +124,12 @@ CDrawing_Tab_Widget::CDrawing_Tab_Widget(const glucose::TDrawing_Image_Type type
 	setLayout(mainLayout);
 
 	// just parkes' grid has to disambiguate between diagnosis types (for now)
-	if (type == glucose::TDrawing_Image_Type::Parkes)
+	if (type == scgms::TDrawing_Image_Type::Parkes)
 	{
 		mDiagnosis_Box = new QComboBox(this);
-		mDiagnosis_Box->addItem(dsDiagnosis_T1D, static_cast<int>(glucose::TDiagnosis::Type1));
-		mDiagnosis_Box->addItem(dsDiagnosis_T2D, static_cast<int>(glucose::TDiagnosis::Type2));
-		mDiagnosis_Box->addItem(dsDiagnosis_Gestational, static_cast<int>(glucose::TDiagnosis::Gestational));
+		mDiagnosis_Box->addItem(dsDiagnosis_T1D, static_cast<int>(scgms::TDiagnosis::Type1));
+		mDiagnosis_Box->addItem(dsDiagnosis_T2D, static_cast<int>(scgms::TDiagnosis::Type2));
+		mDiagnosis_Box->addItem(dsDiagnosis_Gestational, static_cast<int>(scgms::TDiagnosis::Gestational));
 		// this should relocate the widget on top of the drawing to top left corner somewhere
 		auto geom = mDiagnosis_Box->geometry();
 		mDiagnosis_Box->setGeometry(20, 20, geom.width(), geom.height());
@@ -166,7 +166,7 @@ CAbstract_Simulation_Tab_Widget* CDrawing_Tab_Widget::Clone()
 	return cloned;
 }
 
-void CDrawing_Tab_Widget::Drawing_Callback(const glucose::TDrawing_Image_Type type, const glucose::TDiagnosis diagnosis, const std::string &svg)
+void CDrawing_Tab_Widget::Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::TDiagnosis diagnosis, const std::string &svg)
 {
 	if (type != mType)
 		return;
@@ -190,7 +190,7 @@ void CDrawing_Tab_Widget::Redraw()
 void CDrawing_Tab_Widget::Slot_Redraw()
 {
 	// if the requested diagnosis image is not found, fall back to "Not Specified" - it's the default
-	glucose::TDiagnosis diag = glucose::TDiagnosis::NotSpecified;
+	scgms::TDiagnosis diag = scgms::TDiagnosis::NotSpecified;
 	if (mSvgContents.find(mCurrent_Diagnosis) != mSvgContents.end())
 		diag = mCurrent_Diagnosis;
 
@@ -260,6 +260,6 @@ void CDrawing_Tab_Widget::On_Diagnosis_Changed(const QString& /*item*/)
 	if (!ok)
 		return;
 
-	mCurrent_Diagnosis = static_cast<glucose::TDiagnosis>(diagnosis);
+	mCurrent_Diagnosis = static_cast<scgms::TDiagnosis>(diagnosis);
 	Redraw();
 }

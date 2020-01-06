@@ -64,8 +64,8 @@
 
 
 
-CFilter_Config_Window::CFilter_Config_Window(glucose::SFilter_Configuration_Link configuration, QWidget *parent) :
-	QDialog(parent), mConfiguration(refcnt::make_shared_reference_ext<glucose::SFilter_Configuration, glucose::IFilter_Configuration>(static_cast<glucose::IFilter_Configuration*>(configuration.get()), true)), mDescription(configuration.descriptor()) {
+CFilter_Config_Window::CFilter_Config_Window(scgms::SFilter_Configuration_Link configuration, QWidget *parent) :
+	QDialog(parent), mConfiguration(refcnt::make_shared_reference_ext<scgms::SFilter_Configuration, scgms::IFilter_Configuration>(static_cast<scgms::IFilter_Configuration*>(configuration.get()), true)), mDescription(configuration.descriptor()) {
 
 
 	Setup_UI(configuration);
@@ -73,7 +73,7 @@ CFilter_Config_Window::CFilter_Config_Window(glucose::SFilter_Configuration_Link
 		edit->fetch_parameter();
 }
 
-void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configuration) {
+void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configuration) {
 
 	setWindowTitle(QString::fromWCharArray(mDescription.description) + QString(" ") + tr(dsConfiguration));
 
@@ -82,8 +82,8 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 	// model select combobox is directly connected with signal selector; here we store pointer to model selector to supply it to signal selector
 	filter_config_window::CContainer_Edit *model_select = nullptr;
 
-	auto create_model_select = [&](glucose::SFilter_Parameter parameter) {
-		model_select = new CGUID_Entity_ComboBox<glucose::TModel_Descriptor, glucose::get_model_descriptors>(parameter, nullptr);
+	auto create_model_select = [&](scgms::SFilter_Parameter parameter) {
+		model_select = new CGUID_Entity_ComboBox<scgms::TModel_Descriptor, scgms::get_model_descriptors>(parameter, nullptr);
 	};
 
 	QWidget *main_tab = new QWidget{this};
@@ -96,8 +96,8 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 		int ui_row = 0;
 		for (int i = 0; i < static_cast<int>(mDescription.parameters_count); i++) {
 			//try to obtain the parameter, if is present in the configuration
-			glucose::SFilter_Parameter parameter = configuration.Resolve_Parameter(mDescription.config_parameter_name[i]);
-			if ((!parameter) && (mDescription.parameter_type[i] != glucose::NParameter_Type::ptNull)) {
+			scgms::SFilter_Parameter parameter = configuration.Resolve_Parameter(mDescription.config_parameter_name[i]);
+			if ((!parameter) && (mDescription.parameter_type[i] != scgms::NParameter_Type::ptNull)) {
 				//this particular parameter is not configured, hence we need to create it using its default value
 				//unless it is a null parameter
 				parameter = configuration.Add_Parameter(mDescription.parameter_type[i], mDescription.config_parameter_name[i]);
@@ -109,35 +109,35 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 
 				switch (mDescription.parameter_type[i])
 				{
-					case glucose::NParameter_Type::ptNull:
+					case scgms::NParameter_Type::ptNull:
 						container = new filter_config_window::CNull_Container_Edit(this);
 						break;
 
-					case glucose::NParameter_Type::ptWChar_Array:
+					case scgms::NParameter_Type::ptWChar_Array:
 						container = new filter_config_window::CWChar_Container_Edit{ parameter, this };
 						break;
 
-					case glucose::NParameter_Type::ptDouble:
+					case scgms::NParameter_Type::ptDouble:
 						container = new filter_config_window::CDouble_Container_Edit{ parameter, this};
 						break;
 
-					case glucose::NParameter_Type::ptRatTime:
+					case scgms::NParameter_Type::ptRatTime:
 						container = new filter_config_window::CRatTime_Container_Edit{ parameter, this };
 						break;
 
-					case glucose::NParameter_Type::ptInt64:
+					case scgms::NParameter_Type::ptInt64:
 						container = new filter_config_window::CInteger_Container_Edit{ parameter, this };
 						break;
 
-					case glucose::NParameter_Type::ptBool:
+					case scgms::NParameter_Type::ptBool:
 						container = new filter_config_window::CBoolean_Container_Edit{ parameter, this};
 						break;
 					
-					case glucose::NParameter_Type::ptInt64_Array:
+					case scgms::NParameter_Type::ptInt64_Array:
 						container = new CSelect_Time_Segment_Id_Panel{ mConfiguration, parameter, this };
 						break;
 
-					case glucose::NParameter_Type::ptModel_Id:
+					case scgms::NParameter_Type::ptModel_Id:
 						// "lazyload" of model selection; if the filter has model selection, it is very likely that it has signal selection as well
 						if (!model_select)
 							create_model_select(parameter);
@@ -145,15 +145,15 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 						container = model_select;
 						break;
 
-					case glucose::NParameter_Type::ptMetric_Id:
-						container = new CGUID_Entity_ComboBox<glucose::TMetric_Descriptor, glucose::get_metric_descriptors>(parameter, this);
+					case scgms::NParameter_Type::ptMetric_Id:
+						container = new CGUID_Entity_ComboBox<scgms::TMetric_Descriptor, scgms::get_metric_descriptors>(parameter, this);
 						break;
 
-					case glucose::NParameter_Type::ptSolver_Id:
-						container = new CGUID_Entity_ComboBox<glucose::TSolver_Descriptor, glucose::get_solver_descriptors>(parameter, this);
+					case scgms::NParameter_Type::ptSolver_Id:
+						container = new CGUID_Entity_ComboBox<scgms::TSolver_Descriptor, scgms::get_solver_descriptors>(parameter, this);
 						break;
 
-					case glucose::NParameter_Type::ptModel_Signal_Id:
+					case scgms::NParameter_Type::ptModel_Signal_Id:
 						// signal selection always requires model selection field
 						if (!model_select)
 							create_model_select(parameter);
@@ -161,11 +161,11 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 						container = new CModel_Signal_Select_ComboBox(parameter, nullptr, dynamic_cast<QComboBox*>(model_select));
 						break;
 
-					case glucose::NParameter_Type::ptSignal_Id:
+					case scgms::NParameter_Type::ptSignal_Id:
 						container = new CAvailable_Signal_Select_ComboBox(parameter, nullptr);
 						break;
 
-					case glucose::NParameter_Type::ptDouble_Array:
+					case scgms::NParameter_Type::ptDouble_Array:
 						// model bounds edit always requires model selection field
 						if (!model_select)
 							create_model_select(parameter);
@@ -173,18 +173,18 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 						container = new CModel_Bounds_Panel(parameter, dynamic_cast<QComboBox*>(model_select), this);
 						break;
 
-					case glucose::NParameter_Type::ptSubject_Id:
+					case scgms::NParameter_Type::ptSubject_Id:
 						container = new CSelect_Subject_Panel{ mConfiguration, parameter, this };
 						break;
 				}
 
-				if (mDescription.parameter_type[i] != glucose::NParameter_Type::ptNull) mContainer_Edits.push_back(container);
+				if (mDescription.parameter_type[i] != scgms::NParameter_Type::ptNull) mContainer_Edits.push_back(container);
 				switch (mDescription.parameter_type[i])
 				{
 					//special widget, let's add it as a standalone tab
-					case glucose::NParameter_Type::ptInt64_Array:
-					case glucose::NParameter_Type::ptDouble_Array:
-					case glucose::NParameter_Type::ptSubject_Id:
+					case scgms::NParameter_Type::ptInt64_Array:
+					case scgms::NParameter_Type::ptDouble_Array:
+					case scgms::NParameter_Type::ptSubject_Id:
 					{
 						tabs->addTab(dynamic_cast<QWidget*>(container), QString::fromWCharArray(mDescription.ui_parameter_name[i]));
 						break;
@@ -193,7 +193,7 @@ void CFilter_Config_Window::Setup_UI(glucose::SFilter_Configuration_Link configu
 					{
 						QLabel *label = new QLabel{ QString::fromWCharArray(mDescription.ui_parameter_name[i]) };
 						// consider null parameter as separator and make some style adjustments
-						if (mDescription.parameter_type[i] == glucose::NParameter_Type::ptNull)
+						if (mDescription.parameter_type[i] == scgms::NParameter_Type::ptNull)
 							label->setText("<b>" + label->text() + "</b>");
 
 						if (mDescription.ui_parameter_tooltip && mDescription.ui_parameter_tooltip[i])

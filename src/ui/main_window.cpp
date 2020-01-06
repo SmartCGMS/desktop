@@ -271,6 +271,6 @@ void CMain_Window::On_Save_Configuration() {
 }
 
 void CMain_Window::On_Optimize_Parameters_Dialog() {
-	CParameters_Optimization_Dialog *dlg = new CParameters_Optimization_Dialog{ refcnt::make_shared_reference_ext<glucose::SFilter_Chain_Configuration, glucose::IFilter_Chain_Configuration>(mFilter_Configuration.get(), true), this };
+	CParameters_Optimization_Dialog *dlg = new CParameters_Optimization_Dialog{ refcnt::make_shared_reference_ext<scgms::SFilter_Chain_Configuration, scgms::IFilter_Chain_Configuration>(mFilter_Configuration.get(), true), this };
 	dlg->show();
 }

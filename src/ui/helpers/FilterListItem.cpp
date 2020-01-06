@@ -41,21 +41,21 @@
 
 #include <QtCore/QObject>
 
-CFilter_List_Item::CFilter_List_Item(glucose::SFilter_Configuration_Link configuration) :
+CFilter_List_Item::CFilter_List_Item(scgms::SFilter_Configuration_Link configuration) :
 	QListWidgetItem(), mConfiguration(configuration), mDescriptor(configuration.descriptor()) {
 
 	Refresh();
 }
 
-CFilter_List_Item::CFilter_List_Item(const glucose::TFilter_Descriptor descriptor) :QListWidgetItem(), mDescriptor(descriptor) {
+CFilter_List_Item::CFilter_List_Item(const scgms::TFilter_Descriptor descriptor) :QListWidgetItem(), mDescriptor(descriptor) {
 	Refresh();
 }
 
-glucose::SFilter_Configuration_Link CFilter_List_Item::configuration() {
+scgms::SFilter_Configuration_Link CFilter_List_Item::configuration() {
 	return mConfiguration;
 }
 
-const glucose::TFilter_Descriptor& CFilter_List_Item::description() const {
+const scgms::TFilter_Descriptor& CFilter_List_Item::description() const {
 	return mDescriptor;
 }
 
@@ -63,7 +63,7 @@ void CFilter_List_Item::Refresh()
 {
 	QString text = QString::fromWCharArray(mDescriptor.description);
 
-	auto models = glucose::get_model_descriptors();
+	auto models = scgms::get_model_descriptors();
 
 	// splitter appending logic - at first, apply " - " to split name from description, then apply ", " to split description items
 	bool splitterAppended = false;
@@ -81,10 +81,10 @@ void CFilter_List_Item::Refresh()
 	// traverse configuration and find items to put into description
 	//for (auto& cfg : mConfiguration)
 	if (mConfiguration) {
-		mConfiguration.for_each([&](glucose::SFilter_Parameter cfg)
+		mConfiguration.for_each([&](scgms::SFilter_Parameter cfg)
 			{
 				// model signal - append signal name
-				if (cfg.type() == glucose::NParameter_Type::ptModel_Signal_Id) {
+				if (cfg.type() == scgms::NParameter_Type::ptModel_Signal_Id) {
 					bool found = false;
 					for (auto& model : models)
 					{
@@ -104,7 +104,7 @@ void CFilter_List_Item::Refresh()
 					}
 				}
 				// model - append model description
-				else if (cfg.type() == glucose::NParameter_Type::ptModel_Id) {
+				else if (cfg.type() == scgms::NParameter_Type::ptModel_Id) {
 					for (auto& model : models) {
 						HRESULT rc;
 						if (model.id == cfg.as_guid(rc))

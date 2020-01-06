@@ -80,11 +80,11 @@ class CSimulation_Window : public QMdiSubWindow {
 		bool mSimulationInProgress;
 		
 
-		glucose::SFilter_Executor mFilter_Executor;
-		refcnt::SReferenced<glucose::IFilter_Chain_Configuration> mConfiguration;
+		scgms::SFilter_Executor mFilter_Executor;
+		refcnt::SReferenced<scgms::IFilter_Chain_Configuration> mConfiguration;
 
-		std::vector<glucose::SCalculate_Filter_Inspection> mSolver_Filters;
-		glucose::CSignal_Names mSignal_Names;
+		std::vector<scgms::SCalculate_Filter_Inspection> mSolver_Filters;
+		scgms::CSignal_Names mSignal_Names;
 
 		CGUI_Filter_Subchain mGUI_Filter_Subchain;
 		int mBase_Tab_Count = 0;
@@ -111,7 +111,7 @@ class CSimulation_Window : public QMdiSubWindow {
 		typedef struct {
 			size_t progress;
 			double bestMetric;
-			glucose::TSolver_Status status;
+			scgms::TSolver_Status status;
 		} TProgress_Status_Internal;
 
 		std::map<GUID, QProgressBar*> mProgressBars;
@@ -160,23 +160,23 @@ class CSimulation_Window : public QMdiSubWindow {
 		void Slot_Update_Solver_Progress(QUuid solver);		
 
 	protected:
-		void Inject_Event(const glucose::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info, const uint64_t segment_id = glucose::Invalid_Segment_Id);
+		void Inject_Event(const scgms::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info, const uint64_t segment_id = scgms::Invalid_Segment_Id);
 	protected:
-		static HRESULT IfaceCalling On_Filter_Configured(glucose::IFilter *filter, const void* data);
+		static HRESULT IfaceCalling On_Filter_Configured(scgms::IFilter *filter, const void* data);
 	public:
 		// factory method for singleton initialization
-		static CSimulation_Window* Show_Instance(refcnt::SReferenced<glucose::IFilter_Chain_Configuration> configuration, QWidget *owner);
-		CSimulation_Window(refcnt::SReferenced<glucose::IFilter_Chain_Configuration> configuration, QWidget *owner);
+		static CSimulation_Window* Show_Instance(refcnt::SReferenced<scgms::IFilter_Chain_Configuration> configuration, QWidget *owner);
+		CSimulation_Window(refcnt::SReferenced<scgms::IFilter_Chain_Configuration> configuration, QWidget *owner);
 		virtual ~CSimulation_Window();
 
 		static CSimulation_Window* Get_Instance();
 
 		bool Is_Simulation_In_Progress() const;
 
-		void Drawing_Callback(const glucose::TDrawing_Image_Type type, const glucose::TDiagnosis diagnosis, const std::string &svg);
+		void Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::TDiagnosis diagnosis, const std::string &svg);
 		void Log_Callback(std::shared_ptr<refcnt::wstr_list> messages);
-		void Update_Solver_Progress(const GUID& solver, size_t progress, double bestMetric, glucose::TSolver_Status status);
-		void Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type);	//remove
+		void Update_Solver_Progress(const GUID& solver, size_t progress, double bestMetric, scgms::TSolver_Status status);
+		void Update_Error_Metrics(const GUID& signal_id, scgms::TError_Markers& container, scgms::NError_Type type);	//remove
 		void Update_Errors();
 		void Update_Solver_Progress();
 

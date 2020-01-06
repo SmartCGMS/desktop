@@ -48,17 +48,17 @@
 class CFilter_Config_Window : public QDialog {
 	Q_OBJECT
 protected:
-	glucose::SFilter_Configuration mConfiguration;
-	const glucose::TFilter_Descriptor mDescription;	
+	scgms::SFilter_Configuration mConfiguration;
+	const scgms::TFilter_Descriptor mDescription;	
 
 	std::vector<filter_config_window::CContainer_Edit*> mContainer_Edits;
 
-	void Setup_UI(glucose::SFilter_Configuration_Link configuration);
+	void Setup_UI(scgms::SFilter_Configuration_Link configuration);
 	void Commit_Parameters();	//from controls to configuration
 protected slots:
 	void On_OK();
 	void On_Cancel();
 	void On_Apply();
 public:
-	CFilter_Config_Window(glucose::SFilter_Configuration_Link configuration, QWidget *parent);	
+	CFilter_Config_Window(scgms::SFilter_Configuration_Link configuration, QWidget *parent);	
 };

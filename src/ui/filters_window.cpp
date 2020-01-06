@@ -61,7 +61,7 @@
 
 std::atomic<CFilters_Window*> CFilters_Window::mInstance = nullptr;
 
-CFilters_Window* CFilters_Window::Show_Instance(glucose::SPersistent_Filter_Chain_Configuration &filter_chain_configuration, QWidget *owner) {
+CFilters_Window* CFilters_Window::Show_Instance(scgms::SPersistent_Filter_Chain_Configuration &filter_chain_configuration, QWidget *owner) {
 
 	if (mInstance) {
 		mInstance.load()->showMaximized();
@@ -78,7 +78,7 @@ CFilters_Window* CFilters_Window::Show_Instance(glucose::SPersistent_Filter_Chai
 	return mInstance;
 }
 
-CFilters_Window::CFilters_Window(glucose::SPersistent_Filter_Chain_Configuration &filter_chain_configuration, QWidget *owner) : QMdiSubWindow(owner), mFilter_Chain_Configuration(filter_chain_configuration) {
+CFilters_Window::CFilters_Window(scgms::SPersistent_Filter_Chain_Configuration &filter_chain_configuration, QWidget *owner) : QMdiSubWindow(owner), mFilter_Chain_Configuration(filter_chain_configuration) {
 	Setup_UI();
 }
 
@@ -121,7 +121,7 @@ void CFilters_Window::Setup_UI() {
 
 	//add the available filters
 	{
-		const auto &filters = glucose::get_filter_descriptors();
+		const auto &filters = scgms::get_filter_descriptors();
 		for (const auto &filter : filters) {
 			CFilter_List_Item *tmp = new CFilter_List_Item(filter);
 			lbxAvailable_Filters->addItem(tmp);
@@ -132,7 +132,7 @@ void CFilters_Window::Setup_UI() {
 
 
 	//add the  applied filters
-	mFilter_Chain_Configuration.for_each([this](glucose::SFilter_Configuration_Link link) {
+	mFilter_Chain_Configuration.for_each([this](scgms::SFilter_Configuration_Link link) {
 		CFilter_List_Item *tmp = new CFilter_List_Item(link);
 		tmp->Refresh();
 		lbxApplied_Filters->addItem(tmp);			

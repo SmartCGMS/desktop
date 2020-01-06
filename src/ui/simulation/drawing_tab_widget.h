@@ -82,7 +82,7 @@ class CDrawing_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 
 	protected:
 		// maintained output type
-		const glucose::TDrawing_Image_Type mType;
+		const scgms::TDrawing_Image_Type mType;
 
 		// drawn item
 		QGraphicsSvgItem* mItem;
@@ -96,7 +96,7 @@ class CDrawing_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 		QComboBox* mDiagnosis_Box;
 
 		// contents of SVG to be drawn
-		std::map<glucose::TDiagnosis, std::string> mSvgContents;
+		std::map<scgms::TDiagnosis, std::string> mSvgContents;
 		// draw mutex
 		std::mutex mDrawMtx;
 
@@ -104,7 +104,7 @@ class CDrawing_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 		bool mDefered_Work = false;
 
 		// currently selected diagnosis
-		glucose::TDiagnosis mCurrent_Diagnosis;
+		scgms::TDiagnosis mCurrent_Diagnosis;
 
 	signals:
 		void On_Redraw();
@@ -116,14 +116,14 @@ class CDrawing_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 		void Slot_Redraw();
 
 	public:
-		explicit CDrawing_Tab_Widget(const glucose::TDrawing_Image_Type type, QWidget *parent = 0);
+		explicit CDrawing_Tab_Widget(const scgms::TDrawing_Image_Type type, QWidget *parent = 0);
 		virtual ~CDrawing_Tab_Widget();
 
 		virtual void Update_View_Size() override;
 		virtual CAbstract_Simulation_Tab_Widget* Clone() override;
 
 		// when a new drawing is available
-		void Drawing_Callback(const glucose::TDrawing_Image_Type type, const glucose::TDiagnosis diagnosis, const std::string &svg);
+		void Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::TDiagnosis diagnosis, const std::string &svg);
 
 		void Redraw();
 };

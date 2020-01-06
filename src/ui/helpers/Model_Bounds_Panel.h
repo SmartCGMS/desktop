@@ -66,18 +66,18 @@ class CModel_Bounds_Panel : public QWidget, public virtual filter_config_window:
 		std::vector<filter_config_window::IAs_Double_Container*> mLowerBoundEdits, mDefaultsEdits, mUpperBoundEdits;
 
 		// resets user interface using given values
-		void Reset_UI(const glucose::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds);
+		void Reset_UI(const scgms::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds);
 		// retrieves currently selected model; returns true on success
-		bool Get_Current_Selected_Model(glucose::TModel_Descriptor& model);
+		bool Get_Current_Selected_Model(scgms::TModel_Descriptor& model);
 
-		void CModel_Bounds_Panel::Reset_Parameters(const std::vector<filter_config_window::IAs_Double_Container*> &containers, std::function<const double*(const glucose::TModel_Descriptor&)> get_bounds);
+		void CModel_Bounds_Panel::Reset_Parameters(const std::vector<filter_config_window::IAs_Double_Container*> &containers, std::function<const double*(const scgms::TModel_Descriptor&)> get_bounds);
 	protected slots:
 		void On_Reset_Lower();
 		void On_Reset_Defaults();
 		void On_Reset_Upper();
 
 	public:
-		CModel_Bounds_Panel(glucose::SFilter_Parameter parameter, QComboBox* modelSelector, QWidget *parent);
+		CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QComboBox* modelSelector, QWidget *parent);
 
 		virtual void fetch_parameter() override;
 		virtual void store_parameter() override;

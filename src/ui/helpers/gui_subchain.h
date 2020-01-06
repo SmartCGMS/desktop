@@ -64,8 +64,8 @@ constexpr size_t GUI_Subchain_Default_Drawing_Update = 500;
  */
 class CGUI_Filter_Subchain {
 	protected:
-		glucose::SDrawing_Filter_Inspection mDrawing_Filter_Inspection;		
-		glucose::SLog_Filter_Inspection mLog_Filter_Inspection;		
+		scgms::SDrawing_Filter_Inspection mDrawing_Filter_Inspection;		
+		scgms::SLog_Filter_Inspection mLog_Filter_Inspection;		
 
 		// set of all GUIDs of calculated signals that came through pipe
 		std::set<GUID> mCalculatedSignalGUIDs;
@@ -106,7 +106,7 @@ class CGUI_Filter_Subchain {
 		CGUI_Filter_Subchain();
 		virtual ~CGUI_Filter_Subchain();
 
-		void On_Filter_Configured(glucose::IFilter *filter);
+		void On_Filter_Configured(scgms::IFilter *filter);
 			
 
 		void Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds);		

@@ -52,7 +52,7 @@ constexpr int Subject_Selection_Anonymous = 0;
 constexpr int Subject_Selection_Create_New = 1;
 constexpr int Subject_Selection_Existing = 2;
 
-CSelect_Subject_Panel::CSelect_Subject_Panel(glucose::SFilter_Configuration configuration, glucose::SFilter_Parameter &parameter, QWidget *parent)
+CSelect_Subject_Panel::CSelect_Subject_Panel(scgms::SFilter_Configuration configuration, scgms::SFilter_Parameter &parameter, QWidget *parent)
 	: QWidget(parent), mConfiguration(configuration), CContainer_Edit(parameter) {
 	QVBoxLayout* layout = new QVBoxLayout();
 

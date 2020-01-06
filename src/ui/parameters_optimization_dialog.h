@@ -53,7 +53,7 @@
 class CParameters_Optimization_Dialog : public QDialog {
 	Q_OBJECT
 protected:
-	glucose::SFilter_Chain_Configuration mConfiguration;
+	scgms::SFilter_Chain_Configuration mConfiguration;
 	
 	struct TParameters_Info {
 		std::wstring filter_name;
@@ -62,7 +62,7 @@ protected:
 	};
 
 	std::vector<TParameters_Info> mParameters_Info;
-	void Populate_Parameters_Info(glucose::SFilter_Chain_Configuration configuration);
+	void Populate_Parameters_Info(scgms::SFilter_Chain_Configuration configuration);
 protected:
 	QComboBox *cmbParameters = nullptr, *cmbSolver;
 	QLineEdit *edtMax_Generations, *edtPopulation_Size;
@@ -83,6 +83,6 @@ protected slots:
 	void On_Stop();	
 	void On_Update_Progress();
 public:
-	CParameters_Optimization_Dialog(glucose::SFilter_Chain_Configuration configuration, QWidget *parent);
+	CParameters_Optimization_Dialog(scgms::SFilter_Chain_Configuration configuration, QWidget *parent);
 	~CParameters_Optimization_Dialog();
 };

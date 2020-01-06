@@ -46,11 +46,11 @@ void CModel_Signal_Select_ComboBox::Refresh_Contents()
 	if (mModelSelector->currentIndex() >= 0)
 	{
 		// get selected model GUID
-		glucose::TModel_Descriptor model = glucose::Null_Model_Descriptor;
+		scgms::TModel_Descriptor model = scgms::Null_Model_Descriptor;
 		const GUID selectedModelGUID = *reinterpret_cast<const GUID*>(mModelSelector->currentData().toByteArray().constData());
 
 		// retrieve proper model
-		if (glucose::get_model_descriptor_by_id(selectedModelGUID, model))
+		if (scgms::get_model_descriptor_by_id(selectedModelGUID, model))
 		{
 			// add model signals to combobox
 			for (size_t i = 0; i < model.number_of_calculated_signals; i++)
@@ -59,7 +59,7 @@ void CModel_Signal_Select_ComboBox::Refresh_Contents()
 	}
 }
 
-CModel_Signal_Select_ComboBox::CModel_Signal_Select_ComboBox(glucose::SFilter_Parameter parameter, QWidget *parent, QComboBox *modelSelector) :
+CModel_Signal_Select_ComboBox::CModel_Signal_Select_ComboBox(scgms::SFilter_Parameter parameter, QWidget *parent, QComboBox *modelSelector) :
 	filter_config_window::CGUIDCombo_Container_Edit(parameter, parent), mModelSelector(modelSelector) {	
 	Refresh_Contents();
 
@@ -68,33 +68,33 @@ CModel_Signal_Select_ComboBox::CModel_Signal_Select_ComboBox(glucose::SFilter_Pa
 	});
 }
 
-CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(glucose::SFilter_Parameter parameter, QWidget *parent)	: filter_config_window::CGUIDCombo_Container_Edit(parameter, parent) {
+CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(scgms::SFilter_Parameter parameter, QWidget *parent)	: filter_config_window::CGUIDCombo_Container_Edit(parameter, parent) {
 	// append measured signals
 	std::wstring measSuffix = dsSignal_Suffix_Measured;
 	measSuffix = L" (" + measSuffix + L")";
 
 	//TO DO: enumerate input known signals in some global header
-	mSignalVector.push_back({ glucose::signal_BG, dsSignal_Measured_BG + measSuffix });
-	mSignalVector.push_back({ glucose::signal_IG, dsSignal_Measured_IG + measSuffix });
-	mSignalVector.push_back({ glucose::signal_ISIG, dsSignal_Measured_ISIG + measSuffix });
-	mSignalVector.push_back({ glucose::signal_Calibration, dsSignal_Measured_Calibration + measSuffix });
-	mSignalVector.push_back({ glucose::signal_Delivered_Insulin_Bolus, dsSignal_Delivered_Insulin_Bolus });
-	mSignalVector.push_back({ glucose::signal_Requested_Insulin_Bolus, dsSignal_Requested_Insulin_Bolus });
-	mSignalVector.push_back({ glucose::signal_Delivered_Insulin_Basal_Rate, dsSignal_Delivered_Insulin_Basal_Rate});
-	mSignalVector.push_back({ glucose::signal_Requested_Insulin_Basal_Rate, dsSignal_Requested_Insulin_Basal_Rate});
-	mSignalVector.push_back({ glucose::signal_Insulin_Activity, dsSignal_Measured_Insulin_Activity + measSuffix });
-	mSignalVector.push_back({ glucose::signal_IOB, dsSignal_Measured_IOB + measSuffix });
-	mSignalVector.push_back({ glucose::signal_COB, dsSignal_Measured_COB + measSuffix });
-	mSignalVector.push_back({ glucose::signal_Carb_Intake, dsSignal_Measured_Carb_Intake + measSuffix });
-	mSignalVector.push_back({ glucose::signal_Physical_Activity, dsSignal_Measured_Health_Physical_Activity + measSuffix });
-	mSignalVector.push_back({ glucose::signal_Insulin_Sensitivity, dsSignal_Measured_Insulin_Sensitivity + measSuffix });
-	mSignalVector.push_back({ glucose::signal_Carb_Ratio, dsSignal_Measured_Carb_Ratio + measSuffix });
+	mSignalVector.push_back({ scgms::signal_BG, dsSignal_Measured_BG + measSuffix });
+	mSignalVector.push_back({ scgms::signal_IG, dsSignal_Measured_IG + measSuffix });
+	mSignalVector.push_back({ scgms::signal_ISIG, dsSignal_Measured_ISIG + measSuffix });
+	mSignalVector.push_back({ scgms::signal_Calibration, dsSignal_Measured_Calibration + measSuffix });
+	mSignalVector.push_back({ scgms::signal_Delivered_Insulin_Bolus, dsSignal_Delivered_Insulin_Bolus });
+	mSignalVector.push_back({ scgms::signal_Requested_Insulin_Bolus, dsSignal_Requested_Insulin_Bolus });
+	mSignalVector.push_back({ scgms::signal_Delivered_Insulin_Basal_Rate, dsSignal_Delivered_Insulin_Basal_Rate});
+	mSignalVector.push_back({ scgms::signal_Requested_Insulin_Basal_Rate, dsSignal_Requested_Insulin_Basal_Rate});
+	mSignalVector.push_back({ scgms::signal_Insulin_Activity, dsSignal_Measured_Insulin_Activity + measSuffix });
+	mSignalVector.push_back({ scgms::signal_IOB, dsSignal_Measured_IOB + measSuffix });
+	mSignalVector.push_back({ scgms::signal_COB, dsSignal_Measured_COB + measSuffix });
+	mSignalVector.push_back({ scgms::signal_Carb_Intake, dsSignal_Measured_Carb_Intake + measSuffix });
+	mSignalVector.push_back({ scgms::signal_Physical_Activity, dsSignal_Measured_Health_Physical_Activity + measSuffix });
+	mSignalVector.push_back({ scgms::signal_Insulin_Sensitivity, dsSignal_Measured_Insulin_Sensitivity + measSuffix });
+	mSignalVector.push_back({ scgms::signal_Carb_Ratio, dsSignal_Measured_Carb_Ratio + measSuffix });
 
 	// append calculated signals of known models
 	std::wstring calcSuffix = dsSignal_Suffix_Calculated;
 	calcSuffix = L" (" + calcSuffix + L")";
 
-	auto models = glucose::get_model_descriptors();
+	auto models = scgms::get_model_descriptors();
 	for (auto& model : models)
 	{
 		for (size_t i = 0; i < model.number_of_calculated_signals; i++)
@@ -102,8 +102,8 @@ CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(glucose::SF
 	}
 
 	// append virtual signals
-	for (size_t i=0; i<glucose::signal_Virtual.size(); i++)
-		mSignalVector.push_back({ glucose::signal_Virtual[i], dsSignal_Prefix_Virtual + std::wstring(L" ") + std::to_wstring(i) });
+	for (size_t i=0; i<scgms::signal_Virtual.size(); i++)
+		mSignalVector.push_back({ scgms::signal_Virtual[i], dsSignal_Prefix_Virtual + std::wstring(L" ") + std::to_wstring(i) });
 
 	// add all signals to combobox
 

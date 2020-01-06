@@ -67,7 +67,7 @@ constexpr size_t Invalid_Value = static_cast<size_t>(-1);
 
 std::atomic<CSimulation_Window*> CSimulation_Window::mInstance = nullptr;
 
-CSimulation_Window* CSimulation_Window::Show_Instance(refcnt::SReferenced<glucose::IFilter_Chain_Configuration> configuration, QWidget *owner)
+CSimulation_Window* CSimulation_Window::Show_Instance(refcnt::SReferenced<scgms::IFilter_Chain_Configuration> configuration, QWidget *owner)
 {
 	if (mInstance)
 	{
@@ -84,7 +84,7 @@ CSimulation_Window* CSimulation_Window::Show_Instance(refcnt::SReferenced<glucos
 	return mInstance;
 }
 
-CSimulation_Window::CSimulation_Window(refcnt::SReferenced<glucose::IFilter_Chain_Configuration> configuration, QWidget *owner) : 
+CSimulation_Window::CSimulation_Window(refcnt::SReferenced<scgms::IFilter_Chain_Configuration> configuration, QWidget *owner) : 
 	mConfiguration(configuration), QMdiSubWindow{ owner }, mTabWidget(nullptr) {	
 	Setup_UI();
 
@@ -111,13 +111,13 @@ void CSimulation_Window::Setup_Solve_Button_Menu()
 
 	QMenu* menu = new QMenu(this);
 
-	QAction* anyaction = menu->addAction(StdWStringToQString(mSignal_Names.Get_Name(glucose::signal_All).c_str()));
+	QAction* anyaction = menu->addAction(StdWStringToQString(mSignal_Names.Get_Name(scgms::signal_All).c_str()));
 	connect(anyaction, SIGNAL(triggered()), mSolveSignalMapper, SLOT(map()));
-	mSolveSignalMapper->setMapping(anyaction, StdWStringToQString(GUID_To_WString(glucose::signal_All)));
+	mSolveSignalMapper->setMapping(anyaction, StdWStringToQString(GUID_To_WString(scgms::signal_All)));
 
 	menu->addSeparator();
 
-	auto models = glucose::get_model_descriptors();
+	auto models = scgms::get_model_descriptors();
 	for (const auto& model : models)
 	{
 		for (size_t i = 0; i < model.number_of_calculated_signals; i++)
@@ -230,29 +230,29 @@ void CSimulation_Window::Setup_UI()
 
 		CDrawing_Tab_Widget* tab;
 
-		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Graph);
+		tab = new CDrawing_Tab_Widget(scgms::TDrawing_Image_Type::Graph);
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Graph));
 
 		tab->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
 
-		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Day);
+		tab = new CDrawing_Tab_Widget(scgms::TDrawing_Image_Type::Day);
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Day));
 
-		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Clark);
+		tab = new CDrawing_Tab_Widget(scgms::TDrawing_Image_Type::Clark);
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Clark));
 
-		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Parkes);
+		tab = new CDrawing_Tab_Widget(scgms::TDrawing_Image_Type::Parkes);
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Parkes));
 
-		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::AGP);
+		tab = new CDrawing_Tab_Widget(scgms::TDrawing_Image_Type::AGP);
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_AGP));
 
-		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::ECDF);
+		tab = new CDrawing_Tab_Widget(scgms::TDrawing_Image_Type::ECDF);
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_ECDF));
 
@@ -268,15 +268,15 @@ void CSimulation_Window::Setup_UI()
 
 		// profile drawing tabs
 
-		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Profile_Glucose);
+		tab = new CDrawing_Tab_Widget(scgms::TDrawing_Image_Type::Profile_Glucose);
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Profile_Glucose));
 
-		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Profile_Carbs);
+		tab = new CDrawing_Tab_Widget(scgms::TDrawing_Image_Type::Profile_Carbs);
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Profile_Carbs));
 
-		tab = new CDrawing_Tab_Widget(glucose::TDrawing_Image_Type::Profile_Insulin);
+		tab = new CDrawing_Tab_Widget(scgms::TDrawing_Image_Type::Profile_Insulin);
 		mDrawingWidgets.push_back(tab);
 		mTabWidget->addTab(tab, tr(dsDrawing_Tab_Profile_Insulin));
 
@@ -406,7 +406,7 @@ void CSimulation_Window::On_Start() {
 		lay->addStretch();
 
 	// initialize and start filter holder, this will start filters
-	mFilter_Executor = glucose::SFilter_Executor{ mConfiguration, CSimulation_Window::On_Filter_Configured, this };
+	mFilter_Executor = scgms::SFilter_Executor{ mConfiguration, CSimulation_Window::On_Filter_Configured, this };
 	if (!mFilter_Executor)	{
 		// TODO: error message
 		return;
@@ -424,14 +424,14 @@ void CSimulation_Window::On_Start() {
 	mGUI_Filter_Subchain.Start();
 }
 
-HRESULT IfaceCalling CSimulation_Window::On_Filter_Configured(glucose::IFilter *filter, const void* data) {
+HRESULT IfaceCalling CSimulation_Window::On_Filter_Configured(scgms::IFilter *filter, const void* data) {
 	CSimulation_Window * local_instance = static_cast<CSimulation_Window *>(const_cast<void*>(data));
 
 	Setup_Filter_DB_Access(filter, nullptr);
 	local_instance->mGUI_Filter_Subchain.On_Filter_Configured(filter);
 	local_instance->mErrorsWidget->On_Filter_Configured(filter);
 
-	if (glucose::SCalculate_Filter_Inspection insp = glucose::SCalculate_Filter_Inspection{ glucose::SFilter{filter} })
+	if (scgms::SCalculate_Filter_Inspection insp = scgms::SCalculate_Filter_Inspection{ scgms::SFilter{filter} })
 		local_instance->mSolver_Filters.push_back(insp);
 
 	return S_OK;
@@ -449,7 +449,7 @@ void CSimulation_Window::On_Stop() {
 		solvers->Cancel_Solver();
 	mSolver_Filters.clear();
 
-	Inject_Event(glucose::NDevice_Event_Code::Shut_Down, Invalid_GUID, nullptr);
+	Inject_Event(scgms::NDevice_Event_Code::Shut_Down, Invalid_GUID, nullptr);
 
 	if (SUCCEEDED(mFilter_Executor->Terminate())) {	
 		mStartButton->setEnabled(true);
@@ -458,7 +458,7 @@ void CSimulation_Window::On_Stop() {
 }
 
 void CSimulation_Window::On_Reset_And_Solve_Params() {
-	Inject_Event(glucose::NDevice_Event_Code::Warm_Reset, Invalid_GUID, nullptr);
+	Inject_Event(scgms::NDevice_Event_Code::Warm_Reset, Invalid_GUID, nullptr);
 }
 
 CSimulation_Window* CSimulation_Window::Get_Instance()
@@ -466,7 +466,7 @@ CSimulation_Window* CSimulation_Window::Get_Instance()
 	return mInstance;
 }
 
-void CSimulation_Window::Drawing_Callback(const glucose::TDrawing_Image_Type type, const glucose::TDiagnosis diagnosis, const std::string &image_data)
+void CSimulation_Window::Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::TDiagnosis diagnosis, const std::string &image_data)
 {
 	for (CDrawing_Tab_Widget* wg : mDrawingWidgets)
 		wg->Drawing_Callback(type, diagnosis, image_data);
@@ -484,10 +484,10 @@ void CSimulation_Window::Log_Callback(std::shared_ptr<refcnt::wstr_list> message
 
 }
 
-void CSimulation_Window::Update_Solver_Progress(const GUID& solver, size_t progress, double bestMetric, glucose::TSolver_Status status)
+void CSimulation_Window::Update_Solver_Progress(const GUID& solver, size_t progress, double bestMetric, scgms::TSolver_Status status)
 {
 	// do not display disabled solver
-	if (status == glucose::TSolver_Status::Disabled)
+	if (status == scgms::TSolver_Status::Disabled)
 		return;
 
 	mSolverProgress[solver] = { progress, bestMetric, status };
@@ -504,7 +504,7 @@ void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
 
 	const size_t progress = solverProgress.progress;
 	const double bestMetric = solverProgress.bestMetric;
-	const glucose::TSolver_Status status = solverProgress.status;
+	const scgms::TSolver_Status status = solverProgress.status;
 
 	QString metricString = tr(dsBest_Metric_Label);
 	if (solverProgress.progress != Invalid_Value)
@@ -515,12 +515,12 @@ void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
 	std::string statusStr;
 	switch (status)
 	{
-		case glucose::TSolver_Status::Disabled:					statusStr = dsSolver_Status_Disabled; break;
-		case glucose::TSolver_Status::Idle:						statusStr = dsSolver_Status_Idle; break;
-		case glucose::TSolver_Status::In_Progress:				statusStr = dsSolver_Status_In_Progress; break;
-		case glucose::TSolver_Status::Completed_Improved:		statusStr = dsSolver_Status_Completed_Improved; break;
-		case glucose::TSolver_Status::Completed_Not_Improved:   statusStr = dsSolver_Status_Completed_Not_Improved; break;
-		case glucose::TSolver_Status::Failed:					statusStr = dsSolver_Status_Failed; break;
+		case scgms::TSolver_Status::Disabled:					statusStr = dsSolver_Status_Disabled; break;
+		case scgms::TSolver_Status::Idle:						statusStr = dsSolver_Status_Idle; break;
+		case scgms::TSolver_Status::In_Progress:				statusStr = dsSolver_Status_In_Progress; break;
+		case scgms::TSolver_Status::Completed_Improved:		statusStr = dsSolver_Status_Completed_Improved; break;
+		case scgms::TSolver_Status::Completed_Not_Improved:   statusStr = dsSolver_Status_Completed_Not_Improved; break;
+		case scgms::TSolver_Status::Failed:					statusStr = dsSolver_Status_Failed; break;
 	}
 
 	if (itr == mProgressBars.end())
@@ -554,7 +554,7 @@ void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
 	}
 
 	// In_Progress = progress bar visible, status hidden
-	if (status != glucose::TSolver_Status::In_Progress)
+	if (status != scgms::TSolver_Status::In_Progress)
 	{
 		mSolverStatusLabels[solver_id]->show();
 		mProgressBars[solver_id]->hide();
@@ -658,11 +658,11 @@ void CSimulation_Window::On_Solve_Signal(QString str)
 	if (signalId == Invalid_GUID)
 		return;
 
-	Inject_Event(glucose::NDevice_Event_Code::Solve_Parameters, signalId, nullptr, glucose::All_Segments_Id);
+	Inject_Event(scgms::NDevice_Event_Code::Solve_Parameters, signalId, nullptr, scgms::All_Segments_Id);
 }
 
 
-void CSimulation_Window::Update_Error_Metrics(const GUID& signal_id, glucose::TError_Markers& container, glucose::NError_Type type) {
+void CSimulation_Window::Update_Error_Metrics(const GUID& signal_id, scgms::TError_Markers& container, scgms::NError_Type type) {
 //	if (mSimulationInProgress) mErrorsWidget->Update_Error_Metrics(signal_id, container, type);
 }
 
@@ -671,7 +671,7 @@ void CSimulation_Window::Update_Solver_Progress()
 	for (const auto& solvers : mSolver_Filters)
 	{
 		GUID guid;
-		glucose::TSolver_Status status;
+		scgms::TSolver_Status status;
 		if (solvers->Get_Solver_Information(&guid, &status) != S_OK)
 			continue;
 
@@ -689,9 +689,9 @@ void CSimulation_Window::Update_Solver_Progress()
 	}
 }
 
-void CSimulation_Window::Inject_Event(const glucose::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info, const uint64_t segment_id) {
+void CSimulation_Window::Inject_Event(const scgms::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info, const uint64_t segment_id) {
 	if (mFilter_Executor) {
-		glucose::UDevice_Event evt{ code };
+		scgms::UDevice_Event evt{ code };
 		evt.signal_id() = signal_id;
 		evt.segment_id() = segment_id;
 		evt.info.set(info);

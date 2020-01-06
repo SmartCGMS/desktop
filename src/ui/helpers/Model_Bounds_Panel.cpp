@@ -48,7 +48,7 @@
 
 #include "moc_Model_Bounds_Panel.cpp"
 
-CModel_Bounds_Panel::CModel_Bounds_Panel(glucose::SFilter_Parameter parameter, QComboBox* modelSelector, QWidget * parent)
+CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QComboBox* modelSelector, QWidget * parent)
 	: CContainer_Edit(parameter), QWidget(parent), mModelSelector(modelSelector) {
 	QVBoxLayout* layout = new QVBoxLayout();
 	setLayout(layout);
@@ -81,7 +81,7 @@ void CModel_Bounds_Panel::store_parameter() {
 	check_rc(mParameter.set_double_array(values));
 }
 
-void CModel_Bounds_Panel::Reset_UI(const glucose::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds)
+void CModel_Bounds_Panel::Reset_UI(const scgms::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds)
 {
 	// clear layout
 	int colums = mLayout->columnCount();
@@ -107,17 +107,17 @@ void CModel_Bounds_Panel::Reset_UI(const glucose::TModel_Descriptor& model, cons
 	mLayout->addWidget(new QLabel(dsDefault_Parameters), 0, 2);
 	mLayout->addWidget(new QLabel(dsUpper_Bounds), 0, 3);
 
-	auto create_edit = [this](const glucose::NModel_Parameter_Value parameter_type, const double val) -> filter_config_window::IAs_Double_Container* {
+	auto create_edit = [this](const scgms::NModel_Parameter_Value parameter_type, const double val) -> filter_config_window::IAs_Double_Container* {
 
 		filter_config_window::IAs_Double_Container* container = nullptr;
 
 		switch (parameter_type) {
-		case glucose::NModel_Parameter_Value::mptDouble:
-			container = new filter_config_window::CDouble_Container_Edit{ glucose::SFilter_Parameter{}, this };
+		case scgms::NModel_Parameter_Value::mptDouble:
+			container = new filter_config_window::CDouble_Container_Edit{ scgms::SFilter_Parameter{}, this };
 			break;
 
-		case glucose::NModel_Parameter_Value::mptTime:
-			container = new filter_config_window::CRatTime_Container_Edit{ glucose::SFilter_Parameter{}, this };
+		case scgms::NModel_Parameter_Value::mptTime:
+			container = new filter_config_window::CRatTime_Container_Edit{ scgms::SFilter_Parameter{}, this };
 			break;		
 		}
 		
@@ -164,8 +164,8 @@ void CModel_Bounds_Panel::Reset_UI(const glucose::TModel_Descriptor& model, cons
 		mLayout->setRowStretch((int)i, 1);
 }
 
-void CModel_Bounds_Panel::Reset_Parameters(const std::vector<filter_config_window::IAs_Double_Container*> &containers, std::function<const double*(const glucose::TModel_Descriptor&)> get_bounds) {
-	glucose::TModel_Descriptor model = glucose::Null_Model_Descriptor;
+void CModel_Bounds_Panel::Reset_Parameters(const std::vector<filter_config_window::IAs_Double_Container*> &containers, std::function<const double*(const scgms::TModel_Descriptor&)> get_bounds) {
+	scgms::TModel_Descriptor model = scgms::Null_Model_Descriptor;
 	if (!Get_Current_Selected_Model(model))
 		return;
 
@@ -177,25 +177,25 @@ void CModel_Bounds_Panel::Reset_Parameters(const std::vector<filter_config_windo
 }
 
 void CModel_Bounds_Panel::On_Reset_Lower() {
-	Reset_Parameters(mLowerBoundEdits, [](const glucose::TModel_Descriptor& model)->const double* {return model.lower_bound; });
+	Reset_Parameters(mLowerBoundEdits, [](const scgms::TModel_Descriptor& model)->const double* {return model.lower_bound; });
 }
 
 void CModel_Bounds_Panel::On_Reset_Defaults() {
-	Reset_Parameters(mDefaultsEdits, [](const glucose::TModel_Descriptor& model)->const double* {return model.default_values; });
+	Reset_Parameters(mDefaultsEdits, [](const scgms::TModel_Descriptor& model)->const double* {return model.default_values; });
 }
 
 void CModel_Bounds_Panel::On_Reset_Upper() {
-	Reset_Parameters(mUpperBoundEdits, [](const glucose::TModel_Descriptor& model)->const double* {return model.upper_bound; });
+	Reset_Parameters(mUpperBoundEdits, [](const scgms::TModel_Descriptor& model)->const double* {return model.upper_bound; });
 }
 
-bool CModel_Bounds_Panel::Get_Current_Selected_Model(glucose::TModel_Descriptor& model)
+bool CModel_Bounds_Panel::Get_Current_Selected_Model(scgms::TModel_Descriptor& model)
 {
 	if (mModelSelector->currentIndex() >= 0)
 	{
 		// get selected model GUID
 		const GUID selectedModelGUID = *reinterpret_cast<const GUID*>(mModelSelector->currentData().toByteArray().constData());
 
-		if (glucose::get_model_descriptor_by_id(selectedModelGUID, model))
+		if (scgms::get_model_descriptor_by_id(selectedModelGUID, model))
 			return true;
 	}
 
@@ -207,7 +207,7 @@ void CModel_Bounds_Panel::fetch_parameter() {
 	HRESULT rc;
 	std::vector<double> parameters = mParameter.as_double_array(rc);
 
-	glucose::TModel_Descriptor model = glucose::Null_Model_Descriptor;
+	scgms::TModel_Descriptor model = scgms::Null_Model_Descriptor;
 
 	if (SUCCEEDED(rc) && Get_Current_Selected_Model(model)) {
 		const double* lb = model.lower_bound;

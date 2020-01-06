@@ -86,7 +86,7 @@ CErrors_Tab_Widget_internal::CError_Table_Model::CError_Table_Model(QObject *par
 
 int CErrors_Tab_Widget_internal::CError_Table_Model::rowCount(const QModelIndex &idx) const
 {
-	//return mMaxSignalRow * static_cast<int>(glucose::NError_Type::count);
+	//return mMaxSignalRow * static_cast<int>(scgms::NError_Type::count);
 	const size_t signal_errors_size = mSignal_Errors.size();
 	return signal_errors_size == 0 ?  0 : 3 * static_cast<int>(signal_errors_size)-1;
 }
@@ -108,7 +108,7 @@ QString Format_Error_String(double val, bool relative)
 
 QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex &index, int role) const {
 
-	auto display_signal = [](const int col, const glucose::TSignal_Error &error, bool is_relative) {
+	auto display_signal = [](const int col, const scgms::TSignal_Error &error, bool is_relative) {
 		constexpr int avg_col = 1;
 		constexpr int stdev_col = 2;
 		constexpr int sum_col = 3;
@@ -128,13 +128,13 @@ QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex
 			case sum_col:	return Format_Error_String(error.sum, is_relative);
 			case count_col: return Format_Error_String(error.count, false);	
 
-			case min_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::min_value)], is_relative);
-			case p25_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::p25)], is_relative);
-			case med_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::median)], is_relative);
-			case p75_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::p75)], is_relative);
-			case p95_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::p95)], is_relative);
-			case p99_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::p99)], is_relative);
-			case max_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(glucose::NECDF::max_value)], is_relative);
+			case min_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(scgms::NECDF::min_value)], is_relative);
+			case p25_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(scgms::NECDF::p25)], is_relative);
+			case med_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(scgms::NECDF::median)], is_relative);
+			case p75_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(scgms::NECDF::p75)], is_relative);
+			case p95_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(scgms::NECDF::p95)], is_relative);
+			case p99_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(scgms::NECDF::p99)], is_relative);
+			case max_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(scgms::NECDF::max_value)], is_relative);
 			default:		return QString{};
 		}
 	};
@@ -214,10 +214,10 @@ CErrors_Tab_Widget_internal::CError_Table_Model* CErrors_Tab_Widget_internal::CE
 }
 
 
-void CErrors_Tab_Widget_internal::CError_Table_Model::On_Filter_Configured(glucose::IFilter *filter) {
+void CErrors_Tab_Widget_internal::CError_Table_Model::On_Filter_Configured(scgms::IFilter *filter) {
 	CErrors_Tab_Widget_internal::TSignal_Error_Inspection inspection;
 
-	inspection.signal_error = glucose::SSignal_Error_Inspection{ glucose::SFilter{filter} };
+	inspection.signal_error = scgms::SSignal_Error_Inspection{ scgms::SFilter{filter} };
 	if (inspection.signal_error) {
 		wchar_t *tmp_desc;
 		inspection.description = inspection.signal_error->Get_Description(&tmp_desc) == S_OK ? tmp_desc : dsSignal_Unknown;		
@@ -282,15 +282,15 @@ CErrors_Tab_Widget::CErrors_Tab_Widget(QWidget *parent) noexcept: CAbstract_Simu
 	QPushButton* exportBtn = new QPushButton(dsExport_To_CSV);
 	mainLayout->addWidget(exportBtn, 1, 0);
 
-	auto models = glucose::get_model_descriptors();
+	auto models = scgms::get_model_descriptors();
 	for (auto& model : models)
 	{
 		for (size_t i = 0; i < model.number_of_calculated_signals; i++)
 			mSignalNames[model.calculated_signal_ids[i]] = model.description + std::wstring(L" - ") + model.calculated_signal_names[i];
 	}
 
-	for (size_t i = 0; i < glucose::signal_Virtual.size(); i++)
-		mSignalNames[glucose::signal_Virtual[i]] = dsSignal_Prefix_Virtual + std::wstring(L" ") + std::to_wstring(i);
+	for (size_t i = 0; i < scgms::signal_Virtual.size(); i++)
+		mSignalNames[scgms::signal_Virtual[i]] = dsSignal_Prefix_Virtual + std::wstring(L" ") + std::to_wstring(i);
 
 	setLayout(mainLayout);
 
@@ -377,7 +377,7 @@ CAbstract_Simulation_Tab_Widget* CErrors_Tab_Widget::Clone() {
 	return cloned_widget;
 }
 
-void CErrors_Tab_Widget::On_Filter_Configured(glucose::IFilter *filter) {
+void CErrors_Tab_Widget::On_Filter_Configured(scgms::IFilter *filter) {
 	if (mModel) mModel->On_Filter_Configured(filter);
 }
 

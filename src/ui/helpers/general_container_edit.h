@@ -50,11 +50,11 @@ namespace filter_config_window {
 
 	class CContainer_Edit {
 	protected:
-		glucose::SFilter_Parameter mParameter;
+		scgms::SFilter_Parameter mParameter;
 		bool check_rc(const HRESULT rc);	//returns true if rc succeeded, else displays an error message
 	public:
 		CContainer_Edit() {};
-		CContainer_Edit(glucose::SFilter_Parameter parameter);
+		CContainer_Edit(scgms::SFilter_Parameter parameter);
 		virtual ~CContainer_Edit() {};
 		virtual void fetch_parameter() {};	//loads the parameter into the UI element
 		virtual void store_parameter() = 0;	//stores the parameter from the UI element
@@ -70,7 +70,7 @@ namespace filter_config_window {
 	class CInteger_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
 		Q_OBJECT
 	public:
-		CInteger_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent);		
+		CInteger_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent);		
 		virtual void fetch_parameter() override;
 		virtual void store_parameter() override;
 	};
@@ -78,7 +78,7 @@ namespace filter_config_window {
 
 	class CWChar_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit {
 	public:
-		CWChar_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent);
+		CWChar_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent);
 		virtual void fetch_parameter() override;
 		virtual void store_parameter() override;
 	};
@@ -91,7 +91,7 @@ namespace filter_config_window {
 		double QTime2RatTime(const QTime &qdt);
 		QTime rattime2QTime(const double rt);
 	public:
-		CRatTime_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent);
+		CRatTime_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent);
 		virtual ~CRatTime_Container_Edit() {};
 		virtual void fetch_parameter() override;
 		virtual void store_parameter() override;
@@ -103,7 +103,7 @@ namespace filter_config_window {
 
 	class CDouble_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit, public virtual IAs_Double_Container {
 	public:
-		CDouble_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent);
+		CDouble_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent);
 		virtual ~CDouble_Container_Edit() {};
 		virtual void fetch_parameter() override;
 		virtual void store_parameter() override;
@@ -114,14 +114,14 @@ namespace filter_config_window {
 
 	class CBoolean_Container_Edit : public QCheckBox, public virtual filter_config_window::CContainer_Edit {
 	public:
-		CBoolean_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent);
+		CBoolean_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent);
 		virtual void fetch_parameter() override;
 		virtual void store_parameter() override;
 	};
 
 	class CGUIDCombo_Container_Edit : public QComboBox, public virtual filter_config_window::CContainer_Edit {
 	public:
-		CGUIDCombo_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent);
+		CGUIDCombo_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent);
 		virtual void fetch_parameter() override;
 		virtual void store_parameter() override;
 	};

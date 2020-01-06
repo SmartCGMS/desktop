@@ -60,9 +60,9 @@ namespace CErrors_Tab_Widget_internal {
 
 	struct TSignal_Error_Inspection{
 		std::wstring description;
-		glucose::SSignal_Error_Inspection signal_error;
-		glucose::TSignal_Error recent_abs_error;
-		glucose::TSignal_Error recent_rel_error;
+		scgms::SSignal_Error_Inspection signal_error;
+		scgms::TSignal_Error recent_abs_error;
+		scgms::TSignal_Error recent_rel_error;
 		double r5, r10, r25, r50;	//inverse ECDF for relative errors
 	};
 
@@ -80,7 +80,7 @@ namespace CErrors_Tab_Widget_internal {
 		
 		CError_Table_Model* Clone(QObject *parent = 0);
 		
-		void On_Filter_Configured(glucose::IFilter *filter);
+		void On_Filter_Configured(scgms::IFilter *filter);
 		void Update_Errors();
 		void Clear_Filters();
 	};
@@ -107,6 +107,6 @@ public:
 	explicit CErrors_Tab_Widget(QWidget *parent = 0) noexcept;
 	virtual CAbstract_Simulation_Tab_Widget* Clone() override; 		
 	void Refresh();	
-	void On_Filter_Configured(glucose::IFilter *filter);
+	void On_Filter_Configured(scgms::IFilter *filter);
 	void Clear_Filters();
 };

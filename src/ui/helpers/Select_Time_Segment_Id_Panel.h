@@ -55,11 +55,11 @@ protected:
 	std::unique_ptr<QSqlDatabase> mDb;
 	std::unique_ptr<QSqlQueryModel> mSegmentsModel;
 	std::unique_ptr<QSqlQuery> mSegmentsQuery;
-	glucose::SFilter_Configuration mConfiguration;
+	scgms::SFilter_Configuration mConfiguration;
 
 	void Connect_To_Db();
 public:
-	CSelect_Time_Segment_Id_Panel(glucose::SFilter_Configuration configuration, glucose::SFilter_Parameter parameter, QWidget *parent);
+	CSelect_Time_Segment_Id_Panel(scgms::SFilter_Configuration configuration, scgms::SFilter_Parameter parameter, QWidget *parent);
 	virtual void fetch_parameter() override;
 	virtual void store_parameter() override;
 };

@@ -57,7 +57,7 @@
 template <typename TDesc, typename std::vector<TDesc>(*G)()>
 class CGUID_Entity_ComboBox : public virtual filter_config_window::CGUIDCombo_Container_Edit {
 public:
-	CGUID_Entity_ComboBox(glucose::SFilter_Parameter parameter, QWidget *parent) : CGUIDCombo_Container_Edit(parameter, parent) {		
+	CGUID_Entity_ComboBox(scgms::SFilter_Parameter parameter, QWidget *parent) : CGUIDCombo_Container_Edit(parameter, parent) {		
 		auto entities = G();
 
 		// add entities retrieved using template function
@@ -77,7 +77,7 @@ protected:
 	// refreshes combobox contents using model selector value
 	void Refresh_Contents();
 public:
-	CModel_Signal_Select_ComboBox(glucose::SFilter_Parameter parameter, QWidget *parent, QComboBox *modelSelector);
+	CModel_Signal_Select_ComboBox(scgms::SFilter_Parameter parameter, QWidget *parent, QComboBox *modelSelector);
 };
 
 /*
@@ -88,5 +88,5 @@ private:
 	// we need to preserve order, so we use vector of pairs instead of map; we don't use advantages of map anyways
 	std::vector<std::pair<GUID, std::wstring>> mSignalVector;
 public:
-	CAvailable_Signal_Select_ComboBox(glucose::SFilter_Parameter parameter, QWidget *parent);		
+	CAvailable_Signal_Select_ComboBox(scgms::SFilter_Parameter parameter, QWidget *parent);		
 };

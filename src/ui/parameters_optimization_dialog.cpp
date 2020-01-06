@@ -56,7 +56,7 @@
 
 #include "moc_parameters_optimization_dialog.cpp"
 
-CParameters_Optimization_Dialog::CParameters_Optimization_Dialog(glucose::SFilter_Chain_Configuration configuration, QWidget *parent) :
+CParameters_Optimization_Dialog::CParameters_Optimization_Dialog(scgms::SFilter_Chain_Configuration configuration, QWidget *parent) :
 	mConfiguration(configuration), QDialog(parent) {
 
 	mIs_Solving = false;
@@ -68,14 +68,14 @@ CParameters_Optimization_Dialog::~CParameters_Optimization_Dialog() {
 	Stop_Threads();
 }
 
-void CParameters_Optimization_Dialog::Populate_Parameters_Info(glucose::SFilter_Chain_Configuration configuration) {
-	auto models = glucose::get_model_descriptors();
+void CParameters_Optimization_Dialog::Populate_Parameters_Info(scgms::SFilter_Chain_Configuration configuration) {
+	auto models = scgms::get_model_descriptors();
 
-	auto complete_description = [&models](std::wstring &description, glucose::SFilter_Configuration_Link link) {
+	auto complete_description = [&models](std::wstring &description, scgms::SFilter_Configuration_Link link) {
 
-		link.for_each([&models, &description](glucose::SFilter_Parameter parameter) {
+		link.for_each([&models, &description](scgms::SFilter_Parameter parameter) {
 			// model signal - append signal name
-			if (parameter.type() == glucose::NParameter_Type::ptModel_Signal_Id) {
+			if (parameter.type() == scgms::NParameter_Type::ptModel_Signal_Id) {
 				bool found = false;
 				for (auto& model : models)
 				{
@@ -95,7 +95,7 @@ void CParameters_Optimization_Dialog::Populate_Parameters_Info(glucose::SFilter_
 				}
 			}
 			// model - append model description
-			else if (parameter.type() == glucose::NParameter_Type::ptModel_Id) {
+			else if (parameter.type() == scgms::NParameter_Type::ptModel_Id) {
 				for (auto& model : models) {
 					HRESULT rc;
 					if (model.id == parameter.as_guid(rc))
@@ -111,10 +111,10 @@ void CParameters_Optimization_Dialog::Populate_Parameters_Info(glucose::SFilter_
 
 
 	size_t filter_index = 0;
-	configuration.for_each([this, &filter_index, &complete_description](glucose::SFilter_Configuration_Link link) {
+	configuration.for_each([this, &filter_index, &complete_description](scgms::SFilter_Configuration_Link link) {
 
-		link.for_each([this, filter_index, &link, &complete_description](glucose::SFilter_Parameter parameter) {
-			if (parameter.type() == glucose::NParameter_Type::ptDouble_Array) {
+		link.for_each([this, filter_index, &link, &complete_description](scgms::SFilter_Parameter parameter) {
+			if (parameter.type() == scgms::NParameter_Type::ptDouble_Array) {
 				TParameters_Info info;
 				
 				info.filter_name = link.descriptor().description;
@@ -147,7 +147,7 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 		cmbParameters->addItem(QString::fromStdWString(mParameters_Info[i].filter_name + L" / " + mParameters_Info[i].parameters_name), QVariant(i));
 
 	cmbSolver = new QComboBox{ edits };
-	for (const auto &item : glucose::get_solver_descriptors())
+	for (const auto &item : scgms::get_solver_descriptors())
 		cmbSolver->addItem(QString::fromStdWString(item.description), QVariant(GUID_To_QUuid(item.id)));
 	
 	
@@ -232,7 +232,7 @@ void CParameters_Optimization_Dialog::On_Solve() {
 			mProgress = solver::Null_Solver_Progress;
 			mSolver_Thread = std::make_unique<std::thread>(
 				[this, &solver_variant, filter_info_index]() {
-					HRESULT res = glucose::Optimize_Parameters(mConfiguration, mParameters_Info[filter_info_index].filter_index, mParameters_Info[filter_info_index].parameters_name.c_str(),
+					HRESULT res = scgms::Optimize_Parameters(mConfiguration, mParameters_Info[filter_info_index].filter_index, mParameters_Info[filter_info_index].parameters_name.c_str(),
 						Setup_Filter_DB_Access, nullptr,
 						QUuid_To_GUID(solver_variant.toUuid()),
 						edtPopulation_Size->text().toInt(),

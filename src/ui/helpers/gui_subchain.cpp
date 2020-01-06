@@ -46,7 +46,7 @@
 CGUI_Filter_Subchain::CGUI_Filter_Subchain() : mChange_Available(false), mRunning(false) {
 
 	// take all model-calculated signals and put them into calculated signal guids set
-	const auto models = glucose::get_model_descriptors();
+	const auto models = scgms::get_model_descriptors();
 	for (const auto& model : models) {
 		for (size_t i = 0; i < model.number_of_calculated_signals; i++)
 			mCalculatedSignalGUIDs.insert(model.calculated_signal_ids[i]);
@@ -85,8 +85,8 @@ void CGUI_Filter_Subchain::Stop() {
 			mUpdater_Thread.reset();
 		}
 
-	mDrawing_Filter_Inspection = glucose::SDrawing_Filter_Inspection{ };
-	mLog_Filter_Inspection = glucose::SLog_Filter_Inspection{};
+	mDrawing_Filter_Inspection = scgms::SDrawing_Filter_Inspection{ };
+	mLog_Filter_Inspection = scgms::SLog_Filter_Inspection{};
 }
 
 void CGUI_Filter_Subchain::Run_Updater()
@@ -107,11 +107,11 @@ void CGUI_Filter_Subchain::Run_Updater()
 }
 
 
-void CGUI_Filter_Subchain::On_Filter_Configured(glucose::IFilter *filter) {
-	if (glucose::SDrawing_Filter_Inspection insp = glucose::SDrawing_Filter_Inspection{ glucose::SFilter{filter} })
+void CGUI_Filter_Subchain::On_Filter_Configured(scgms::IFilter *filter) {
+	if (scgms::SDrawing_Filter_Inspection insp = scgms::SDrawing_Filter_Inspection{ scgms::SFilter{filter} })
 		mDrawing_Filter_Inspection = insp;
 		
-	if (glucose::SLog_Filter_Inspection insp = glucose::SLog_Filter_Inspection{ glucose::SFilter{filter} })
+	if (scgms::SLog_Filter_Inspection insp = scgms::SLog_Filter_Inspection{ scgms::SFilter{filter} })
 		mLog_Filter_Inspection = insp;
 }
 
@@ -145,14 +145,14 @@ void CGUI_Filter_Subchain::Update_Drawing() {
 
 	auto svg = refcnt::Create_Container_shared<char>(nullptr, nullptr);
 
-	for (size_t type = 0; type < (size_t)glucose::TDrawing_Image_Type::count; type++) {
-		if (mDrawing_Filter_Inspection->Draw((glucose::TDrawing_Image_Type)type, glucose::TDiagnosis::NotSpecified, svg.get(), mDraw_Segment_Ids.get(), mDraw_Signal_Ids.get()) == S_OK) {
-			simwin->Drawing_Callback((glucose::TDrawing_Image_Type)type, glucose::TDiagnosis::NotSpecified, refcnt::Char_Container_To_String(svg.get()));
+	for (size_t type = 0; type < (size_t)scgms::TDrawing_Image_Type::count; type++) {
+		if (mDrawing_Filter_Inspection->Draw((scgms::TDrawing_Image_Type)type, scgms::TDiagnosis::NotSpecified, svg.get(), mDraw_Segment_Ids.get(), mDraw_Signal_Ids.get()) == S_OK) {
+			simwin->Drawing_Callback((scgms::TDrawing_Image_Type)type, scgms::TDiagnosis::NotSpecified, refcnt::Char_Container_To_String(svg.get()));
 		}
 	}
 
-	if (mDrawing_Filter_Inspection->Draw(glucose::TDrawing_Image_Type::Parkes, glucose::TDiagnosis::Type2, svg.get(), mDraw_Segment_Ids.get(), mDraw_Signal_Ids.get()) == S_OK) {
-		simwin->Drawing_Callback(glucose::TDrawing_Image_Type::Parkes, glucose::TDiagnosis::Type2, refcnt::Char_Container_To_String(svg.get()));
+	if (mDrawing_Filter_Inspection->Draw(scgms::TDrawing_Image_Type::Parkes, scgms::TDiagnosis::Type2, svg.get(), mDraw_Segment_Ids.get(), mDraw_Signal_Ids.get()) == S_OK) {
+		simwin->Drawing_Callback(scgms::TDrawing_Image_Type::Parkes, scgms::TDiagnosis::Type2, refcnt::Char_Container_To_String(svg.get()));
 	}
 }
 

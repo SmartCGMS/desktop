@@ -53,7 +53,7 @@ class CMain_Window : public QMainWindow
 
 	protected:
 		std::wstring mFilter_Configuration_File_Path;
-		glucose::SPersistent_Filter_Chain_Configuration mFilter_Configuration;
+		scgms::SPersistent_Filter_Chain_Configuration mFilter_Configuration;
 
 	private:
 		QMdiArea *pnlMDI_Content = nullptr;

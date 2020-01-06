@@ -52,7 +52,7 @@
 namespace filter_config_window {
 	
 
-	CContainer_Edit::CContainer_Edit(glucose::SFilter_Parameter parameter) : mParameter(parameter) {
+	CContainer_Edit::CContainer_Edit(scgms::SFilter_Parameter parameter) : mParameter(parameter) {
 		fetch_parameter();
 	}
 
@@ -72,7 +72,7 @@ namespace filter_config_window {
 	}
 
 
-	CInteger_Container_Edit::CInteger_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent) : CContainer_Edit(parameter), QLineEdit(parent) {
+	CInteger_Container_Edit::CInteger_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : CContainer_Edit(parameter), QLineEdit(parent) {
 		setValidator(new QIntValidator(this));
 	}
 
@@ -94,7 +94,7 @@ namespace filter_config_window {
 		check_rc(rc);
 	}
 
-	CWChar_Container_Edit::CWChar_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent) : QLineEdit(parent), CContainer_Edit(parameter) {
+	CWChar_Container_Edit::CWChar_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : QLineEdit(parent), CContainer_Edit(parameter) {
 		//
 	}
 
@@ -109,7 +109,7 @@ namespace filter_config_window {
 	}
 
 
-	CRatTime_Container_Edit::CRatTime_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent) : QDateTimeEdit(parent), CContainer_Edit(parameter) {
+	CRatTime_Container_Edit::CRatTime_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : QDateTimeEdit(parent), CContainer_Edit(parameter) {
 		setDisplayFormat(rsRattime_Edit_Mask);
 	}
 
@@ -145,7 +145,7 @@ namespace filter_config_window {
 	}
 
 
-	CDouble_Container_Edit::CDouble_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent) : QLineEdit(parent), CContainer_Edit(parameter) {
+	CDouble_Container_Edit::CDouble_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : QLineEdit(parent), CContainer_Edit(parameter) {
 		auto validator = new QDoubleValidator(this);
 		// force english locale rules (e.g. dot decimal separator)
 		validator->setLocale(QLocale(QLocale::English));
@@ -183,7 +183,7 @@ namespace filter_config_window {
 		setText(QString::number(value));
 	}
 
-	CBoolean_Container_Edit::CBoolean_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent) : QCheckBox(parent), CContainer_Edit(parameter) {
+	CBoolean_Container_Edit::CBoolean_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : QCheckBox(parent), CContainer_Edit(parameter) {
 		//
 	}
 	
@@ -199,7 +199,7 @@ namespace filter_config_window {
 	}
 
 
-	CGUIDCombo_Container_Edit::CGUIDCombo_Container_Edit(glucose::SFilter_Parameter parameter, QWidget *parent) :
+	CGUIDCombo_Container_Edit::CGUIDCombo_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) :
 		QComboBox(parent), CContainer_Edit(parameter) {
 		mParameter = parameter; //fixing some strange behavior, may be Qt implied, that enforces default ctor of cont_edit, thus not setting mParameter
 	}
@@ -224,7 +224,7 @@ namespace filter_config_window {
 		check_rc(mParameter->Set_GUID(&id));
 	}
 
-	CNull_Container_Edit::CNull_Container_Edit(QWidget *parent) : QWidget(parent), CContainer_Edit(glucose::SFilter_Parameter{}) {
+	CNull_Container_Edit::CNull_Container_Edit(QWidget *parent) : QWidget(parent), CContainer_Edit(scgms::SFilter_Parameter{}) {
 		//
 	}
 
