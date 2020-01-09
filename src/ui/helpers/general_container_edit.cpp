@@ -109,39 +109,105 @@ namespace filter_config_window {
 	}
 
 
-	CRatTime_Container_Edit::CRatTime_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : QDateTimeEdit(parent), CContainer_Edit(parameter) {
-		setDisplayFormat(rsRattime_Edit_Mask);
+	bool CRatTime_Validator::allowed_chars_only(const QString &input) const {
+		for (auto ch : input) {
+			switch (ch.toLatin1()) {
+				case ' ': case ':': case '-': case '.':
+				case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': break;
+				default: return false;
+			}
+		}
+
+
+		return true;
 	}
 
-	double CRatTime_Container_Edit::QTime2RatTime(const QTime &qdt) {
-		const size_t msecs = qdt.msecsSinceStartOfDay();
-		return static_cast<double>(msecs)*InvMSecsPerDay;
+	bool CRatTime_Validator::string_to_rattime(const QString &input, double& converted) const {
+		double days = 0.0, hours = 0.0, minutes = 0.0, seconds = 0.0;			
+			
+		int pos, last_pos = input.size();
+			
+		auto fetch_number = [&](const char sep, const char decimal, double &result, const double result_max) {
+			pos = last_pos-1;				
+
+			while (pos >= 0) {
+				const char ch = input[pos].toLatin1();
+				if (ch == sep) break;					
+				if (!isdigit(ch) && (ch != decimal)) return false;
+
+				pos--;
+			}
+
+			pos++;
+			QStringRef substring(&input, pos, last_pos - pos);
+			bool ok;
+			result = substring.toDouble(&ok);
+			if ((!ok) || (result >= result_max)) return false;
+
+			last_pos = pos;
+			return true;
+		};
+
+
+		//search for seconds, minutes, hours and days
+
+		if (!fetch_number(':', '.', seconds, 60.0)) return false;
+		if (!fetch_number(':', 0, minutes, 60.0)) return false;
+		if (!fetch_number('0', 0, hours, 24.0)) return false;
+		if (!fetch_number('-', 0, days, std::numeric_limits<double>::max())) return false;
+
+		converted = days + scgms::One_Hour * hours + scgms::One_Minute * minutes + scgms::One_Second * seconds;
+
+		//now, maximum one char may remain	 - the minus sign		
+		if (pos == 0) {
+			if (input[pos] == '-') converted = -converted;
+			else return false;
+		} if (pos > 0) return false;
+					
+		return true;
 	}
 
-	QTime CRatTime_Container_Edit::rattime2QTime(const double rt) {
-		QTime tmp(0, 0, 0, 0);
-		return tmp.addMSecs((int)(rt*MSecsPerDay));
+	QString CRatTime_Validator::rattime_to_string(const double& rattime) const {
+	
+		return "not implemented";
 	}
 
+	void CRatTime_Validator::fixup(QString& input) const {
+	}
+
+	QValidator::State CRatTime_Validator::validate(QString& input, int& pos) const {
+		if (!allowed_chars_only(input)) return QValidator::Invalid;
+			
+		double tmp;
+		return  string_to_rattime(input, tmp) ? QValidator::Acceptable : QValidator::Intermediate;
+	}
+	
+
+	CRatTime_Container_Edit::CRatTime_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : QLineEdit(parent), CContainer_Edit(parameter) {				
+		setValidator(mValidator);
+	}
+
+	
 	void CRatTime_Container_Edit::fetch_parameter() {
 		if (mParameter) {
 			HRESULT rc;
-			setTime(rattime2QTime(mParameter.as_double(rc)));
+			setText(mValidator->rattime_to_string(mParameter.as_double(rc)));
 			check_rc(rc);
 		}
 	}
 	
 	void CRatTime_Container_Edit::store_parameter() {
-		check_rc(mParameter->Set_Double(QTime2RatTime(this->time())));
+		check_rc(mParameter->Set_Double(as_double()));
 	}
 
 
 	double CRatTime_Container_Edit::as_double() {
-		return QTime2RatTime(this->time());
+		double result;
+		return mValidator->string_to_rattime(text(), result) ? result : std::numeric_limits<double>::quiet_NaN();		
 	}
 
 	void CRatTime_Container_Edit::set_double(const double value) {
-		setTime(rattime2QTime(value));
+		//TODO setTime(rattime2QTime(value));
 	}
 
 

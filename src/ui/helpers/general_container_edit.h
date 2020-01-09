@@ -83,13 +83,21 @@ namespace filter_config_window {
 		virtual void store_parameter() override;
 	};
 
-	class CRatTime_Container_Edit : public QDateTimeEdit, public virtual filter_config_window::CContainer_Edit, public virtual IAs_Double_Container {
-	protected:
-		const double MSecsPerDay = 24.0*60.0*60.0*1000.0;
-		const double InvMSecsPerDay = 1.0 / MSecsPerDay;
 
-		double QTime2RatTime(const QTime &qdt);
-		QTime rattime2QTime(const double rt);
+	//allows time: [-][days hours:minutes:]seconds.zzz with minutes, hours and days optional
+	class CRatTime_Validator : public QValidator {
+	protected:
+		bool allowed_chars_only(const QString& input) const;
+	public:
+		bool string_to_rattime(const QString& input, double& converted) const;
+		QString rattime_to_string(const double& rattime) const;
+		virtual void fixup(QString& input) const override;
+		virtual State validate(QString& input, int& pos) const override;
+	};
+
+	class CRatTime_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit, public virtual IAs_Double_Container {
+	protected:
+		CRatTime_Validator* mValidator = new CRatTime_Validator();
 	public:
 		CRatTime_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent);
 		virtual ~CRatTime_Container_Edit() {};
