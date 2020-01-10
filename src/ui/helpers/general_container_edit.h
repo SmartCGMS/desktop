@@ -90,7 +90,7 @@ namespace filter_config_window {
 		bool allowed_chars_only(const QString& input) const;
 	public:
 		bool string_to_rattime(const QString& input, double& converted) const;
-		QString rattime_to_string(const double& rattime) const;
+		QString rattime_to_string(double rattime) const;
 		virtual void fixup(QString& input) const override;
 		virtual State validate(QString& input, int& pos) const override;
 	};

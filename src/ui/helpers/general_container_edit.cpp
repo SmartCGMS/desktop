@@ -110,9 +110,23 @@ namespace filter_config_window {
 
 
 	bool CRatTime_Validator::allowed_chars_only(const QString &input) const {
-		for (auto ch : input) {
+
+		int first = 0;
+		int len = input.size();
+
+		if (len == 0) return false;
+
+		//we allow minus only as the very first char
+		if (input[0] == '-') {
+			first++;
+			len--;
+		}
+
+		QStringRef vw(&input, first, len);
+
+		for (auto ch : vw) {
 			switch (ch.toLatin1()) {
-				case ' ': case ':': case '-': case '.':
+				case ' ': case ':': case '.':
 				case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': break;
 				default: return false;
 			}
@@ -123,14 +137,23 @@ namespace filter_config_window {
 	}
 
 	bool CRatTime_Validator::string_to_rattime(const QString &input, double& converted) const {
-		double days = 0.0, hours = 0.0, minutes = 0.0, seconds = 0.0;			
-			
+		double days = 0.0, hours = 0.0, minutes = 0.0, seconds = 0.0;		
+
+		double plus_minus_sign = 1.0;
+		int plus_minus_pos = 0;	//must be signed int!
+		if (input.size() == 0) return false;
+		if (input[0] == '-') {
+			plus_minus_sign = -1.0;
+			plus_minus_pos = 1;
+		}
+
+
 		int pos, last_pos = input.size();
 			
 		auto fetch_number = [&](const char sep, const char decimal, double &result, const double result_max) {
 			pos = last_pos-1;				
 
-			while (pos >= 0) {
+			while (pos >= plus_minus_pos) {
 				const char ch = input[pos].toLatin1();
 				if (ch == sep) break;					
 				if (!isdigit(ch) && (ch != decimal)) return false;
@@ -144,7 +167,7 @@ namespace filter_config_window {
 			result = substring.toDouble(&ok);
 			if ((!ok) || (result >= result_max)) return false;
 
-			last_pos = pos;
+			last_pos = pos-1;
 			return true;
 		};
 
@@ -152,34 +175,59 @@ namespace filter_config_window {
 		//search for seconds, minutes, hours and days
 
 		if (!fetch_number(':', '.', seconds, 60.0)) return false;
-		if (!fetch_number(':', 0, minutes, 60.0)) return false;
-		if (!fetch_number('0', 0, hours, 24.0)) return false;
-		if (!fetch_number('-', 0, days, std::numeric_limits<double>::max())) return false;
 
-		converted = days + scgms::One_Hour * hours + scgms::One_Minute * minutes + scgms::One_Second * seconds;
+		if (last_pos > plus_minus_pos) {
+			if (!fetch_number(':', 0, minutes, 60.0)) return false;
 
-		//now, maximum one char may remain	 - the minus sign		
-		if (pos == 0) {
-			if (input[pos] == '-') converted = -converted;
-			else return false;
-		} if (pos > 0) return false;
+			if (last_pos > plus_minus_pos) {
+				if (!fetch_number(' ', 0, hours, 24.0)) return false;
+
+				if (last_pos> plus_minus_pos)
+					if (!fetch_number('-', 0, days, std::numeric_limits<double>::max())) return false;
+			}
+		}
+
+		converted = plus_minus_sign*(days + scgms::One_Hour * hours + scgms::One_Minute * minutes + scgms::One_Second * seconds);	
 					
 		return true;
 	}
 
-	QString CRatTime_Validator::rattime_to_string(const double& rattime) const {
-	
-		return "not implemented";
+	QString CRatTime_Validator::rattime_to_string(double rattime) const {		
+		if (isnan(rattime)) return QString::fromStdWString(dsNaN);
+		
+
+		auto add_fraction = [&](const double factor) {
+			double intpart;
+			rattime *= factor;
+			rattime = modf(rattime, &intpart);
+
+			if (factor == 1.0) {	//days				
+				return intpart != 0.0 ? QString::number(static_cast<int>(intpart)) + ' ' : QString{ "" };
+			} else
+				return QString::number(static_cast<int>(intpart)).rightJustified(2, '0');
+		};
+
+
+		//days				
+		QString result{ rattime < 0.0 ? "-" : "" };
+		rattime = fabs(rattime);
+		result += add_fraction(1.0);		
+		result += add_fraction(24.0) + ':';
+		result += add_fraction(60.0) + ':';
+		result += add_fraction(60.0);
+
+		return result;
 	}
 
 	void CRatTime_Validator::fixup(QString& input) const {
+		input = input.simplified();
 	}
 
 	QValidator::State CRatTime_Validator::validate(QString& input, int& pos) const {
 		if (!allowed_chars_only(input)) return QValidator::Invalid;
 			
 		double tmp;
-		return  string_to_rattime(input, tmp) ? QValidator::Acceptable : QValidator::Intermediate;
+		return  string_to_rattime(input.simplified(), tmp) ? QValidator::Acceptable : QValidator::Invalid; //do not allow Intermediate as the user may possible enter a non-sense
 	}
 	
 
@@ -207,7 +255,7 @@ namespace filter_config_window {
 	}
 
 	void CRatTime_Container_Edit::set_double(const double value) {
-		//TODO setTime(rattime2QTime(value));
+		setText(mValidator->rattime_to_string(value));		
 	}
 
 
