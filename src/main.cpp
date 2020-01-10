@@ -44,8 +44,10 @@
 #include "ui/main_window.h"
 
 int MainCalling main(int argc, char *argv[]) {
+    
 
 	QApplication application(argc, argv);
+    qGuiApp->setWindowIcon(QIcon(":/app/appicon.png"));
 
 	// determine config file path
 	const std::wstring config_filepath = argc > 1 ? std::wstring{ argv[1], argv[1] + strlen(argv[1]) } : std::wstring{};

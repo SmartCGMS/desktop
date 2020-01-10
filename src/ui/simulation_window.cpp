@@ -134,9 +134,9 @@ void CSimulation_Window::Setup_Solve_Button_Menu()
 	mSolveParamsButton->setMenu(menu);
 }
 
-void CSimulation_Window::Setup_UI()
-{
+void CSimulation_Window::Setup_UI() {
 	setWindowTitle(tr(dsSimulation_Window));
+	setWindowIcon(QIcon(":/app/appicon.png"));
 
 	QGridLayout *layout = new QGridLayout();
 	for (int i = 0; i < 10; i++)

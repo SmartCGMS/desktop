@@ -1,0 +1,1 @@
+Invoke Qt's rcc while passing resources.qrc as an argument and redirecting stdout to resource.cpp

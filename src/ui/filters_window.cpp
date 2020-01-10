@@ -54,6 +54,7 @@
 #include <QtWidgets/QLabel>
 
 #include <QtCore/QEventLoop>
+#include <QtWidgets/QApplication>
 
 #ifndef MOC_DIR
 	#include "moc_filters_window.cpp"
@@ -88,6 +89,7 @@ CFilters_Window::~CFilters_Window() {
 
 void CFilters_Window::Setup_UI() {
 	setWindowTitle(tr(dsFilters_Window));
+	setWindowIcon(QIcon(":/app/appicon.png"));
 
 	QWidget* wgtApplied_Filters = new QWidget(this);
 	QVBoxLayout *lotApplied_Filters = new QVBoxLayout{  };
