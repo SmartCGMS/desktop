@@ -112,13 +112,16 @@ void CModel_Bounds_Panel::Reset_UI(const scgms::TModel_Descriptor& model, const 
 		filter_config_window::IAs_Double_Container* container = nullptr;
 
 		switch (parameter_type) {
-		case scgms::NModel_Parameter_Value::mptDouble:
-			container = new filter_config_window::CDouble_Container_Edit{ scgms::SFilter_Parameter{}, this };
-			break;
+			case scgms::NModel_Parameter_Value::mptDouble:
+				container = new filter_config_window::CDouble_Container_Edit{ scgms::SFilter_Parameter{}, this };
+				break;
 
-		case scgms::NModel_Parameter_Value::mptTime:
-			container = new filter_config_window::CRatTime_Container_Edit{ scgms::SFilter_Parameter{}, this };
-			break;		
+			case scgms::NModel_Parameter_Value::mptTime:
+				container = new filter_config_window::CRatTime_Container_Edit{ scgms::SFilter_Parameter{}, this };
+				break;		
+
+			default: 
+				break;
 		}
 		
 		if (container) container->set_double(val);

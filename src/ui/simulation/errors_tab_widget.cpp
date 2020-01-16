@@ -108,7 +108,7 @@ QString Format_Error_String(double val, bool relative)
 
 QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex &index, int role) const {
 
-	auto display_signal = [](const int col, const scgms::TSignal_Error &error, bool is_relative) {
+	auto display_signal = [](const int col, const scgms::TSignal_Stats &error, bool is_relative) {
 		constexpr int avg_col = 1;
 		constexpr int stdev_col = 2;
 		constexpr int sum_col = 3;
