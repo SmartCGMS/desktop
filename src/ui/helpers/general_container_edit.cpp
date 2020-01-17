@@ -40,12 +40,13 @@
 #include "general_container_edit.h"
 
 #include "../../../../common/rtl/referencedImpl.h"
+#include "../../../../common/utils/string_utils.h"
 #include "../../../../common/lang/dstrings.h"
 
 #include <QtGui/QValidator>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QApplication>
-
+#include <cmath>
 
 #include "moc_general_container_edit.cpp"
 
@@ -63,7 +64,7 @@ namespace filter_config_window {
 			wchar_t *conf_name = nullptr;
 			mParameter->Get_Config_Name(&conf_name);
 
-			const QString qstr = QString::fromWCharArray(dsParameter_Configuration_Failed_RC).arg(conf_name ? conf_name : L"").arg(rc, 0, 16);
+			const QString qstr = QString::fromWCharArray(dsParameter_Configuration_Failed_RC).arg(conf_name ? Narrow_WChar(conf_name).c_str() : "").arg(rc, 0, 16);
 			QMessageBox::warning(QApplication::activeWindow(), dsInformation, qstr);
 			return false;
 		}
@@ -188,30 +189,30 @@ namespace filter_config_window {
 		}
 
 		converted = plus_minus_sign*(days + scgms::One_Hour * hours + scgms::One_Minute * minutes + scgms::One_Second * seconds);	
-					
+
 		return true;
 	}
 
-	QString CRatTime_Validator::rattime_to_string(double rattime) const {		
-		if (isnan(rattime)) return QString::fromStdWString(dsNaN);
-		
+	QString CRatTime_Validator::rattime_to_string(double rattime) const {
+		if (std::isnan(rattime))
+			return QString::fromStdWString(dsNaN);
 
 		auto add_fraction = [&](const double factor) {
 			double intpart;
 			rattime *= factor;
-			rattime = modf(rattime, &intpart);
+			rattime = std::modf(rattime, &intpart);
 
-			if (factor == 1.0) {	//days				
+			if (factor == 1.0) {	//days
 				return intpart != 0.0 ? QString::number(static_cast<int>(intpart)) + ' ' : QString{ "" };
 			} else
 				return QString::number(static_cast<int>(intpart)).rightJustified(2, '0');
 		};
 
 
-		//days				
+		//days
 		QString result{ rattime < 0.0 ? "-" : "" };
-		rattime = fabs(rattime);
-		result += add_fraction(1.0);		
+		rattime = std::fabs(rattime);
+		result += add_fraction(1.0);
 		result += add_fraction(24.0) + ':';
 		result += add_fraction(60.0) + ':';
 		result += add_fraction(60.0);

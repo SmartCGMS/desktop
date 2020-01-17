@@ -149,9 +149,8 @@ QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex
 
 		constexpr int absolute_role = 0;
 		constexpr int relative_role = 1;
-		constexpr int spacing_role = 2;
 
-		constexpr int desc_col = 0;		
+		constexpr int desc_col = 0;
 
 		constexpr int rel5_col = 12;
 		constexpr int rel10_col = 13;

@@ -70,7 +70,7 @@ class CModel_Bounds_Panel : public QWidget, public virtual filter_config_window:
 		// retrieves currently selected model; returns true on success
 		bool Get_Current_Selected_Model(scgms::TModel_Descriptor& model);
 
-		void CModel_Bounds_Panel::Reset_Parameters(const std::vector<filter_config_window::IAs_Double_Container*> &containers, std::function<const double*(const scgms::TModel_Descriptor&)> get_bounds);
+		void Reset_Parameters(const std::vector<filter_config_window::IAs_Double_Container*> &containers, std::function<const double*(const scgms::TModel_Descriptor&)> get_bounds);
 	protected slots:
 		void On_Reset_Lower();
 		void On_Reset_Defaults();

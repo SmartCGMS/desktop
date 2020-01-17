@@ -43,8 +43,8 @@
 
 #include "moc_Select_Time_Segment_Id_Panel.cpp"
 
-CSelect_Time_Segment_Id_Panel::CSelect_Time_Segment_Id_Panel(scgms::SFilter_Configuration configuration, scgms::SFilter_Parameter parameter, QWidget * parent) : 
-	mConfiguration(configuration), QTableView(parent), CContainer_Edit(parameter) {
+CSelect_Time_Segment_Id_Panel::CSelect_Time_Segment_Id_Panel(scgms::SFilter_Configuration configuration, scgms::SFilter_Parameter parameter, QWidget * parent)
+	: QTableView(parent), CContainer_Edit(parameter), mConfiguration(configuration) {
 	//
 }
 

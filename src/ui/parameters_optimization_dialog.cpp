@@ -36,28 +36,26 @@
  *       monitoring", Procedia Computer Science, Volume 141C, pp. 279-286, 2018
  */
 
-#pragma once
-
 #include "parameters_optimization_dialog.h"
 
-#include "..\..\..\common\lang\dstrings.h"
-#include "..\..\..\common\rtl\SolverLib.h"
-#include "..\..\..\common\rtl\UILib.h"
-#include "..\..\..\common\rtl\qdb_connector.h"
-#include "..\..\..\common\utils\QtUtils.h"
-#include "..\..\..\common\utils\string_utils.h"
+#include "../../../common/lang/dstrings.h"
+#include "../../../common/rtl/SolverLib.h"
+#include "../../../common/rtl/UILib.h"
+#include "../../../common/rtl/qdb_connector.h"
+#include "../../../common/utils/QtUtils.h"
+#include "../../../common/utils/string_utils.h"
 
 #include <QtWidgets/QBoxLayout>
 #include <QtWidgets/QPushButton>
 
 #include <thread>
 #include <chrono>
-
+#include <cmath>
 
 #include "moc_parameters_optimization_dialog.cpp"
 
-CParameters_Optimization_Dialog::CParameters_Optimization_Dialog(scgms::SFilter_Chain_Configuration configuration, QWidget *parent) :
-	mConfiguration(configuration), QDialog(parent) {
+CParameters_Optimization_Dialog::CParameters_Optimization_Dialog(scgms::SFilter_Chain_Configuration configuration, QWidget *parent)
+	: QDialog(parent), mConfiguration(configuration) {
 
 	mIs_Solving = false;
 	Populate_Parameters_Info(configuration);
@@ -144,7 +142,7 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 	
 	cmbParameters = new QComboBox{ edits };
 	for (size_t i = 0; i < mParameters_Info.size(); i++)
-		cmbParameters->addItem(QString::fromStdWString(mParameters_Info[i].filter_name + L" / " + mParameters_Info[i].parameters_name), QVariant(i));
+		cmbParameters->addItem(QString::fromStdWString(mParameters_Info[i].filter_name + L" / " + mParameters_Info[i].parameters_name), QVariant(static_cast<int>(i)));
 
 	cmbSolver = new QComboBox{ edits };
 	for (const auto &item : scgms::get_solver_descriptors())
@@ -263,7 +261,7 @@ void CParameters_Optimization_Dialog::On_Solve() {
 void CParameters_Optimization_Dialog::On_Update_Progress() {
 	if (mIs_Solving) {
 		if (mProgress.max_progress > 0) {
-			barProgress->setValue(static_cast<int>(round(100.0*mProgress.current_progress / mProgress.max_progress)));
+			barProgress->setValue(static_cast<int>(std::round(100.0*mProgress.current_progress / mProgress.max_progress)));
 			lblSolver_Info->setText(QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric));
 		} else
 			lblSolver_Info->setText(QString(tr(dsSolver_Status_In_Progress)));

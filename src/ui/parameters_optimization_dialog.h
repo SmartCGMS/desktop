@@ -38,8 +38,8 @@
 
 #pragma once
 
-#include "..\..\..\common\iface\SolverIface.h"
-#include "..\..\..\common\rtl\FilterLib.h"
+#include "../../../common/iface/SolverIface.h"
+#include "../../../common/rtl/FilterLib.h"
 
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QLineEdit>
