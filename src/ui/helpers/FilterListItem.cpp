@@ -42,7 +42,7 @@
 #include <QtCore/QObject>
 
 CFilter_List_Item::CFilter_List_Item(scgms::SFilter_Configuration_Link configuration) :
-	QListWidgetItem(), mConfiguration(configuration), mDescriptor(configuration.descriptor()) {
+	QListWidgetItem(), mDescriptor(configuration.descriptor()), mConfiguration(configuration) {
 
 	Refresh();
 }

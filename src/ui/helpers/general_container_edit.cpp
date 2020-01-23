@@ -95,7 +95,7 @@ namespace filter_config_window {
 		check_rc(rc);
 	}
 
-	CWChar_Container_Edit::CWChar_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : QLineEdit(parent), CContainer_Edit(parameter) {
+	CWChar_Container_Edit::CWChar_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : CContainer_Edit(parameter), QLineEdit(parent) {
 		//
 	}
 
@@ -232,7 +232,7 @@ namespace filter_config_window {
 	}
 	
 
-	CRatTime_Container_Edit::CRatTime_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : QLineEdit(parent), CContainer_Edit(parameter) {				
+	CRatTime_Container_Edit::CRatTime_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : CContainer_Edit(parameter), QLineEdit(parent) {
 		setValidator(mValidator);
 	}
 
@@ -252,7 +252,7 @@ namespace filter_config_window {
 
 	double CRatTime_Container_Edit::as_double() {
 		double result;
-		return mValidator->string_to_rattime(text(), result) ? result : std::numeric_limits<double>::quiet_NaN();		
+		return mValidator->string_to_rattime(text(), result) ? result : std::numeric_limits<double>::quiet_NaN();
 	}
 
 	void CRatTime_Container_Edit::set_double(const double value) {
@@ -260,7 +260,7 @@ namespace filter_config_window {
 	}
 
 
-	CDouble_Container_Edit::CDouble_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : QLineEdit(parent), CContainer_Edit(parameter) {
+	CDouble_Container_Edit::CDouble_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : CContainer_Edit(parameter), QLineEdit(parent) {
 		auto validator = new QDoubleValidator(this);
 		// force english locale rules (e.g. dot decimal separator)
 		validator->setLocale(QLocale(QLocale::English));
@@ -298,7 +298,7 @@ namespace filter_config_window {
 		setText(QString::number(value));
 	}
 
-	CBoolean_Container_Edit::CBoolean_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : QCheckBox(parent), CContainer_Edit(parameter) {
+	CBoolean_Container_Edit::CBoolean_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : CContainer_Edit(parameter), QCheckBox(parent) {
 		//
 	}
 	
@@ -315,7 +315,7 @@ namespace filter_config_window {
 
 
 	CGUIDCombo_Container_Edit::CGUIDCombo_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) :
-		QComboBox(parent), CContainer_Edit(parameter) {
+		CContainer_Edit(parameter), QComboBox(parent) {
 		mParameter = parameter; //fixing some strange behavior, may be Qt implied, that enforces default ctor of cont_edit, thus not setting mParameter
 	}
 
@@ -339,7 +339,7 @@ namespace filter_config_window {
 		check_rc(mParameter->Set_GUID(&id));
 	}
 
-	CNull_Container_Edit::CNull_Container_Edit(QWidget *parent) : QWidget(parent), CContainer_Edit(scgms::SFilter_Parameter{}) {
+	CNull_Container_Edit::CNull_Container_Edit(QWidget *parent) : CContainer_Edit(scgms::SFilter_Parameter{}), QWidget(parent) {
 		//
 	}
 

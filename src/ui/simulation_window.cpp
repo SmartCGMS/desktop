@@ -85,7 +85,7 @@ CSimulation_Window* CSimulation_Window::Show_Instance(refcnt::SReferenced<scgms:
 }
 
 CSimulation_Window::CSimulation_Window(refcnt::SReferenced<scgms::IFilter_Chain_Configuration> configuration, QWidget *owner) : 
-	mConfiguration(configuration), QMdiSubWindow{ owner }, mTabWidget(nullptr) {	
+	QMdiSubWindow{ owner }, mConfiguration(configuration), mTabWidget(nullptr) {
 	Setup_UI();
 
 	mStopButton->setEnabled(false);
