@@ -86,6 +86,7 @@ CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(scgms::SFil
 	mSignalVector.push_back({ scgms::signal_IOB, dsSignal_Measured_IOB + measSuffix });
 	mSignalVector.push_back({ scgms::signal_COB, dsSignal_Measured_COB + measSuffix });
 	mSignalVector.push_back({ scgms::signal_Carb_Intake, dsSignal_Measured_Carb_Intake + measSuffix });
+	mSignalVector.push_back({ scgms::signal_Carb_Rescue, dsSignal_GUI_Name_Carb_Rescue + measSuffix });
 	mSignalVector.push_back({ scgms::signal_Physical_Activity, dsSignal_Measured_Health_Physical_Activity + measSuffix });
 	mSignalVector.push_back({ scgms::signal_Insulin_Sensitivity, dsSignal_Measured_Insulin_Sensitivity + measSuffix });
 	mSignalVector.push_back({ scgms::signal_Carb_Ratio, dsSignal_Measured_Carb_Ratio + measSuffix });
@@ -108,5 +109,5 @@ CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(scgms::SFil
 	// add all signals to combobox
 
 	for (auto const& signal : mSignalVector)
-		addItem(StdWStringToQString(signal.second), QVariant{ QByteArray(reinterpret_cast<const char*>(&signal.first)) });
+		addItem(StdWStringToQString(signal.second), QVariant{ QByteArray{reinterpret_cast<const char*>(&signal.first), sizeof(decltype(signal.first))} });
 }
