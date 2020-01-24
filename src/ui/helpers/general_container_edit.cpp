@@ -40,6 +40,7 @@
 #include "general_container_edit.h"
 
 #include "../../../../common/rtl/referencedImpl.h"
+#include "../../../../common/rtl/UILib.h"
 #include "../../../../common/utils/string_utils.h"
 #include "../../../../common/lang/dstrings.h"
 
@@ -312,6 +313,16 @@ namespace filter_config_window {
 	void CBoolean_Container_Edit::store_parameter() {
 		check_rc(mParameter.set_bool(checkState() == Qt::Checked));
 	}
+
+	void CGUID_Validator::fixup(QString& input) const {
+		input = input.simplified();
+	}
+
+	CGUID_Validator::State CGUID_Validator::validate(QString& input, int& pos) const {
+		const GUID tmp = WString_To_GUID(input.toStdWString());
+		return tmp != Invalid_GUID ? CGUID_Validator::State::Acceptable : CGUID_Validator::State::Invalid;
+	}
+
 
 
 	CGUIDCombo_Container_Edit::CGUIDCombo_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) :

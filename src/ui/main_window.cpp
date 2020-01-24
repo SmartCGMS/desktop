@@ -60,7 +60,9 @@
 CMain_Window::CMain_Window(const std::wstring& config, QWidget *parent) noexcept : QMainWindow(parent), mFilter_Configuration_File_Path(config) {
 
 	HRESULT rc = mFilter_Configuration ? S_OK : E_FAIL;
-	if (rc == S_OK) mFilter_Configuration->Load_From_File(mFilter_Configuration_File_Path.c_str());
+	refcnt::Swstr_list error_description;
+
+	if (rc == S_OK) mFilter_Configuration->Load_From_File(mFilter_Configuration_File_Path.c_str(), error_description.get());
 	if (!SUCCEEDED(rc)) {
 		// we probably could display some warning here; this is not necessarily an error (maybe we just compiled SmartCGMS
 		// and there's no config present yet

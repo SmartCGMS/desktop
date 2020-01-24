@@ -406,7 +406,8 @@ void CSimulation_Window::On_Start() {
 		lay->addStretch();
 
 	// initialize and start filter holder, this will start filters
-	mFilter_Executor = scgms::SFilter_Executor{ mConfiguration, CSimulation_Window::On_Filter_Configured, this };
+	refcnt::Swstr_list error_description;
+	mFilter_Executor = scgms::SFilter_Executor{ mConfiguration, CSimulation_Window::On_Filter_Configured, this, error_description };
 	if (!mFilter_Executor)	{
 		// TODO: error message
 		return;

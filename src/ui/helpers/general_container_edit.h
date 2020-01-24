@@ -127,6 +127,14 @@ namespace filter_config_window {
 		virtual void store_parameter() override;
 	};
 
+
+	//allows time: [-][days hours:minutes:]seconds.zzz with minutes, hours and days optional
+	class CGUID_Validator : public QValidator {
+	public:
+		virtual void fixup(QString& input) const override;
+		virtual State validate(QString& input, int& pos) const override;
+	};
+
 	class CGUIDCombo_Container_Edit : public QComboBox, public virtual filter_config_window::CContainer_Edit {
 	public:
 		CGUIDCombo_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent);

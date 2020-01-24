@@ -68,7 +68,12 @@ CModel_Signal_Select_ComboBox::CModel_Signal_Select_ComboBox(scgms::SFilter_Para
 	});
 }
 
+
+
 CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(scgms::SFilter_Parameter parameter, QWidget *parent)	: filter_config_window::CGUIDCombo_Container_Edit(parameter, parent) {
+	setEditable(true);
+	setValidator(new filter_config_window::CGUID_Validator());
+
 	// append measured signals
 	std::wstring measSuffix = dsSignal_Suffix_Measured;
 	measSuffix = L" (" + measSuffix + L")";
@@ -90,6 +95,7 @@ CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(scgms::SFil
 	mSignalVector.push_back({ scgms::signal_Physical_Activity, dsSignal_Measured_Health_Physical_Activity + measSuffix });
 	mSignalVector.push_back({ scgms::signal_Insulin_Sensitivity, dsSignal_Measured_Insulin_Sensitivity + measSuffix });
 	mSignalVector.push_back({ scgms::signal_Carb_Ratio, dsSignal_Measured_Carb_Ratio + measSuffix });
+	mSignalVector.push_back({ scgms::signal_Null, dsSignal_Null });
 
 	// append calculated signals of known models
 	std::wstring calcSuffix = dsSignal_Suffix_Calculated;

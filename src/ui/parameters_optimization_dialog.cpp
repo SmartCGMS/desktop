@@ -230,12 +230,14 @@ void CParameters_Optimization_Dialog::On_Solve() {
 			mProgress = solver::Null_Solver_Progress;
 			mSolver_Thread = std::make_unique<std::thread>(
 				[this, &solver_variant, filter_info_index]() {
+					refcnt::Swstr_list error_description;
 					HRESULT res = scgms::Optimize_Parameters(mConfiguration, mParameters_Info[filter_info_index].filter_index, mParameters_Info[filter_info_index].parameters_name.c_str(),
 						Setup_Filter_DB_Access, nullptr,
 						QUuid_To_GUID(solver_variant.toUuid()),
 						edtPopulation_Size->text().toInt(),
 						edtMax_Generations->text().toInt(),
-						mProgress);
+						mProgress,
+						error_description);
 
 					mIs_Solving = false;
 					mProgress.cancelled = 1;	//stops mProgress_Update_Thread
