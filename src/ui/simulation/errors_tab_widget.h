@@ -45,6 +45,7 @@
 #include "../../../../common/iface/FilterIface.h"
 
 #include "../../../../common/rtl/FilterLib.h"
+#include "../../../../common/rtl/UILib.h"
 
 #include "abstract_simulation_tab.h"
 
@@ -97,9 +98,8 @@ protected:
 	QTableView* mTableView;
 	// table model for error metrics
 	CErrors_Tab_Widget_internal::CError_Table_Model* mModel;
-	// stored signal names
-	std::map<GUID, std::wstring> mSignalNames;
-
+	// stored signal names	
+    const scgms::CSignal_Description mSignal_Descriptions;
 public slots:
 	void Export_CSV_Button_Clicked();
 

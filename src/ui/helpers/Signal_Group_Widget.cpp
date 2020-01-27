@@ -52,7 +52,7 @@ CSignal_Group_Widget::CSignal_Group_Widget(const GUID& signalId, QWidget* parent
 	std::wstring signalName;
 	CSimulation_Window* simwin = CSimulation_Window::Get_Instance();
 	if (simwin) {
-		scgms::CSignal_Names names;
+		scgms::CSignal_Description names;
 		signalName = names.Get_Name(mSignal_Id);
 	}
 

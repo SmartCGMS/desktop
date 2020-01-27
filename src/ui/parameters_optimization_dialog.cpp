@@ -68,10 +68,11 @@ CParameters_Optimization_Dialog::~CParameters_Optimization_Dialog() {
 
 void CParameters_Optimization_Dialog::Populate_Parameters_Info(scgms::SFilter_Chain_Configuration configuration) {
 	auto models = scgms::get_model_descriptors();
+	const scgms::CSignal_Description signal_descriptors;
 
-	auto complete_description = [&models](std::wstring &description, scgms::SFilter_Configuration_Link link) {
+	auto complete_description = [&models, &signal_descriptors](std::wstring &description, scgms::SFilter_Configuration_Link link) {
 
-		link.for_each([&models, &description](scgms::SFilter_Parameter parameter) {
+		link.for_each([&models, &description, &signal_descriptors](scgms::SFilter_Parameter parameter) {
 			// model signal - append signal name
 			if (parameter.type() == scgms::NParameter_Type::ptModel_Signal_Id) {
 				bool found = false;
@@ -82,7 +83,7 @@ void CParameters_Optimization_Dialog::Populate_Parameters_Info(scgms::SFilter_Ch
 						if (model.calculated_signal_ids[i] == parameter.as_guid(rc))
 							if (rc == S_OK) {
 								description += L" - ";
-								description += model.calculated_signal_names[i];
+								description += signal_descriptors.Get_Name(model.calculated_signal_ids[i]);
 								found = true;
 								break;
 							}

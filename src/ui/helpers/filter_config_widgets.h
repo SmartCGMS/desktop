@@ -73,6 +73,7 @@ class CModel_Signal_Select_ComboBox : public virtual filter_config_window::CGUID
 private:
 	// connected model selector combobox
 	const QComboBox *mModelSelector;
+    const scgms::CSignal_Description mSignal_Descriptors{};
 protected:
 	// refreshes combobox contents using model selector value
 	void Refresh_Contents();
@@ -86,7 +87,7 @@ public:
 class CAvailable_Signal_Select_ComboBox : public virtual filter_config_window::CGUIDCombo_Container_Edit {
 private:
 	// we need to preserve order, so we use vector of pairs instead of map; we don't use advantages of map anyways
-	std::vector<std::pair<GUID, std::wstring>> mSignalVector;
+	std::vector<std::pair<GUID, std::wstring>> mSignalVector;    
 public:
 	CAvailable_Signal_Select_ComboBox(scgms::SFilter_Parameter parameter, QWidget *parent);		
 };

@@ -53,8 +53,10 @@ void CModel_Signal_Select_ComboBox::Refresh_Contents()
 		if (scgms::get_model_descriptor_by_id(selectedModelGUID, model))
 		{
 			// add model signals to combobox
-			for (size_t i = 0; i < model.number_of_calculated_signals; i++)
-				addItem(StdWStringToQString(model.calculated_signal_names[i]), QVariant{ QByteArray(reinterpret_cast<const char*>(&model.calculated_signal_ids[i])) });
+			for (size_t i = 0; i < model.number_of_calculated_signals; i++) {
+				const std::wstring sig_name = mSignal_Descriptors.Get_Name(model.calculated_signal_ids[i]);
+				addItem(StdWStringToQString(sig_name), QVariant{ QByteArray(reinterpret_cast<const char*>(&model.calculated_signal_ids[i])) });
+			}
 		}
 	}
 }
@@ -74,46 +76,9 @@ CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(scgms::SFil
 	setEditable(true);
 	setValidator(new filter_config_window::CGUID_Validator());
 
-	// append measured signals
-	std::wstring measSuffix = dsSignal_Suffix_Measured;
-	measSuffix = L" (" + measSuffix + L")";
 
-	//TO DO: enumerate input known signals in some global header
-	mSignalVector.push_back({ scgms::signal_BG, dsSignal_Measured_BG + measSuffix });
-	mSignalVector.push_back({ scgms::signal_IG, dsSignal_Measured_IG + measSuffix });
-	mSignalVector.push_back({ scgms::signal_ISIG, dsSignal_Measured_ISIG + measSuffix });
-	mSignalVector.push_back({ scgms::signal_Calibration, dsSignal_Measured_Calibration + measSuffix });
-	mSignalVector.push_back({ scgms::signal_Delivered_Insulin_Bolus, dsSignal_Delivered_Insulin_Bolus });
-	mSignalVector.push_back({ scgms::signal_Requested_Insulin_Bolus, dsSignal_Requested_Insulin_Bolus });
-	mSignalVector.push_back({ scgms::signal_Delivered_Insulin_Basal_Rate, dsSignal_Delivered_Insulin_Basal_Rate});
-	mSignalVector.push_back({ scgms::signal_Requested_Insulin_Basal_Rate, dsSignal_Requested_Insulin_Basal_Rate});
-	mSignalVector.push_back({ scgms::signal_Insulin_Activity, dsSignal_Measured_Insulin_Activity + measSuffix });
-	mSignalVector.push_back({ scgms::signal_IOB, dsSignal_Measured_IOB + measSuffix });
-	mSignalVector.push_back({ scgms::signal_COB, dsSignal_Measured_COB + measSuffix });
-	mSignalVector.push_back({ scgms::signal_Carb_Intake, dsSignal_Measured_Carb_Intake + measSuffix });
-	mSignalVector.push_back({ scgms::signal_Carb_Rescue, dsSignal_GUI_Name_Carb_Rescue + measSuffix });
-	mSignalVector.push_back({ scgms::signal_Physical_Activity, dsSignal_Measured_Health_Physical_Activity + measSuffix });
-	mSignalVector.push_back({ scgms::signal_Insulin_Sensitivity, dsSignal_Measured_Insulin_Sensitivity + measSuffix });
-	mSignalVector.push_back({ scgms::signal_Carb_Ratio, dsSignal_Measured_Carb_Ratio + measSuffix });
-	mSignalVector.push_back({ scgms::signal_Null, dsSignal_Null });
-
-	// append calculated signals of known models
-	std::wstring calcSuffix = dsSignal_Suffix_Calculated;
-	calcSuffix = L" (" + calcSuffix + L")";
-
-	auto models = scgms::get_model_descriptors();
-	for (auto& model : models)
-	{
-		for (size_t i = 0; i < model.number_of_calculated_signals; i++)
-			mSignalVector.push_back({ model.calculated_signal_ids[i], model.description + std::wstring(L" - ") + model.calculated_signal_names[i] + calcSuffix });
-	}
-
-	// append virtual signals
-	for (size_t i=0; i<scgms::signal_Virtual.size(); i++)
-		mSignalVector.push_back({ scgms::signal_Virtual[i], dsSignal_Prefix_Virtual + std::wstring(L" ") + std::to_wstring(i) });
-
-	// add all signals to combobox
-
-	for (auto const& signal : mSignalVector)
-		addItem(StdWStringToQString(signal.second), QVariant{ QByteArray{reinterpret_cast<const char*>(&signal.first), sizeof(decltype(signal.first))} });
+	const scgms::CSignal_Description signal_descriptors{};
+	signal_descriptors.for_each([this](const scgms::TSignal_Descriptor& desc) {
+		addItem(StdWStringToQString(desc.signal_description), QVariant{ QByteArray{reinterpret_cast<const char*>(&desc.id), sizeof(decltype(desc.id))} });
+	});
 }

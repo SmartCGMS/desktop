@@ -111,7 +111,7 @@ void CSimulation_Window::Setup_Solve_Button_Menu()
 
 	QMenu* menu = new QMenu(this);
 
-	QAction* anyaction = menu->addAction(StdWStringToQString(mSignal_Names.Get_Name(scgms::signal_All).c_str()));
+	QAction* anyaction = menu->addAction(StdWStringToQString(mSignal_Descriptors.Get_Name(scgms::signal_All).c_str()));
 	connect(anyaction, SIGNAL(triggered()), mSolveSignalMapper, SLOT(map()));
 	mSolveSignalMapper->setMapping(anyaction, StdWStringToQString(GUID_To_WString(scgms::signal_All)));
 
@@ -124,7 +124,7 @@ void CSimulation_Window::Setup_Solve_Button_Menu()
 		{
 			auto& action = mSignalSolveActions[model.calculated_signal_ids[i]];
 
-			action = menu->addAction(StdWStringToQString(mSignal_Names.Get_Name(model.calculated_signal_ids[i]).c_str()));
+			action = menu->addAction(StdWStringToQString(mSignal_Descriptors.Get_Name(model.calculated_signal_ids[i]).c_str()));
 			action->setVisible(false);
 			connect(action, SIGNAL(triggered()), mSolveSignalMapper, SLOT(map()));
 			mSolveSignalMapper->setMapping(action, StdWStringToQString(GUID_To_WString(model.calculated_signal_ids[i])));
@@ -529,7 +529,7 @@ void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
 		QProgressBar* pbar = new QProgressBar();
 		mProgressBars[solver_id] = pbar;
 
-		QLabel* plabel = new QLabel(StdWStringToQString(mSignal_Names.Get_Name(solver_id)));
+		QLabel* plabel = new QLabel(StdWStringToQString(mSignal_Descriptors.Get_Name(solver_id)));
 		QLabel* metriclabel = new QLabel(metricString);
 		mBestMetricLabels[solver_id] = metriclabel;
 		QLabel* statusLabel = new QLabel(tr(statusStr.c_str()));

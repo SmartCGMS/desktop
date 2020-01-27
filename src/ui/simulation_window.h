@@ -84,7 +84,7 @@ class CSimulation_Window : public QMdiSubWindow {
 		refcnt::SReferenced<scgms::IFilter_Chain_Configuration> mConfiguration;
 
 		std::vector<scgms::SCalculate_Filter_Inspection> mSolver_Filters;
-		scgms::CSignal_Names mSignal_Names;
+		scgms::CSignal_Description mSignal_Descriptors;
 
 		CGUI_Filter_Subchain mGUI_Filter_Subchain;
 		int mBase_Tab_Count = 0;

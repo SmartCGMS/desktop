@@ -93,7 +93,8 @@ void CFilter_List_Item::Refresh()
 							if (model.calculated_signal_ids[i] == cfg.as_guid(rc))
 								if (rc == S_OK) {
 									appendSplitter();
-									text += QString::fromWCharArray(model.calculated_signal_names[i]);
+									const std::wstring sig_name = mSignal_Descriptors.Get_Name(model.calculated_signal_ids[i]);
+									text += QString::fromWCharArray(sig_name.c_str());  //model.calculated_signal_names[i]);
 									found = true;
 									break;
 								}

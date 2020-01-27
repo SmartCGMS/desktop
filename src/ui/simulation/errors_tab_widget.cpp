@@ -281,15 +281,6 @@ CErrors_Tab_Widget::CErrors_Tab_Widget(QWidget *parent) noexcept: CAbstract_Simu
 	QPushButton* exportBtn = new QPushButton(dsExport_To_CSV);
 	mainLayout->addWidget(exportBtn, 1, 0);
 
-	auto models = scgms::get_model_descriptors();
-	for (auto& model : models)
-	{
-		for (size_t i = 0; i < model.number_of_calculated_signals; i++)
-			mSignalNames[model.calculated_signal_ids[i]] = model.description + std::wstring(L" - ") + model.calculated_signal_names[i];
-	}
-
-	for (size_t i = 0; i < scgms::signal_Virtual.size(); i++)
-		mSignalNames[scgms::signal_Virtual[i]] = dsSignal_Prefix_Virtual + std::wstring(L" ") + std::to_wstring(i);
 
 	setLayout(mainLayout);
 
