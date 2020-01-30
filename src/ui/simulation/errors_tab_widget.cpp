@@ -220,7 +220,7 @@ void CErrors_Tab_Widget_internal::CError_Table_Model::On_Filter_Configured(scgms
 	if (inspection.signal_error) {
 		wchar_t *tmp_desc;
 		inspection.description = inspection.signal_error->Get_Description(&tmp_desc) == S_OK ? tmp_desc : dsSignal_Unknown;		
-		inspection.signal_error->Calculate_Signal_Error(&inspection.recent_abs_error, &inspection.recent_rel_error);
+		inspection.signal_error->Calculate_Signal_Error(scgms::All_Segments_Id, &inspection.recent_abs_error, &inspection.recent_rel_error);
 		inspection.r5 = inspection.r10 = inspection.r25 = inspection.r50 = std::numeric_limits<double>::quiet_NaN();
 		mSignal_Errors.push_back(inspection);
 	}
@@ -238,7 +238,7 @@ void CErrors_Tab_Widget_internal::CError_Table_Model::Update_Errors() {
 				called_begin_reset = true;
 			}
 
-			if (signal_error.signal_error->Calculate_Signal_Error(&signal_error.recent_abs_error, &signal_error.recent_rel_error) == S_OK) {
+			if (signal_error.signal_error->Calculate_Signal_Error(scgms::All_Segments_Id, &signal_error.recent_abs_error, &signal_error.recent_rel_error) == S_OK) {
 				if (signal_error.recent_rel_error.count > 0) {
 
 					auto inv_ecdf = [&signal_error](const double threshold)->double {
