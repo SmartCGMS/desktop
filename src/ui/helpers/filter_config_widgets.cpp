@@ -81,4 +81,7 @@ CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(scgms::SFil
 	signal_descriptors.for_each([this](const scgms::TSignal_Descriptor& desc) {
 		addItem(StdWStringToQString(desc.signal_description), QVariant{ QByteArray{reinterpret_cast<const char*>(&desc.id), sizeof(decltype(desc.id))} });
 	});
+
+    model()->sort(0);
+    setCurrentIndex(0);
 }
