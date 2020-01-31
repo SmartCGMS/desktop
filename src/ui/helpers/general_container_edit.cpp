@@ -328,6 +328,9 @@ namespace filter_config_window {
 	CGUIDCombo_Container_Edit::CGUIDCombo_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) :
 		CContainer_Edit(parameter), QComboBox(parent) {
 		mParameter = parameter; //fixing some strange behavior, may be Qt implied, that enforces default ctor of cont_edit, thus not setting mParameter
+
+		setEditable(true);
+		setValidator(mValidator);
 	}
 
 	void CGUIDCombo_Container_Edit::fetch_parameter() {
@@ -335,18 +338,31 @@ namespace filter_config_window {
 		const GUID id = mParameter.as_guid(rc);
 
 		if (check_rc(rc)) {
+
+			bool index_found = false;
 			for (int i = 0; i < count(); i++) {
 				if (id == *reinterpret_cast<const GUID*>(itemData(i).toByteArray().constData())) {
 					setCurrentIndex(i);
+					index_found = true;
 					break;
 				}
 			}
+
+			if (!index_found)
+				setCurrentText(QString::fromStdWString( GUID_To_WString(id) ));
 		}		
 
 	}
 
 	void CGUIDCombo_Container_Edit::store_parameter() {
-		const GUID id = *reinterpret_cast<const GUID*>(currentData().toByteArray().constData());		
+		//if the current text can be interpreted as valid GUID, let's store the converted text
+		//else, we store the currentData
+	
+		GUID id = WString_To_GUID(currentText().toStdWString());
+		if ((id == Invalid_GUID) && (currentIndex() >= 0))
+			id = *reinterpret_cast<const GUID*>(currentData().toByteArray().constData());
+
+		//const GUID id = currentIndex() >= 0 ? *reinterpret_cast<const GUID*>(currentData().toByteArray().constData()) : WString_To_GUID(currentText().toStdWString());
 		check_rc(mParameter->Set_GUID(&id));
 	}
 

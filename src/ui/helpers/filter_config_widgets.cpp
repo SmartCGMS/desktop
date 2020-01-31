@@ -73,9 +73,6 @@ CModel_Signal_Select_ComboBox::CModel_Signal_Select_ComboBox(scgms::SFilter_Para
 
 
 CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(scgms::SFilter_Parameter parameter, QWidget *parent)	: filter_config_window::CGUIDCombo_Container_Edit(parameter, parent) {
-	setEditable(true);
-	setValidator(new filter_config_window::CGUID_Validator());
-
 
 	const scgms::CSignal_Description signal_descriptors{};
 	signal_descriptors.for_each([this](const scgms::TSignal_Descriptor& desc) {

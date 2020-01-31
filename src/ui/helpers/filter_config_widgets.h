@@ -85,9 +85,6 @@ public:
  * All available signal ID selection combobox; connected with model selector (for appropriate signal selection)
  */
 class CAvailable_Signal_Select_ComboBox : public virtual filter_config_window::CGUIDCombo_Container_Edit {
-private:
-	// we need to preserve order, so we use vector of pairs instead of map; we don't use advantages of map anyways
-	std::vector<std::pair<GUID, std::wstring>> mSignalVector;    
 public:
 	CAvailable_Signal_Select_ComboBox(scgms::SFilter_Parameter parameter, QWidget *parent);		
 };

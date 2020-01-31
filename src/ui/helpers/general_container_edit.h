@@ -136,6 +136,8 @@ namespace filter_config_window {
 	};
 
 	class CGUIDCombo_Container_Edit : public QComboBox, public virtual filter_config_window::CContainer_Edit {
+	protected:
+		CGUID_Validator* mValidator = new CGUID_Validator{};
 	public:
 		CGUIDCombo_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent);
 		virtual void fetch_parameter() override;
