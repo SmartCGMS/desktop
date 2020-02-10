@@ -319,8 +319,9 @@ namespace filter_config_window {
 	}
 
 	CGUID_Validator::State CGUID_Validator::validate(QString& input, int& pos) const {
-		const GUID tmp = WString_To_GUID(input.toStdWString());
-		return tmp != Invalid_GUID ? CGUID_Validator::State::Acceptable : CGUID_Validator::State::Invalid;
+		bool ok;
+		const GUID tmp = WString_To_GUID(input.toStdWString(), ok);
+		return ok ? CGUID_Validator::State::Acceptable : CGUID_Validator::State::Invalid;
 	}
 
 
@@ -369,8 +370,9 @@ namespace filter_config_window {
 		const bool user_intends_invalid_guid = current_str == GUID_To_WString(Invalid_GUID);
 
 		if (!user_intends_invalid_guid) {
-			id = WString_To_GUID(current_str);
-			if ((id == Invalid_GUID) && (currentIndex() >= 0))	
+			bool ok;
+			id = WString_To_GUID(current_str, ok);
+			if ((!ok) && (currentIndex() >= 0))	
 				id = *reinterpret_cast<const GUID*>(currentData().toByteArray().constData());
 		}
 

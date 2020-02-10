@@ -653,10 +653,10 @@ void CSimulation_Window::Slot_Add_Signal(QUuid id)
 	}
 }
 
-void CSimulation_Window::On_Solve_Signal(QString str)
-{
-	GUID signalId = WString_To_GUID(str.toStdWString());
-	if (signalId == Invalid_GUID)
+void CSimulation_Window::On_Solve_Signal(QString str) {
+	bool ok;
+	GUID signalId = WString_To_GUID(str.toStdWString(), ok);
+	if (!ok)
 		return;
 
 	Inject_Event(scgms::NDevice_Event_Code::Solve_Parameters, signalId, nullptr, scgms::All_Segments_Id);

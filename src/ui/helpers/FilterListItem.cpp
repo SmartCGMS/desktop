@@ -78,46 +78,86 @@ void CFilter_List_Item::Refresh()
 		splitterAppended = true;
 	};
 
+	//variables for signal mappers, etc.
+	bool src_signal_set = false;
+	bool dst_signal_set = false;
+	std::wstring src_signal_str, dst_signal_str;
+
 	// traverse configuration and find items to put into description
 	//for (auto& cfg : mConfiguration)
 	if (mConfiguration) {
-		mConfiguration.for_each([&](scgms::SFilter_Parameter cfg)
-			{
-				// model signal - append signal name
-				if (cfg.type() == scgms::NParameter_Type::ptModel_Signal_Id) {
-					bool found = false;
-					for (auto& model : models)
-					{
-						for (size_t i = 0; i < model.number_of_calculated_signals; i++) {
-							HRESULT rc;
-							if (model.calculated_signal_ids[i] == cfg.as_guid(rc))
-								if (rc == S_OK) {
-									appendSplitter();
-									const std::wstring sig_name = mSignal_Descriptors.Get_Name(model.calculated_signal_ids[i]);
-									text += QString::fromWCharArray(sig_name.c_str());  //model.calculated_signal_names[i]);
-									found = true;
-									break;
-								}
-						}
+		mConfiguration.for_each([&](scgms::SFilter_Parameter cfg) {
 
-						if (found)
-							break;
-					}
-				}
-				// model - append model description
-				else if (cfg.type() == scgms::NParameter_Type::ptModel_Id) {
-					for (auto& model : models) {
-						HRESULT rc;
-						if (model.id == cfg.as_guid(rc))
-							if (rc == S_OK) {
-								appendSplitter();
-								text += QString::fromWCharArray(model.description);
-								break;
+			switch (cfg.type()) {
+				
+				case scgms::NParameter_Type::ptModel_Signal_Id: {		// model signal - append signal name
+							bool found = false;
+							for (auto& model : models)
+							{
+								for (size_t i = 0; i < model.number_of_calculated_signals; i++) {
+									HRESULT rc;
+									if (model.calculated_signal_ids[i] == cfg.as_guid(rc))
+										if (rc == S_OK) {
+											appendSplitter();
+											const std::wstring sig_name = mSignal_Descriptors.Get_Name(model.calculated_signal_ids[i]);
+											text += QString::fromWCharArray(sig_name.c_str());  //model.calculated_signal_names[i]);
+											found = true;
+											break;
+										}
+								}
+
+								if (found)
+									break;
 							}
-					}
-				}
+						};
+					break;
+
+				
+				case scgms::NParameter_Type::ptModel_Id: {		// model - append model description
+							for (auto& model : models) {
+								HRESULT rc;
+								if (model.id == cfg.as_guid(rc))
+									if (rc == S_OK) {
+										appendSplitter();
+										text += QString::fromWCharArray(model.description);
+										break;
+									}
+							}
+						};
+
+					break;
+
+
+				case scgms::NParameter_Type::ptSignal_Id: {			//masking, mapping and decoupling filters
+							auto get_sig_name = [&](bool& ok) {
+								HRESULT rc;
+								std::wstring sig_name = mSignal_Descriptors.Get_Name(cfg.as_guid(rc));
+								ok = rc == S_OK;
+								return sig_name;
+							};
+
+							const std::wstring cfg_name { cfg.configuration_name() };	//converts from wchar_t*!
+							if (cfg_name == rsSignal_Source_Id)
+									src_signal_str = get_sig_name(src_signal_set);
+								else if (cfg_name == rsSignal_Destination_Id)
+									dst_signal_str = get_sig_name(dst_signal_set);
+						};
+					break;															
+
+
+				default: break;	//keepping compiler happy
 			}	
-		);
+
+		});
+	}
+
+	if (src_signal_set) {
+		appendSplitter();
+		text += QString::fromStdWString(src_signal_str);
+		if (dst_signal_set) {
+			text += QString::fromWCharArray(L" -> ");
+			text += QString::fromStdWString(dst_signal_str);
+		}
 	}
 
 	setText(text);
