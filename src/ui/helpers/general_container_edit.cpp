@@ -358,9 +358,21 @@ namespace filter_config_window {
 		//if the current text can be interpreted as valid GUID, let's store the converted text
 		//else, we store the currentData
 	
-		GUID id = WString_To_GUID(currentText().toStdWString());
-		if ((id == Invalid_GUID) && (currentIndex() >= 0))
-			id = *reinterpret_cast<const GUID*>(currentData().toByteArray().constData());
+		GUID id = Invalid_GUID;
+		QString current_no_spaces = currentText();
+		{
+			QRegExp space("\\s");
+			current_no_spaces.remove(space);
+		}
+		
+		const auto current_str = current_no_spaces.toStdWString();
+		const bool user_intends_invalid_guid = current_str == GUID_To_WString(Invalid_GUID);
+
+		if (!user_intends_invalid_guid) {
+			id = WString_To_GUID(current_str);
+			if ((id == Invalid_GUID) && (currentIndex() >= 0))	
+				id = *reinterpret_cast<const GUID*>(currentData().toByteArray().constData());
+		}
 
 		//const GUID id = currentIndex() >= 0 ? *reinterpret_cast<const GUID*>(currentData().toByteArray().constData()) : WString_To_GUID(currentText().toStdWString());
 		check_rc(mParameter->Set_GUID(&id));
