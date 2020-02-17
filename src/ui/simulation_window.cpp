@@ -43,8 +43,9 @@
 #include "../../../common/rtl/UILib.h"
 #include "../../../common/rtl/qdb_connector.h"
 #include "../../../common/rtl/referencedImpl.h"
-#include "../../../common/utils/QtUtils.h"
 #include "../../../common/rtl/rattime.h"
+#include "../../../common/utils/QtUtils.h"
+#include "../../../common/utils/string_utils.h"
 
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QMessageBox>
