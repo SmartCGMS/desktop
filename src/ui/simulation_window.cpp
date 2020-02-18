@@ -220,10 +220,11 @@ void CSimulation_Window::Setup_UI() {
 	}
 
 	layout->addWidget(segmentsParentBox, 1, 9);
+	segmentsParentBox->hide();		//TODO: remove this hide once new drawing is implemented
 
 	// main tab widget, span to 11 columns for now
 	mTabWidget = new QTabWidget();
-	layout->addWidget(mTabWidget, 1, 1, 1, 8);
+	layout->addWidget(mTabWidget, 1, 1, 1, 10);	//TODO: set 10 to 8 once new drawing is implemented
 
 	// TODO: verify if GUI filter is actually present in filter chain
 	{
