@@ -102,7 +102,7 @@ namespace filter_config_window {
 
 	void CWChar_Container_Edit::fetch_parameter() {
 		HRESULT rc;
-		setText(QString::fromStdWString(mParameter.as_wstring(rc)));
+		setText(QString::fromStdWString(mParameter.as_wstring(rc, false)));
 		check_rc(rc);
 	}
 
