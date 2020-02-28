@@ -83,7 +83,7 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 	filter_config_window::CContainer_Edit *model_select = nullptr;
 
 	auto create_model_select = [&](scgms::SFilter_Parameter parameter) {
-		model_select = new CGUID_Entity_ComboBox<scgms::TModel_Descriptor, scgms::get_model_descriptors>(parameter, nullptr);
+		model_select = new CGUID_Entity_ComboBox<scgms::TModel_Descriptor, scgms::get_model_descriptors>(parameter, this);
 	};
 
 	QWidget *main_tab = new QWidget{this};
@@ -158,11 +158,11 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 						if (!model_select)
 							create_model_select(parameter);
 
-						container = new CModel_Signal_Select_ComboBox(parameter, nullptr, dynamic_cast<QComboBox*>(model_select));
+						container = new CModel_Signal_Select_ComboBox(parameter, this, dynamic_cast<QComboBox*>(model_select));
 						break;
 
 					case scgms::NParameter_Type::ptSignal_Id:
-						container = new CAvailable_Signal_Select_ComboBox(parameter, nullptr);
+						container = new CAvailable_Signal_Select_ComboBox(parameter, this);
 						break;
 
 					case scgms::NParameter_Type::ptDouble_Array:

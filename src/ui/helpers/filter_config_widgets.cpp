@@ -55,7 +55,7 @@ void CModel_Signal_Select_ComboBox::Refresh_Contents()
 			// add model signals to combobox
 			for (size_t i = 0; i < model.number_of_calculated_signals; i++) {
 				const std::wstring sig_name = mSignal_Descriptors.Get_Name(model.calculated_signal_ids[i]);
-				addItem(StdWStringToQString(sig_name), QVariant{ QByteArray(reinterpret_cast<const char*>(&model.calculated_signal_ids[i])) });
+				addItem(StdWStringToQString(sig_name), QVariant{ QByteArray(reinterpret_cast<const char*>(&model.calculated_signal_ids[i]), sizeof(GUID)) });
 			}
 		}
 	}

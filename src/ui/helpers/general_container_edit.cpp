@@ -102,14 +102,19 @@ namespace filter_config_window {
 
 	void CWChar_Container_Edit::fetch_parameter() {
 		HRESULT rc;
-		setText(QString::fromStdWString(mParameter.as_wstring(rc, false)));
-		check_rc(rc);
+		const std::wstring str = mParameter.as_wstring(rc, false);
+		if (SUCCEEDED(rc)) setText(QString::fromStdWString(str));		
+			else if (rc == E_NOT_SET) clear();	//just not set
+				else check_rc(rc); //truly en error
 	}
 
 	void CWChar_Container_Edit::store_parameter() {		
 		check_rc(mParameter.set_wstring(text().toStdWString().c_str()));
 	}
 
+	CRatTime_Validator::CRatTime_Validator(QWidget* parent) : QValidator(parent) {
+
+	}
 
 	bool CRatTime_Validator::allowed_chars_only(const QString &input) const {
 
@@ -233,7 +238,7 @@ namespace filter_config_window {
 	}
 	
 
-	CRatTime_Container_Edit::CRatTime_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : CContainer_Edit(parameter), QLineEdit(parent) {
+	CRatTime_Container_Edit::CRatTime_Container_Edit(scgms::SFilter_Parameter parameter, QWidget* parent) : CContainer_Edit(parameter), QLineEdit(parent), mValidator(new CRatTime_Validator{parent}) {
 		setValidator(mValidator);
 	}
 
@@ -314,6 +319,11 @@ namespace filter_config_window {
 		check_rc(mParameter.set_bool(checkState() == Qt::Checked));
 	}
 
+	CGUID_Validator::CGUID_Validator(QWidget* parent) : QValidator(parent) {
+
+	}
+
+
 	void CGUID_Validator::fixup(QString& input) const {
 		input = input.simplified();
 	}
@@ -327,7 +337,7 @@ namespace filter_config_window {
 
 
 	CGUIDCombo_Container_Edit::CGUIDCombo_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) :
-		CContainer_Edit(parameter), QComboBox(parent) {
+		CContainer_Edit(parameter), QComboBox(parent), mValidator(new CGUID_Validator{parent}) {
 		mParameter = parameter; //fixing some strange behavior, may be Qt implied, that enforces default ctor of cont_edit, thus not setting mParameter
 
 		setEditable(true);

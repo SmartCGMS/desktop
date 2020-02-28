@@ -89,6 +89,8 @@ namespace filter_config_window {
 	protected:
 		bool allowed_chars_only(const QString& input) const;
 	public:
+		CRatTime_Validator(QWidget* parent);
+
 		bool string_to_rattime(const QString& input, double& converted) const;
 		QString rattime_to_string(double rattime) const;
 		virtual void fixup(QString& input) const override;
@@ -97,7 +99,7 @@ namespace filter_config_window {
 
 	class CRatTime_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit, public virtual IAs_Double_Container {
 	protected:
-		CRatTime_Validator* mValidator = new CRatTime_Validator();
+		CRatTime_Validator* mValidator = nullptr;
 	public:
 		CRatTime_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent);
 		virtual ~CRatTime_Container_Edit() {};
@@ -131,13 +133,14 @@ namespace filter_config_window {
 	//allows time: [-][days hours:minutes:]seconds.zzz with minutes, hours and days optional
 	class CGUID_Validator : public QValidator {
 	public:
+		CGUID_Validator(QWidget* parent);
 		virtual void fixup(QString& input) const override;
 		virtual State validate(QString& input, int& pos) const override;
 	};
 
 	class CGUIDCombo_Container_Edit : public QComboBox, public virtual filter_config_window::CContainer_Edit {
 	protected:
-		CGUID_Validator* mValidator = new CGUID_Validator{};
+		CGUID_Validator* mValidator = nullptr;
 	public:
 		CGUIDCombo_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent);
 		virtual void fetch_parameter() override;

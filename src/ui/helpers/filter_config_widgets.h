@@ -62,7 +62,17 @@ public:
 
 		// add entities retrieved using template function
 		for (auto entity : entities)
-			addItem(StdWStringToQString(entity.description), QVariant{ QByteArray(reinterpret_cast<const char*>(&entity.id)) });
+			addItem(StdWStringToQString(entity.description), QVariant{ QByteArray(reinterpret_cast<const char*>(&entity.id), sizeof(GUID)) });
+
+        HRESULT rc;
+        const GUID selected_id = parameter.as_guid(rc);
+        if (SUCCEEDED(rc)) {
+            const QVariant data{ QByteArray(reinterpret_cast<const char*>(&selected_id), sizeof(GUID)) };
+            const auto index = findData(data);
+            if (index >= 0)
+                setCurrentIndex(index);
+        }//else it fails later on
+        
 	}			
 };
 

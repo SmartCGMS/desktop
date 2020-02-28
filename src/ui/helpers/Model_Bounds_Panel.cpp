@@ -207,25 +207,29 @@ bool CModel_Bounds_Panel::Get_Current_Selected_Model(scgms::TModel_Descriptor& m
 
 void CModel_Bounds_Panel::fetch_parameter() {
 
-	HRESULT rc;
-	std::vector<double> parameters = mParameter.as_double_array(rc);
-
 	scgms::TModel_Descriptor model = scgms::Null_Model_Descriptor;
-
-	if (SUCCEEDED(rc) && Get_Current_Selected_Model(model)) {
+	if (Get_Current_Selected_Model(model)) {
+		//fetch default parameters
 		const double* lb = model.lower_bound;
 		const double* def = model.default_values;
 		const double* ub = model.upper_bound;
 
+		//and try to load custom ones
+		HRESULT rc;
+		std::vector<double> parameters = mParameter.as_double_array(rc);
 		
-		if (parameters.size() == model.number_of_parameters * 3) {
-			lb = parameters.data();
-			def = lb + model.number_of_parameters;
-			ub = lb + 2 * model.number_of_parameters;
-		}
-		
+		if (SUCCEEDED(rc)) {
+			if (parameters.size() == model.number_of_parameters * 3) {
+				lb = parameters.data();
+				def = lb + model.number_of_parameters;
+				ub = lb + 2 * model.number_of_parameters;
+			}
+			else
+				check_rc(E_UNEXPECTED);	//signalize the error!
+		} else
+			if (rc != E_NOT_SET)		//ignore if we know that the parameter was not set yet
+				check_rc(rc);
 
 		Reset_UI(model, lb, def, ub);
-	} else 
-		check_rc(rc);
+	}			
 }
