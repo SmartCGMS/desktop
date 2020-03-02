@@ -90,7 +90,7 @@ void CFilter_List_Item::Refresh()
 
 			switch (cfg.type()) {
 				
-				case scgms::NParameter_Type::ptModel_Signal_Id: {		// model signal - append signal name
+				case scgms::NParameter_Type::ptModel_Produced_Signal_Id: {		// model signal - append signal name
 							bool found = false;
 							for (auto& model : models)
 							{
@@ -113,7 +113,8 @@ void CFilter_List_Item::Refresh()
 					break;
 
 				
-				case scgms::NParameter_Type::ptModel_Id: {		// model - append model description
+				case scgms::NParameter_Type::ptSignal_Model_Id:
+				case scgms::NParameter_Type::ptDiscrete_Model_Id: {		// model - append model description
 							for (auto& model : models) {
 								HRESULT rc;
 								if (model.id == cfg.as_guid(rc))

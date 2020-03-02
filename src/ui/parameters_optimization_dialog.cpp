@@ -74,7 +74,7 @@ void CParameters_Optimization_Dialog::Populate_Parameters_Info(scgms::SFilter_Ch
 
 		link.for_each([&models, &description, &signal_descriptors](scgms::SFilter_Parameter parameter) {
 			// model signal - append signal name
-			if (parameter.type() == scgms::NParameter_Type::ptModel_Signal_Id) {
+			if (parameter.type() == scgms::NParameter_Type::ptModel_Produced_Signal_Id) {
 				bool found = false;
 				for (auto& model : models)
 				{
@@ -94,7 +94,7 @@ void CParameters_Optimization_Dialog::Populate_Parameters_Info(scgms::SFilter_Ch
 				}
 			}
 			// model - append model description
-			else if (parameter.type() == scgms::NParameter_Type::ptModel_Id) {
+			else if (parameter.type() == scgms::NParameter_Type::ptSignal_Model_Id || parameter.type() == scgms::NParameter_Type::ptDiscrete_Model_Id) {
 				for (auto& model : models) {
 					HRESULT rc;
 					if (model.id == parameter.as_guid(rc))

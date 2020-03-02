@@ -54,15 +54,16 @@
  * Template class for selection of object identified by GUID (id), having description and generic getter function
  * This is suitable for model, solver and metric comboboxes
  */
-template <typename TDesc, typename std::vector<TDesc>(*G)()>
-class CGUID_Entity_ComboBox : public virtual filter_config_window::CGUIDCombo_Container_Edit {
+template <typename TDesc, typename std::vector<TDesc>(*G)(), typename TFilter = std::function<bool(const TDesc&)>>
+class CGUID_Entity_ComboBox : public filter_config_window::CGUIDCombo_Container_Edit {
 public:
-	CGUID_Entity_ComboBox(scgms::SFilter_Parameter parameter, QWidget *parent) : CGUIDCombo_Container_Edit(parameter, parent) {		
+	CGUID_Entity_ComboBox(scgms::SFilter_Parameter parameter, QWidget *parent, TFilter filter = TFilter()) : CGUIDCombo_Container_Edit(parameter, parent) {
 		auto entities = G();
 
 		// add entities retrieved using template function
 		for (auto entity : entities)
-			addItem(StdWStringToQString(entity.description), QVariant{ QByteArray(reinterpret_cast<const char*>(&entity.id), sizeof(GUID)) });
+            if (!filter || filter(entity))
+			    addItem(StdWStringToQString(entity.description), QVariant{ QByteArray(reinterpret_cast<const char*>(&entity.id), sizeof(GUID)) });
 
         HRESULT rc;
         const GUID selected_id = parameter.as_guid(rc);
@@ -77,9 +78,29 @@ public:
 };
 
 /*
+ * Class for discrete/signal model selection; it specializes generic GUID combobox with a filter
+ */
+class CModel_Select_ComboBox : public CGUID_Entity_ComboBox<scgms::TModel_Descriptor, scgms::get_model_descriptors, bool(*)(const scgms::TModel_Descriptor&)> {
+public:
+    CModel_Select_ComboBox(scgms::SFilter_Parameter parameter, QWidget* parent, bool discrete)
+        : CGUID_Entity_ComboBox(parameter, parent, discrete ? &CModel_Select_ComboBox::Model_Filter_Discrete : &CModel_Select_ComboBox::Model_Filter_Signal) {
+        //
+    }
+
+    static bool Model_Filter_Discrete(const scgms::TModel_Descriptor& desc) {
+        return (desc.flags & scgms::NModel_Flags::Discrete_Model) != scgms::NModel_Flags::None;
+    }
+
+    static bool Model_Filter_Signal(const scgms::TModel_Descriptor& desc) {
+        return (desc.flags & scgms::NModel_Flags::Signal_Model) != scgms::NModel_Flags::None;
+    }
+};
+
+
+/*
  * Model-dependent signal ID selection combobox; connected with model selector (for appropriate signal selection)
  */
-class CModel_Signal_Select_ComboBox : public virtual filter_config_window::CGUIDCombo_Container_Edit {
+class CModel_Signal_Select_ComboBox : public filter_config_window::CGUIDCombo_Container_Edit {
 private:
 	// connected model selector combobox
 	const QComboBox *mModelSelector;
@@ -94,7 +115,7 @@ public:
 /*
  * All available signal ID selection combobox; connected with model selector (for appropriate signal selection)
  */
-class CAvailable_Signal_Select_ComboBox : public virtual filter_config_window::CGUIDCombo_Container_Edit {
+class CAvailable_Signal_Select_ComboBox : public filter_config_window::CGUIDCombo_Container_Edit {
 public:
 	CAvailable_Signal_Select_ComboBox(scgms::SFilter_Parameter parameter, QWidget *parent);		
 };

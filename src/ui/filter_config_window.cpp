@@ -82,8 +82,9 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 	// model select combobox is directly connected with signal selector; here we store pointer to model selector to supply it to signal selector
 	filter_config_window::CContainer_Edit *model_select = nullptr;
 
-	auto create_model_select = [&](scgms::SFilter_Parameter parameter) {
-		model_select = new CGUID_Entity_ComboBox<scgms::TModel_Descriptor, scgms::get_model_descriptors>(parameter, this);
+	auto create_model_select = [&](scgms::SFilter_Parameter parameter, bool discrete) {
+		model_select = new CModel_Select_ComboBox(parameter, nullptr, discrete);
+		return model_select;
 	};
 
 	QWidget *main_tab = new QWidget{this};
@@ -137,12 +138,16 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 						container = new CSelect_Time_Segment_Id_Panel{ mConfiguration, parameter, this };
 						break;
 
-					case scgms::NParameter_Type::ptModel_Id:
+					case scgms::NParameter_Type::ptSignal_Model_Id:
 						// "lazyload" of model selection; if the filter has model selection, it is very likely that it has signal selection as well
 						if (!model_select)
-							create_model_select(parameter);
+							create_model_select(parameter, false);
 
 						container = model_select;
+						break;
+
+					case scgms::NParameter_Type::ptDiscrete_Model_Id:
+						container = create_model_select(parameter, true);
 						break;
 
 					case scgms::NParameter_Type::ptMetric_Id:
@@ -153,22 +158,22 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 						container = new CGUID_Entity_ComboBox<scgms::TSolver_Descriptor, scgms::get_solver_descriptors>(parameter, this);
 						break;
 
-					case scgms::NParameter_Type::ptModel_Signal_Id:
+					case scgms::NParameter_Type::ptModel_Produced_Signal_Id:
 						// signal selection always requires model selection field
 						if (!model_select)
-							create_model_select(parameter);
+							create_model_select(parameter, false);
 
-						container = new CModel_Signal_Select_ComboBox(parameter, this, dynamic_cast<QComboBox*>(model_select));
+						container = new CModel_Signal_Select_ComboBox(parameter, nullptr, dynamic_cast<QComboBox*>(model_select));
 						break;
 
 					case scgms::NParameter_Type::ptSignal_Id:
-						container = new CAvailable_Signal_Select_ComboBox(parameter, this);
+						container = new CAvailable_Signal_Select_ComboBox(parameter, nullptr);
 						break;
 
 					case scgms::NParameter_Type::ptDouble_Array:
 						// model bounds edit always requires model selection field
 						if (!model_select)
-							create_model_select(parameter);
+							create_model_select(parameter, false);
 
 						container = new CModel_Bounds_Panel(parameter, dynamic_cast<QComboBox*>(model_select), this);
 						break;
