@@ -45,6 +45,8 @@
 #include <QtGui/QDoubleValidator>
 #include <QtWidgets/QBoxLayout>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QApplication>
 
 #include "moc_Model_Bounds_Panel.cpp"
 
@@ -225,7 +227,8 @@ void CModel_Bounds_Panel::fetch_parameter() {
 				ub = lb + 2 * model.number_of_parameters;
 			}
 			else
-				check_rc(E_UNEXPECTED);	//signalize the error!
+				//signalize the error!
+				QMessageBox::warning(QApplication::activeWindow(), QString::fromWCharArray(dsError), QString::fromWCharArray(dsStored_Parameters_Corrupted_Not_Loaded));
 		} else
 			if (rc != E_NOT_SET)		//ignore if we know that the parameter was not set yet
 				check_rc(rc);
