@@ -203,11 +203,15 @@ namespace filter_config_window {
 		if (std::isnan(rattime))
 			return QString::fromStdWString(dsNaN);
 
-		auto add_fraction = [&](const double factor) {
+		auto calc_fraction = [&](const double factor) {
 			double intpart;
 			rattime *= factor;
 			rattime = std::modf(rattime, &intpart);
+			return intpart;
+		};
 
+
+		auto add_fraction = [&](const double intpart, const double factor) {			
 			if (factor == 1.0) {	//days
 				return intpart != 0.0 ? QString::number(static_cast<int>(intpart)) + ' ' : QString{ "" };
 			} else
@@ -215,13 +219,40 @@ namespace filter_config_window {
 		};
 
 
-		//days
+		//handle the sign
 		QString result{ rattime < 0.0 ? "-" : "" };
 		rattime = std::fabs(rattime);
-		result += add_fraction(1.0);
-		result += add_fraction(24.0) + ':';
-		result += add_fraction(60.0) + ':';
-		result += add_fraction(60.0);
+
+		//decompose to individual parts
+		double days = calc_fraction(1.0);
+		double hours = calc_fraction(24.0);
+		double minutes = calc_fraction(60.0);
+		double seconds = calc_fraction(60.0);
+
+		//perform round-up to seconds
+		if (std::round(rattime) > 0.0) {
+			seconds++;
+			
+			if (seconds >= 60.0) {				
+				minutes++;
+				seconds = 0.0;
+
+				if (minutes >= 60.0) {
+					hours++;
+					minutes = 0.0;
+			
+					if (hours >= 24.0) {
+						days++;
+					}
+				}
+			}
+		}
+
+		//and compose the string
+		result += add_fraction(days, 1.0);
+		result += add_fraction(hours, 24.0) + ':';
+		result += add_fraction(minutes, 60.0) + ':';
+		result += add_fraction(seconds, 60.0);
 
 		return result;
 	}
