@@ -241,7 +241,7 @@ void CParameters_Optimization_Dialog::On_Solve() {
 						error_description);
 
 					mIs_Solving = false;
-					mProgress.cancelled = 1;	//stops mProgress_Update_Thread
+					mProgress.cancelled = TRUE;	//stops mProgress_Update_Thread
 
 					if (res != S_OK)
 						lblSolver_Info->setText(tr(dsSolver_Status_Failed));
@@ -250,7 +250,7 @@ void CParameters_Optimization_Dialog::On_Solve() {
 			});
 
 			mProgress_Update_Thread = std::make_unique<std::thread>([this]() {
-				while (mProgress.cancelled == 0) {
+				while (mProgress.cancelled == FALSE) {
 					if (mIs_Solving) emit Update_Progress_Signal();
 					std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 				}
@@ -292,7 +292,7 @@ void CParameters_Optimization_Dialog::Stop_Threads() {
 		}
 	};
 
-	mProgress.cancelled = 1;
+	mProgress.cancelled = FALSE;
 	wait_for_thread(mSolver_Thread);
 	wait_for_thread(mProgress_Update_Thread);
 }
