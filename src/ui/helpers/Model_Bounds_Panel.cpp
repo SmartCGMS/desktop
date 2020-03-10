@@ -212,9 +212,9 @@ void CModel_Bounds_Panel::fetch_parameter() {
 	scgms::TModel_Descriptor model = scgms::Null_Model_Descriptor;
 	if (Get_Current_Selected_Model(model)) {
 		//fetch default parameters
-		const double* lb = model.lower_bound;
-		const double* def = model.default_values;
-		const double* ub = model.upper_bound;
+		double* lb = const_cast<double*>(model.lower_bound);
+		double* def = const_cast<double*>(model.default_values);
+		double* ub = const_cast<double*>(model.upper_bound);
 
 		//and try to load custom ones
 		HRESULT rc;
