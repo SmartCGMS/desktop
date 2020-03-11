@@ -231,7 +231,7 @@ void CErrors_Tab_Widget_internal::CError_Table_Model::Update_Errors() {
 	bool called_begin_reset = false;
 
 	for (auto &signal_error : mSignal_Errors) {		
-		if (signal_error.signal_error->Peek_New_Data_Available() == S_OK) {
+		if (signal_error.signal_error->Logical_Clock(&mErrors_Logical_Clock) == S_OK) {
 
 			if (!called_begin_reset) {
 				beginResetModel();

@@ -70,6 +70,7 @@ namespace CErrors_Tab_Widget_internal {
 	class CError_Table_Model : public QAbstractTableModel {
 		Q_OBJECT
 	protected:
+		ULONG mErrors_Logical_Clock = 0;
 		std::vector<TSignal_Error_Inspection> mSignal_Errors;
 	public:
 		explicit CError_Table_Model(QObject *parent = 0) noexcept;
