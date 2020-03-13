@@ -454,7 +454,7 @@ void CSimulation_Window::On_Stop() {
 
 	Inject_Event(scgms::NDevice_Event_Code::Shut_Down, Invalid_GUID, nullptr);
 
-	if (SUCCEEDED(mFilter_Executor->Terminate())) {	
+	if (SUCCEEDED(mFilter_Executor->Terminate(FALSE))) {	
 		mStartButton->setEnabled(true);
 		mStopButton->setEnabled(false);
 	}
