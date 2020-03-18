@@ -69,9 +69,7 @@ public:
         const GUID selected_id = parameter.as_guid(rc);
         if (SUCCEEDED(rc)) {
             const QVariant data{ QByteArray(reinterpret_cast<const char*>(&selected_id), sizeof(GUID)) };
-            const auto index = findData(data);
-            if (index >= 0)
-                setCurrentIndex(index);
+            setCurrentIndex(findData(data));
         }//else it fails later on
         
 	}			

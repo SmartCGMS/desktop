@@ -42,12 +42,48 @@
 
 #include "../../../../common/rtl/FilterLib.h"
 
-#include <map>
 
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QComboBox>
-#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QLineEdit>
+#include <QtWidgets/QItemDelegate>
+
+#include <QtWidgets/QTableView>
+#include <QtCore/QAbstractTableModel>
+
+namespace CModel_Bounds_Panel_internal {
+
+	class CParameters_Table_Model : public QAbstractTableModel {
+		Q_OBJECT
+	protected:		
+		std::vector<QString> mNames;
+		std::vector<scgms::NModel_Parameter_Value> mTypes;
+		std::vector<double> mLower_Bounds, mDefault_Values, mUpper_Bounds;
+	public:
+		explicit CParameters_Table_Model(QObject *parent = 0) noexcept;
+
+		int rowCount(const QModelIndex &parent = QModelIndex()) const;
+		int columnCount(const QModelIndex &parent = QModelIndex()) const;
+		QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+		QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+		
+		void Load_Parameters(const scgms::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds);
+	};
+
+
+//https://doc.qt.io/qt-5/qtwidgets-itemviews-stardelegate-example.html
+	class CParameter_Value_Delegate : QItemDelegate {
+		Q_OBJECT
+	public:
+		QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+			const QModelIndex &index) const override;
+		void setEditorData(QWidget *editor, const QModelIndex &index) const override;
+		void setModelData(QWidget *editor, QAbstractItemModel *model,
+			const QModelIndex &index) const override;
+	};
+}
+
 
 /*
  * Panel for selecting and setting model bounds and default parameters
@@ -60,7 +96,11 @@ class CModel_Bounds_Panel : public QWidget, public virtual filter_config_window:
 		// connected model selector
 		QComboBox *mModelSelector;
 		// inner layout
-		QGridLayout* mLayout;
+		QVBoxLayout* mLayout;
+
+		QTableView* mTableView;
+		// table model for error metrics
+		CModel_Bounds_Panel_internal::CParameters_Table_Model* mModel;
 
 		// stored edits
 		std::vector<filter_config_window::IAs_Double_Container*> mLowerBoundEdits, mDefaultsEdits, mUpperBoundEdits;

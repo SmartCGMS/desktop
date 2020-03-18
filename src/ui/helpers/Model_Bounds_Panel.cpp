@@ -48,7 +48,71 @@
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QApplication>
 
+#include <array>
+
 #include "moc_Model_Bounds_Panel.cpp"
+
+CModel_Bounds_Panel_internal::CParameters_Table_Model::CParameters_Table_Model(QObject *parent) noexcept : QAbstractTableModel(parent) {
+
+}
+
+int CModel_Bounds_Panel_internal::CParameters_Table_Model::rowCount(const QModelIndex &parent) const {
+	return static_cast<int>(mNames.size());
+}
+
+int CModel_Bounds_Panel_internal::CParameters_Table_Model::columnCount(const QModelIndex &parent) const {
+	return 3;
+}
+
+QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::data(const QModelIndex &index, int role) const {
+	return "test";
+}
+
+QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::headerData(int section, Qt::Orientation orientation, int role) const {
+	const std::array<const char*, 3> column_names = {dsLower_Bounds, dsDefault_Parameters, dsUpper_Bounds};
+
+	if (role == Qt::DisplayRole) {		
+		if (orientation == Qt::Horizontal) {
+			if (section >= 0 && section < column_names.size())
+				return column_names[section];
+		}
+		else if (orientation == Qt::Vertical) {
+			if (section >= 0 && section < mNames.size())
+				return mNames[section];
+		}
+	}
+
+	return QVariant();
+}
+
+void CModel_Bounds_Panel_internal::CParameters_Table_Model::Load_Parameters(const scgms::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds) {
+	beginResetModel();
+
+	mNames.clear();
+	if (model.id != Invalid_GUID) {
+		for (size_t i = 0; i < model.number_of_parameters; i++) {
+			mNames.push_back(QString::fromWCharArray(model.parameter_ui_names[i]));
+		}
+
+		mTypes.assign(model.parameter_types, model.parameter_types + model.number_of_parameters);
+		mLower_Bounds.assign(lower_bounds, lower_bounds + model.number_of_parameters);
+		mDefault_Values.assign(defaults, defaults + model.number_of_parameters);
+		mUpper_Bounds.assign(upper_bounds, upper_bounds + model.number_of_parameters);
+	}
+
+	emit dataChanged(createIndex(0, 0), createIndex(rowCount() - 1, columnCount() - 1));
+
+	endResetModel();
+}
+
+QWidget* CModel_Bounds_Panel_internal::CParameter_Value_Delegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option,	const QModelIndex &index) const {
+}
+
+void CModel_Bounds_Panel_internal::CParameter_Value_Delegate::setEditorData(QWidget *editor, const QModelIndex &index) const {
+}
+
+void CModel_Bounds_Panel_internal::CParameter_Value_Delegate::setModelData(QWidget *editor, QAbstractItemModel *model,const QModelIndex &index) const {
+}
 
 CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QComboBox* modelSelector, QWidget * parent)
 	: CContainer_Edit(parameter), QWidget(parent), mModelSelector(modelSelector) {
@@ -56,7 +120,14 @@ CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QCo
 	setLayout(layout);
 
 	QWidget* contents = new QWidget();
-	mLayout = new QGridLayout();
+	mLayout = new QVBoxLayout();
+	
+	mTableView = new QTableView();
+	mModel = new CModel_Bounds_Panel_internal::CParameters_Table_Model(this);
+	mTableView->setModel(mModel);
+	mLayout->addWidget(mTableView);
+	   
+	
 	contents->setLayout(mLayout);
 
 	layout->addWidget(contents);
@@ -83,9 +154,8 @@ void CModel_Bounds_Panel::store_parameter() {
 	check_rc(mParameter.set_double_array(values));
 }
 
-void CModel_Bounds_Panel::Reset_UI(const scgms::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds)
-{
-	// clear layout
+void CModel_Bounds_Panel::Reset_UI(const scgms::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds) {
+/*	// clear layout
 	int colums = mLayout->columnCount();
 	int rows = mLayout->rowCount();
 
@@ -105,10 +175,11 @@ void CModel_Bounds_Panel::Reset_UI(const scgms::TModel_Descriptor& model, const 
 	}
 
 	// add column headers
+	
 	mLayout->addWidget(new QLabel(dsLower_Bounds), 0, 1);
 	mLayout->addWidget(new QLabel(dsDefault_Parameters), 0, 2);
 	mLayout->addWidget(new QLabel(dsUpper_Bounds), 0, 3);
-
+	
 	auto create_edit = [this](const scgms::NModel_Parameter_Value parameter_type, const double val) -> filter_config_window::IAs_Double_Container* {
 
 		filter_config_window::IAs_Double_Container* container = nullptr;
@@ -141,7 +212,7 @@ void CModel_Bounds_Panel::Reset_UI(const scgms::TModel_Descriptor& model, const 
 		mDefaultsEdits.push_back(create_edit(model.parameter_types[i], defaults[i]));
 		mUpperBoundEdits.push_back(create_edit(model.parameter_types[i], upper_bounds[i]));
 	}
-
+	
 	for (int i = 0; i < static_cast<int>(model.number_of_parameters); i++) {
 		mLayout->addWidget(new QLabel(QString::fromWCharArray(model.parameter_ui_names[i])), i + 1, 0);
 
@@ -149,9 +220,16 @@ void CModel_Bounds_Panel::Reset_UI(const scgms::TModel_Descriptor& model, const 
 		mLayout->addWidget(dynamic_cast<QWidget*>(mDefaultsEdits[i]), i + 1, 2);
 		mLayout->addWidget(dynamic_cast<QWidget*>(mUpperBoundEdits[i]), i + 1, 3);
 	}
-
+	
 	// add reset buttons
 	QPushButton* btn;
+
+	mTableView = new QTableView();
+	mModel = new CModel_Bounds_Panel_internal::CParameters_Table_Model(this);
+	mTableView->setModel(mModel);
+	mLayout->addWidget(mTableView, 0, 0, 3, 1);
+
+
 
 	btn = new QPushButton(dsReset_Bounds);
 	connect(btn, SIGNAL(clicked()), this, SLOT(On_Reset_Lower()));
@@ -167,6 +245,7 @@ void CModel_Bounds_Panel::Reset_UI(const scgms::TModel_Descriptor& model, const 
 
 	for (int i = 0; i < static_cast<int>(model.number_of_parameters) + 2; i++)
 		mLayout->setRowStretch((int)i, 1);
+	*/
 }
 
 void CModel_Bounds_Panel::Reset_Parameters(const std::vector<filter_config_window::IAs_Double_Container*> &containers, std::function<const double*(const scgms::TModel_Descriptor&)> get_bounds) {
@@ -233,6 +312,8 @@ void CModel_Bounds_Panel::fetch_parameter() {
 			if (rc != E_NOT_SET)		//ignore if we know that the parameter was not set yet
 				check_rc(rc);
 
-		Reset_UI(model, lb, def, ub);
-	}			
+		//Reset_UI(model, lb, def, ub);
+		mModel->Load_Parameters(model, lb, def, ub);
+	} else
+		mModel->Load_Parameters(scgms::Null_Model_Descriptor, nullptr, nullptr, nullptr);
 }
