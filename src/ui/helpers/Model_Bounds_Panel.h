@@ -58,24 +58,35 @@ namespace CModel_Bounds_Panel_internal {
 		Q_OBJECT
 	protected:		
 		std::vector<QString> mNames;
+		double *Get_Data(const int col);
+	public:
 		std::vector<scgms::NModel_Parameter_Value> mTypes;
 		std::vector<double> mLower_Bounds, mDefault_Values, mUpper_Bounds;
+
 	public:
 		explicit CParameters_Table_Model(QObject *parent = 0) noexcept;
 
-		int rowCount(const QModelIndex &parent = QModelIndex()) const;
-		int columnCount(const QModelIndex &parent = QModelIndex()) const;
-		QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-		QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+		virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+		virtual int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+		virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+		virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+		virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+		virtual Qt::ItemFlags flags(const QModelIndex & index) const override;
 		
 		void Load_Parameters(const scgms::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds);
+		std::vector<double> Store_Parameters();
 	};
 
-
-//https://doc.qt.io/qt-5/qtwidgets-itemviews-stardelegate-example.html
-	class CParameter_Value_Delegate : QItemDelegate {
+	class CParameter_Value_Delegate : public QItemDelegate {
 		Q_OBJECT
+	protected:
+		std::vector<scgms::NModel_Parameter_Value> &mTypes;
+		std::vector<double> &mLower_Bounds, &mDefault_Values, &mUpper_Bounds;
 	public:
+		CParameter_Value_Delegate(std::vector<scgms::NModel_Parameter_Value> &types,
+			std::vector<double> &lower, std::vector<double> &default, std::vector<double> &upper,
+			QObject *parent);
+
 		QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
 			const QModelIndex &index) const override;
 		void setEditorData(QWidget *editor, const QModelIndex &index) const override;
@@ -88,37 +99,30 @@ namespace CModel_Bounds_Panel_internal {
 /*
  * Panel for selecting and setting model bounds and default parameters
  */
-class CModel_Bounds_Panel : public QWidget, public virtual filter_config_window::CContainer_Edit
-{
+class CModel_Bounds_Panel : public QWidget, public virtual filter_config_window::CContainer_Edit {
 	Q_OBJECT
+protected:
+	// connected model selector
+	QComboBox *mModelSelector;
+	// inner layout
+	QVBoxLayout* mLayout;
 
-	protected:
-		// connected model selector
-		QComboBox *mModelSelector;
-		// inner layout
-		QVBoxLayout* mLayout;
+	QTableView* mTableView;
+	// table model for error metrics
+	CModel_Bounds_Panel_internal::CParameters_Table_Model* mModel;
 
-		QTableView* mTableView;
-		// table model for error metrics
-		CModel_Bounds_Panel_internal::CParameters_Table_Model* mModel;
+	// retrieves currently selected model; returns true on success
+	bool Get_Currently_Selected_Model(scgms::TModel_Descriptor& model);
 
-		// stored edits
-		std::vector<filter_config_window::IAs_Double_Container*> mLowerBoundEdits, mDefaultsEdits, mUpperBoundEdits;
+	void Reset_Parameters(std::vector<double> &values, std::function<const double*(const scgms::TModel_Descriptor&)> get_bounds);
+protected slots:
+	void On_Reset_Lower();
+	void On_Reset_Defaults();
+	void On_Reset_Upper();
 
-		// resets user interface using given values
-		void Reset_UI(const scgms::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds);
-		// retrieves currently selected model; returns true on success
-		bool Get_Current_Selected_Model(scgms::TModel_Descriptor& model);
+public:
+	CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QComboBox* modelSelector, QWidget *parent);
 
-		void Reset_Parameters(const std::vector<filter_config_window::IAs_Double_Container*> &containers, std::function<const double*(const scgms::TModel_Descriptor&)> get_bounds);
-	protected slots:
-		void On_Reset_Lower();
-		void On_Reset_Defaults();
-		void On_Reset_Upper();
-
-	public:
-		CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QComboBox* modelSelector, QWidget *parent);
-
-		virtual void fetch_parameter() override;
-		virtual void store_parameter() override;
+	virtual void fetch_parameter() override;
+	virtual void store_parameter() override;
 };

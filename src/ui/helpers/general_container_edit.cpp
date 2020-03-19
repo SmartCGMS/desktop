@@ -199,7 +199,7 @@ namespace filter_config_window {
 		return true;
 	}
 
-	QString CRatTime_Validator::rattime_to_string(double rattime) const {
+	QString CRatTime_Validator::rattime_to_string(double rattime) {
 		if (std::isnan(rattime))
 			return QString::fromStdWString(dsNaN);
 

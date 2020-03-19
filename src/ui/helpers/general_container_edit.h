@@ -60,7 +60,7 @@ namespace filter_config_window {
 		virtual void store_parameter() = 0;	//stores the parameter from the UI element
 	};
 
-	class IAs_Double_Container {
+	class IAs_Double_Container  {		
 	public:
 		virtual ~IAs_Double_Container() {};
 		virtual double as_double() = 0;
@@ -92,7 +92,7 @@ namespace filter_config_window {
 		CRatTime_Validator(QWidget* parent);
 
 		bool string_to_rattime(const QString& input, double& converted) const;
-		QString rattime_to_string(double rattime) const;
+		static QString rattime_to_string(double rattime);
 		virtual void fixup(QString& input) const override;
 		virtual State validate(QString& input, int& pos) const override;
 	};

@@ -37,6 +37,7 @@
  */
 
 #include "Model_Bounds_Panel.h"
+#include "general_container_edit.h"
 
 #include "../../../../common/lang/dstrings.h"
 #include "../../../../common/rtl/UILib.h"
@@ -53,7 +54,6 @@
 #include "moc_Model_Bounds_Panel.cpp"
 
 CModel_Bounds_Panel_internal::CParameters_Table_Model::CParameters_Table_Model(QObject *parent) noexcept : QAbstractTableModel(parent) {
-
 }
 
 int CModel_Bounds_Panel_internal::CParameters_Table_Model::rowCount(const QModelIndex &parent) const {
@@ -64,8 +64,53 @@ int CModel_Bounds_Panel_internal::CParameters_Table_Model::columnCount(const QMo
 	return 3;
 }
 
+double *CModel_Bounds_Panel_internal::CParameters_Table_Model::Get_Data(const int col) {
+	double *data = nullptr;
+	switch (col) {
+		case 0: data = mLower_Bounds.data(); break;
+		case 1: data = mDefault_Values.data(); break;
+		case 2: data = mUpper_Bounds.data(); break;
+		default: break;
+	}
+
+	return data;
+}
+
 QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::data(const QModelIndex &index, int role) const {
-	return "test";
+	auto get_val = [this, &index]()->double {
+		switch (index.column()) {
+			case 0: return mLower_Bounds[index.row()];
+			case 1: return mDefault_Values[index.row()];
+			case 2: return mUpper_Bounds[index.row()];
+			default: return std::numeric_limits<double>::quiet_NaN();
+		}
+	
+	};
+
+	if (role == Qt::DisplayRole || role == Qt::EditRole) {
+		if (index.row() >= mNames.size()) return QVariant(std::numeric_limits<double>::quiet_NaN());
+
+		switch (mTypes[index.row()]) {
+			case scgms::NModel_Parameter_Value::mptTime: return filter_config_window::CRatTime_Validator::rattime_to_string(get_val());
+			default: return get_val();
+		}
+
+		return QVariant(std::numeric_limits<double>::quiet_NaN());
+	}
+	else
+		return QVariant{};
+}
+
+bool CModel_Bounds_Panel_internal::CParameters_Table_Model::setData(const QModelIndex &index, const QVariant &value, int role) {
+	if (index.row() >= mNames.size()) return false;
+
+	bool ok = false;
+	const double val = value.toDouble(&ok);
+	if (!ok) return false;
+	
+
+	Get_Data(index.column())[index.row()] = val;
+	return true;
 }
 
 QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::headerData(int section, Qt::Orientation orientation, int role) const {
@@ -83,6 +128,12 @@ QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::headerData(int s
 	}
 
 	return QVariant();
+}
+
+Qt::ItemFlags CModel_Bounds_Panel_internal::CParameters_Table_Model::flags(const QModelIndex & index) const {
+	auto result = QAbstractTableModel::flags(index);
+	result |= Qt::ItemIsEditable;
+	return result;
 }
 
 void CModel_Bounds_Panel_internal::CParameters_Table_Model::Load_Parameters(const scgms::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds) {
@@ -105,13 +156,63 @@ void CModel_Bounds_Panel_internal::CParameters_Table_Model::Load_Parameters(cons
 	endResetModel();
 }
 
-QWidget* CModel_Bounds_Panel_internal::CParameter_Value_Delegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option,	const QModelIndex &index) const {
+std::vector<double> CModel_Bounds_Panel_internal::CParameters_Table_Model::Store_Parameters() {
+	std::vector<double> values;
+
+	// "serialize" fields
+	for (auto& container : { mLower_Bounds, mDefault_Values, mUpper_Bounds }) {
+		for (size_t i = 0; i < container.size(); i++) {
+			values.push_back(container[i]);
+		}
+	}
+
+	return values;
 }
 
-void CModel_Bounds_Panel_internal::CParameter_Value_Delegate::setEditorData(QWidget *editor, const QModelIndex &index) const {
+CModel_Bounds_Panel_internal::CParameter_Value_Delegate::CParameter_Value_Delegate(std::vector<scgms::NModel_Parameter_Value> &types,
+	std::vector<double> &lower, std::vector<double> &default, std::vector<double> &upper,
+	QObject *parent) :
+	mTypes(types), mLower_Bounds(lower), mDefault_Values(default), mUpper_Bounds(upper), QItemDelegate(parent) {
+
+}
+
+QWidget* CModel_Bounds_Panel_internal::CParameter_Value_Delegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option,	const QModelIndex &index) const {
+	const int idx = index.row();
+
+	QWidget* editor = nullptr;
+	switch (mTypes[idx]) {
+		case scgms::NModel_Parameter_Value::mptTime: 
+			editor = new filter_config_window::CRatTime_Container_Edit{ scgms::SFilter_Parameter{}, parent };			
+			break;		
+		default://double and bool
+			editor = new filter_config_window::CDouble_Container_Edit{ scgms::SFilter_Parameter{}, parent };
+			break;
+	}
+
+	return editor;
+}
+
+void CModel_Bounds_Panel_internal::CParameter_Value_Delegate::setEditorData(QWidget *editor, const QModelIndex &index) const {	
+
+	auto get_val = [this, &index]()->double {
+		if (index.row()>=mTypes.size()) return std::numeric_limits<double>::quiet_NaN();
+
+		switch (index.column()) {
+			case 0: return mLower_Bounds[index.row()];
+			case 1: return mDefault_Values[index.row()];
+			case 2: return mUpper_Bounds[index.row()];
+			default: return std::numeric_limits<double>::quiet_NaN();
+		}
+	};
+	
+	filter_config_window::IAs_Double_Container* true_editor = dynamic_cast<filter_config_window::IAs_Double_Container*>(editor);
+	true_editor->set_double(get_val());
 }
 
 void CModel_Bounds_Panel_internal::CParameter_Value_Delegate::setModelData(QWidget *editor, QAbstractItemModel *model,const QModelIndex &index) const {
+	filter_config_window::IAs_Double_Container* true_editor = dynamic_cast<filter_config_window::IAs_Double_Container*>(editor);
+	const double vv = true_editor->as_double();
+	model->setData(index, QVariant(vv));
 }
 
 CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QComboBox* modelSelector, QWidget * parent)
@@ -125,9 +226,36 @@ CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QCo
 	mTableView = new QTableView();
 	mModel = new CModel_Bounds_Panel_internal::CParameters_Table_Model(this);
 	mTableView->setModel(mModel);
+
+	auto delegate = new CModel_Bounds_Panel_internal::CParameter_Value_Delegate(mModel->mTypes, mModel->mLower_Bounds,
+		mModel->mDefault_Values, mModel->mUpper_Bounds, this);
+	mTableView->setItemDelegate(delegate);
+
+	mTableView->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::SelectedClicked | QAbstractItemView::EditKeyPressed);
+
 	mLayout->addWidget(mTableView);
 	   
+	{
+		QHBoxLayout *reset_layout = new QHBoxLayout();
+
+		QString capt_root = dsReset_Bounds;
+		capt_root +=" ";
+		QPushButton* btn = new QPushButton(capt_root + dsLower_Bounds);
+		connect(btn, SIGNAL(clicked()), this, SLOT(On_Reset_Lower()));
+		reset_layout->addWidget(btn);
+
+		btn = new QPushButton(capt_root + dsDefault_Parameters);
+		connect(btn, SIGNAL(clicked()), this, SLOT(On_Reset_Defaults()));
+		reset_layout->addWidget(btn);
+
+		btn = new QPushButton(capt_root + dsUpper_Bounds);
+		connect(btn, SIGNAL(clicked()), this, SLOT(On_Reset_Upper()));
+		reset_layout->addWidget(btn);
+
+		mLayout->addLayout(reset_layout);
+	}
 	
+
 	contents->setLayout(mLayout);
 
 	layout->addWidget(contents);
@@ -141,138 +269,36 @@ CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QCo
 }
 
 void CModel_Bounds_Panel::store_parameter() {
-	std::vector<double> values;
-
-	// "serialize" fields
-	for (auto& container : { mLowerBoundEdits, mDefaultsEdits, mUpperBoundEdits })
-	{
-		for (size_t i = 0; i < container.size(); i++) {			
-			values.push_back(container[i]->as_double());
-		}
-	}
-
+	std::vector<double> values = mModel->Store_Parameters();
+	
 	check_rc(mParameter.set_double_array(values));
 }
 
-void CModel_Bounds_Panel::Reset_UI(const scgms::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds) {
-/*	// clear layout
-	int colums = mLayout->columnCount();
-	int rows = mLayout->rowCount();
 
-	for (int j = 0; j < rows; j++)
-	{
-		for (int k = 0; k < colums; k++)
-		{
-			QLayoutItem* item = mLayout->itemAtPosition(j, k);
-
-			if (!item)
-				continue;
-
-			mLayout->removeItem(item);
-			delete item->widget();
-			delete item;
-		}
-	}
-
-	// add column headers
-	
-	mLayout->addWidget(new QLabel(dsLower_Bounds), 0, 1);
-	mLayout->addWidget(new QLabel(dsDefault_Parameters), 0, 2);
-	mLayout->addWidget(new QLabel(dsUpper_Bounds), 0, 3);
-	
-	auto create_edit = [this](const scgms::NModel_Parameter_Value parameter_type, const double val) -> filter_config_window::IAs_Double_Container* {
-
-		filter_config_window::IAs_Double_Container* container = nullptr;
-
-		switch (parameter_type) {
-			case scgms::NModel_Parameter_Value::mptDouble:
-				container = new filter_config_window::CDouble_Container_Edit{ scgms::SFilter_Parameter{}, this };
-				break;
-
-			case scgms::NModel_Parameter_Value::mptTime:
-				container = new filter_config_window::CRatTime_Container_Edit{ scgms::SFilter_Parameter{}, this };
-				break;		
-
-			default: 
-				break;
-		}
-		
-		if (container) container->set_double(val);
-		
-		return container;
-	};
-
-
-	mLowerBoundEdits.clear();
-	mDefaultsEdits.clear();
-	mUpperBoundEdits.clear();
-
-	for (size_t i = 0; i < model.number_of_parameters; i++) {			
-		mLowerBoundEdits.push_back(create_edit(model.parameter_types[i], lower_bounds[i]));
-		mDefaultsEdits.push_back(create_edit(model.parameter_types[i], defaults[i]));
-		mUpperBoundEdits.push_back(create_edit(model.parameter_types[i], upper_bounds[i]));
-	}
-	
-	for (int i = 0; i < static_cast<int>(model.number_of_parameters); i++) {
-		mLayout->addWidget(new QLabel(QString::fromWCharArray(model.parameter_ui_names[i])), i + 1, 0);
-
-		mLayout->addWidget(dynamic_cast<QWidget*>(mLowerBoundEdits[i]), i + 1, 1);
-		mLayout->addWidget(dynamic_cast<QWidget*>(mDefaultsEdits[i]), i + 1, 2);
-		mLayout->addWidget(dynamic_cast<QWidget*>(mUpperBoundEdits[i]), i + 1, 3);
-	}
-	
-	// add reset buttons
-	QPushButton* btn;
-
-	mTableView = new QTableView();
-	mModel = new CModel_Bounds_Panel_internal::CParameters_Table_Model(this);
-	mTableView->setModel(mModel);
-	mLayout->addWidget(mTableView, 0, 0, 3, 1);
-
-
-
-	btn = new QPushButton(dsReset_Bounds);
-	connect(btn, SIGNAL(clicked()), this, SLOT(On_Reset_Lower()));
-	mLayout->addWidget(btn, static_cast<int>(model.number_of_parameters+ 1), 1);
-
-	btn = new QPushButton(dsReset_Bounds);
-	connect(btn, SIGNAL(clicked()), this, SLOT(On_Reset_Defaults()));
-	mLayout->addWidget(btn, static_cast<int>(model.number_of_parameters + 1), 2);
-
-	btn = new QPushButton(dsReset_Bounds);
-	connect(btn, SIGNAL(clicked()), this, SLOT(On_Reset_Upper()));
-	mLayout->addWidget(btn, static_cast<int>(model.number_of_parameters + 1), 3);
-
-	for (int i = 0; i < static_cast<int>(model.number_of_parameters) + 2; i++)
-		mLayout->setRowStretch((int)i, 1);
-	*/
-}
-
-void CModel_Bounds_Panel::Reset_Parameters(const std::vector<filter_config_window::IAs_Double_Container*> &containers, std::function<const double*(const scgms::TModel_Descriptor&)> get_bounds) {
+void CModel_Bounds_Panel::Reset_Parameters(std::vector<double> &values, std::function<const double*(const scgms::TModel_Descriptor&)> get_bounds) {
 	scgms::TModel_Descriptor model = scgms::Null_Model_Descriptor;
-	if (!Get_Current_Selected_Model(model))
+	if (!Get_Currently_Selected_Model(model))
 		return;
 
 	const double* bounds = get_bounds(model);
+	values.assign(bounds, bounds + model.number_of_parameters);
 
-	for (size_t i = 0; i < model.number_of_parameters; i++) {		
-		containers[i]->set_double(bounds[i]);
-	}		
+	mTableView->viewport()->update();
 }
 
 void CModel_Bounds_Panel::On_Reset_Lower() {
-	Reset_Parameters(mLowerBoundEdits, [](const scgms::TModel_Descriptor& model)->const double* {return model.lower_bound; });
+	Reset_Parameters(mModel->mLower_Bounds, [](const scgms::TModel_Descriptor& model)->const double* {return model.lower_bound; });
 }
 
 void CModel_Bounds_Panel::On_Reset_Defaults() {
-	Reset_Parameters(mDefaultsEdits, [](const scgms::TModel_Descriptor& model)->const double* {return model.default_values; });
+	Reset_Parameters(mModel->mDefault_Values, [](const scgms::TModel_Descriptor& model)->const double* {return model.default_values; });
 }
 
 void CModel_Bounds_Panel::On_Reset_Upper() {
-	Reset_Parameters(mUpperBoundEdits, [](const scgms::TModel_Descriptor& model)->const double* {return model.upper_bound; });
+	Reset_Parameters(mModel->mUpper_Bounds, [](const scgms::TModel_Descriptor& model)->const double* {return model.upper_bound; });
 }
 
-bool CModel_Bounds_Panel::Get_Current_Selected_Model(scgms::TModel_Descriptor& model)
+bool CModel_Bounds_Panel::Get_Currently_Selected_Model(scgms::TModel_Descriptor& model)
 {
 	if (mModelSelector->currentIndex() >= 0)
 	{
@@ -289,7 +315,7 @@ bool CModel_Bounds_Panel::Get_Current_Selected_Model(scgms::TModel_Descriptor& m
 void CModel_Bounds_Panel::fetch_parameter() {
 
 	scgms::TModel_Descriptor model = scgms::Null_Model_Descriptor;
-	if (Get_Current_Selected_Model(model)) {
+	if (Get_Currently_Selected_Model(model)) {
 		//fetch default parameters
 		double* lb = const_cast<double*>(model.lower_bound);
 		double* def = const_cast<double*>(model.default_values);
@@ -312,8 +338,10 @@ void CModel_Bounds_Panel::fetch_parameter() {
 			if (rc != E_NOT_SET)		//ignore if we know that the parameter was not set yet
 				check_rc(rc);
 
-		//Reset_UI(model, lb, def, ub);
 		mModel->Load_Parameters(model, lb, def, ub);
 	} else
 		mModel->Load_Parameters(scgms::Null_Model_Descriptor, nullptr, nullptr, nullptr);
+
+	mTableView->resizeColumnsToContents();
+	mTableView->resizeRowsToContents();
 }
