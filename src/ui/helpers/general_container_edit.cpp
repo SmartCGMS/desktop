@@ -361,7 +361,7 @@ namespace filter_config_window {
 
 	CGUID_Validator::State CGUID_Validator::validate(QString& input, int& pos) const {
 		bool ok;
-		const GUID tmp = WString_To_GUID(input.toStdWString(), ok);
+		/*const GUID tmp =*/ WString_To_GUID(input.toStdWString(), ok);
 		return ok ? CGUID_Validator::State::Acceptable : CGUID_Validator::State::Invalid;
 	}
 
