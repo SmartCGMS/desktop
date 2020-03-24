@@ -81,6 +81,7 @@ void CFilter_List_Item::Refresh()
 	//variables for signal mappers, etc.
 	bool src_signal_set = false;
 	bool dst_signal_set = false;
+	bool reference_signal_set = false;
 	std::wstring src_signal_str, dst_signal_str;
 
 	// traverse configuration and find items to put into description
@@ -138,9 +139,10 @@ void CFilter_List_Item::Refresh()
 							};
 
 							const std::wstring cfg_name { cfg.configuration_name() };	//converts from wchar_t*!
-							if (cfg_name == rsSignal_Source_Id)
+							if (cfg_name == rsReference_Signal) reference_signal_set = true;
+							if ((cfg_name == rsSignal_Source_Id) || (cfg_name == rsSelected_Signal) || (cfg_name == rsReference_Signal))
 									src_signal_str = get_sig_name(src_signal_set);
-								else if (cfg_name == rsSignal_Destination_Id)
+								else if ((cfg_name == rsSignal_Destination_Id) || (cfg_name == rsError_Signal))
 									dst_signal_str = get_sig_name(dst_signal_set);
 						};
 					break;															
@@ -155,8 +157,8 @@ void CFilter_List_Item::Refresh()
 	if (src_signal_set) {
 		appendSplitter();
 		text += QString::fromStdWString(src_signal_str);
-		if (dst_signal_set) {
-			text += QString::fromWCharArray(L" -> ");
+		if (dst_signal_set) {			
+			text += QString::fromWCharArray(reference_signal_set ?  L" vs. " : L" -> ");
 			text += QString::fromStdWString(dst_signal_str);
 		}
 	}
