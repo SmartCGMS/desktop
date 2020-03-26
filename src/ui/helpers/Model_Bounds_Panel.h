@@ -84,7 +84,7 @@ namespace CModel_Bounds_Panel_internal {
 		std::vector<double> &mLower_Bounds, &mDefault_Values, &mUpper_Bounds;
 	public:
 		CParameter_Value_Delegate(std::vector<scgms::NModel_Parameter_Value> &types,
-			std::vector<double> &lower, std::vector<double> &default, std::vector<double> &upper,
+			std::vector<double> &lower, std::vector<double> &default_values, std::vector<double> &upper,
 			QObject *parent);
 
 		QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,

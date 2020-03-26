@@ -88,7 +88,7 @@ QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::data(const QMode
 	};
 
 	if (role == Qt::DisplayRole || role == Qt::EditRole) {
-		if (index.row() >= mNames.size()) return QVariant(std::numeric_limits<double>::quiet_NaN());
+		if (static_cast<size_t>(index.row()) >= mNames.size()) return QVariant(std::numeric_limits<double>::quiet_NaN());
 
 		switch (mTypes[index.row()]) {
 			case scgms::NModel_Parameter_Value::mptTime: return filter_config_window::CRatTime_Validator::rattime_to_string(get_val());
@@ -102,7 +102,7 @@ QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::data(const QMode
 }
 
 bool CModel_Bounds_Panel_internal::CParameters_Table_Model::setData(const QModelIndex &index, const QVariant &value, int role) {
-	if (index.row() >= mNames.size()) return false;
+	if (static_cast<size_t>(index.row()) >= mNames.size()) return false;
 
 	bool ok = false;
 	const double val = value.toDouble(&ok);
@@ -118,11 +118,11 @@ QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::headerData(int s
 
 	if (role == Qt::DisplayRole) {		
 		if (orientation == Qt::Horizontal) {
-			if (section >= 0 && section < column_names.size())
+			if (section >= 0 && static_cast<size_t>(section) < column_names.size())
 				return column_names[section];
 		}
 		else if (orientation == Qt::Vertical) {
-			if (section >= 0 && section < mNames.size())
+			if (section >= 0 && static_cast<size_t>(section) < mNames.size())
 				return mNames[section];
 		}
 	}
@@ -170,9 +170,9 @@ std::vector<double> CModel_Bounds_Panel_internal::CParameters_Table_Model::Store
 }
 
 CModel_Bounds_Panel_internal::CParameter_Value_Delegate::CParameter_Value_Delegate(std::vector<scgms::NModel_Parameter_Value> &types,
-	std::vector<double> &lower, std::vector<double> &default, std::vector<double> &upper,
+	std::vector<double> &lower, std::vector<double> &default_values, std::vector<double> &upper,
 	QObject *parent) :
-	mTypes(types), mLower_Bounds(lower), mDefault_Values(default), mUpper_Bounds(upper), QItemDelegate(parent) {
+	QItemDelegate(parent), mTypes(types), mLower_Bounds(lower), mDefault_Values(default_values), mUpper_Bounds(upper) {
 
 }
 
@@ -195,7 +195,7 @@ QWidget* CModel_Bounds_Panel_internal::CParameter_Value_Delegate::createEditor(Q
 void CModel_Bounds_Panel_internal::CParameter_Value_Delegate::setEditorData(QWidget *editor, const QModelIndex &index) const {	
 
 	auto get_val = [this, &index]()->double {
-		if (index.row()>=mTypes.size()) return std::numeric_limits<double>::quiet_NaN();
+		if (static_cast<size_t>(index.row()) >= mTypes.size()) return std::numeric_limits<double>::quiet_NaN();
 
 		switch (index.column()) {
 			case 0: return mLower_Bounds[index.row()];
