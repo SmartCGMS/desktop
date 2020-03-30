@@ -206,6 +206,7 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 										 return line; };
 
 	vertical_layout->addWidget(edits);	
+	vertical_layout->addWidget(new QLabel{ dsParameters_Optimization_Use, this });
 	vertical_layout->addWidget(add_separator(this));
 	vertical_layout->addWidget(progress);
 	vertical_layout->addWidget(add_separator(this));
