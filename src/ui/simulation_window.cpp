@@ -410,8 +410,10 @@ void CSimulation_Window::On_Start() {
 	// initialize and start filter holder, this will start filters
 	refcnt::Swstr_list error_description;
 	mFilter_Executor = scgms::SFilter_Executor{ mConfiguration, CSimulation_Window::On_Filter_Configured, this, error_description };
+	mLogWidget->Log_Config_Errors(error_description);
 	if (!mFilter_Executor)	{
-		// TODO: error message
+		QMessageBox::information(this, tr(dsInformation), tr(dsFilter_Executor_Failed_Review_Config_Errors));
+
 		return;
 	}
 

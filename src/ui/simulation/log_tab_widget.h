@@ -44,6 +44,7 @@
 #include <QtCore/QAbstractTableModel>
 
 #include "abstract_simulation_tab.h"
+#include "../../../../common/rtl/referencedImpl.h"
 
 /*
 * Log display subtab widget - raw view
@@ -135,9 +136,9 @@ class CLog_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 		Q_OBJECT
 
 	protected:
-		QTabWidget* mTabWidget;
-		CLog_Subtab_Raw_Widget* mRawLogWidget;
-		CLog_Subtab_Table_Widget* mTableLogWidget;
+		QTabWidget *mTabWidget;
+		CLog_Subtab_Raw_Widget *mRawLogWidget, *mConfig_Errors;
+		CLog_Subtab_Table_Widget *mTableLogWidget;
 
 	protected:
 		void Init_Layout();
@@ -151,4 +152,5 @@ class CLog_Tab_Widget : public CAbstract_Simulation_Tab_Widget
 
 		// when a new log message is available
 		void Log_Message(const std::wstring &msg);
+		void Log_Config_Errors(refcnt::Swstr_list errors);
 };

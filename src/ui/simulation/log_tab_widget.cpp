@@ -249,6 +249,9 @@ CLog_Tab_Widget::CLog_Tab_Widget(QWidget *parent)
 	mTabWidget->addTab(mTableLogWidget, tr(dsLog_Table_View));
 	mRawLogWidget = new CLog_Subtab_Raw_Widget(this);
 	mTabWidget->addTab(mRawLogWidget, tr(dsLog_Raw_View));
+
+	mConfig_Errors = new CLog_Subtab_Raw_Widget(this);
+	mTabWidget->addTab(mConfig_Errors, tr(dsConfig_Errors));
 }
 
 CLog_Tab_Widget::CLog_Tab_Widget(CLog_Subtab_Raw_Widget* cloned_raw, CLog_Subtab_Table_Widget* cloned_table)
@@ -284,4 +287,19 @@ CAbstract_Simulation_Tab_Widget* CLog_Tab_Widget::Clone()
 		dynamic_cast<CLog_Subtab_Table_Widget*>(mTableLogWidget->Clone()));
 
 	return cloned;
+}
+
+
+void CLog_Tab_Widget::Log_Config_Errors(refcnt::Swstr_list errors) {
+	QString contents;
+	refcnt::wstr_container *wstr;
+	if (errors->empty() != S_OK) {		
+		while (errors->pop(&wstr) == S_OK) {
+			contents += QString::fromStdWString(refcnt::WChar_Container_To_WString(wstr));
+			contents += "\n";
+			wstr->Release();
+		}
+
+		mConfig_Errors->Set_Contents(contents);
+	}
 }
