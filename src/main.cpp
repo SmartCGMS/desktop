@@ -37,9 +37,12 @@
  */
 
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QMessageBox>
 
+#include "../../common/rtl/scgmsLib.h"
 #include "../../common/utils/winapi_mapping.h"
 #include "../../common/utils/DebugHelper.h"
+#include "../../common/lang/dstrings.h"
 
 #include "ui/main_window.h"
 
@@ -48,6 +51,11 @@ int MainCalling main(int argc, char *argv[]) {
 
 	QApplication application(argc, argv);
     qGuiApp->setWindowIcon(QIcon(":/app/appicon.png"));
+
+	if (!scgms::is_scgms_loaded()) {
+		QMessageBox::information(nullptr, dsInformation, dsSCGMS_Not_Loaded);
+		return 3;
+	}
 
 	// determine config file path
 	const std::wstring config_filepath = argc > 1 ? std::wstring{ argv[1], argv[1] + strlen(argv[1]) } : std::wstring{};
