@@ -268,8 +268,26 @@ void CMain_Window::On_Simulation_Window() {
 	CSimulation_Window::Show_Instance(mFilter_Configuration.get(), pnlMDI_Content);
 }
 
+void CMain_Window::Save_Experimental_Setup(const wchar_t *file_path) {
+	refcnt::Swstr_list errors;
+	HRESULT rc = mFilter_Configuration->Save_To_File(file_path, errors.get());
+
+	QString errors_str;
+	errors.for_each([&errors_str](auto str) {
+		errors_str += QString::fromStdWString(str);
+		errors_str += "\n";
+	});
+
+	if (!SUCCEEDED(rc) || !errors_str.isEmpty()) {
+		errors_str = tr(dsSave_Experimental_Setup_Failed) + "0x" + QString::number(rc, 16) +"\n ("
+			+ QString::fromWCharArray(Describe_Error(rc)) + ")\n"
+			+ "\n" + errors_str;
+		QMessageBox::warning(this, tr(dsWarning), errors_str);
+	}
+}
+
 void CMain_Window::On_Save_Configuration() {
-	mFilter_Configuration->Save_To_File(mFilter_Configuration_File_Path.c_str());
+	Save_Experimental_Setup(nullptr);
 }
 
 void CMain_Window::On_Optimize_Parameters_Dialog() {

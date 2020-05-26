@@ -292,14 +292,11 @@ CAbstract_Simulation_Tab_Widget* CLog_Tab_Widget::Clone()
 
 void CLog_Tab_Widget::Log_Config_Errors(refcnt::Swstr_list errors) {
 	QString contents;
-	refcnt::wstr_container *wstr;
-	if (errors->empty() != S_OK) {		
-		while (errors->pop(&wstr) == S_OK) {
-			contents += QString::fromStdWString(refcnt::WChar_Container_To_WString(wstr));
-			contents += "\n";
-			wstr->Release();
-		}
 
-		mConfig_Errors->Set_Contents(contents);
-	}
+	errors.for_each([&contents](auto str) {
+		contents += QString::fromStdWString(str);
+		contents += "\n";
+	});
+
+	mConfig_Errors->Set_Contents(contents);	
 }
