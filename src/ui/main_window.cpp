@@ -37,12 +37,13 @@
  */
 
 #include "main_window.h"
-
-#include "../../../common/lang/dstrings.h"
-#include "../../../common/utils/QtUtils.h"
 #include "filters_window.h"
 #include "simulation_window.h"
 #include "parameters_optimization_dialog.h"
+
+#include "../../../common/lang/dstrings.h"
+#include "../../../common/utils/QtUtils.h"
+#include "../../../common/rtl/FilesystemLib.h"
 
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QList>
@@ -52,29 +53,29 @@
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QMdiSubWindow>
+#include <QtWidgets/QFileDialog>
 
 #ifndef MOC_DIR
   #include "moc_main_window.cpp"
 #endif
 
-CMain_Window::CMain_Window(const std::wstring& config, QWidget *parent) noexcept : QMainWindow(parent), mFilter_Configuration_File_Path(config) {
-
-	HRESULT rc = mFilter_Configuration ? S_OK : E_FAIL;
-	refcnt::Swstr_list error_description;
-
-	if (rc == S_OK) mFilter_Configuration->Load_From_File(mFilter_Configuration_File_Path.c_str(), error_description.get());
-	if (!SUCCEEDED(rc)) {
-		// we probably could display some warning here; this is not necessarily an error (maybe we just compiled SmartCGMS
-		// and there's no config present yet
-	}
+CMain_Window::CMain_Window(const std::wstring &experimental_setup_filepath, QWidget *parent) noexcept : QMainWindow(parent) {
 
 	Setup_UI();
+
+	if (experimental_setup_filepath.empty()) On_New_Experimental_Setup();
+		else Open_Experimental_Setup(experimental_setup_filepath.c_str()); 
 
 	this->showMaximized();
 }
 
 void CMain_Window::Setup_UI() {
-	QAction *act_Save_Configuration = new QAction { tr(dsSave_Configuration), this };
+
+	QAction* act_New_Experimental_Setup = new QAction{ tr(dsNew_Experimental_Setup), this };
+	QAction* act_Open_Experimental_Setup = new QAction{ tr(dsOpen_Experimental_Setup), this };
+	QAction *act_Save_Experimental_Setup = new QAction { tr(dsSave_Experimental_Setup), this };
+	QAction* act_Save_Experimental_Setup_As = new QAction{ tr(dsSave_Experimental_Setup_As), this };
+
 	QAction *actionQuit = new QAction{tr(dsQuit), this };
 	QAction* act_filters = new QAction{ tr(dsFilters), this };
 	QAction* act_simulation = new QAction{ tr(dsSimulation), this };
@@ -119,7 +120,10 @@ void CMain_Window::Setup_UI() {
 	menuBar->addAction(menu_File->menuAction());
 	menuBar->addAction(menu_Tools->menuAction());
 
-	menu_File->addAction(act_Save_Configuration);
+	menu_File->addAction(act_New_Experimental_Setup);
+	menu_File->addAction(act_Open_Experimental_Setup);
+	menu_File->addAction(act_Save_Experimental_Setup);
+	menu_File->addAction(act_Save_Experimental_Setup_As);
 	menu_File->addSeparator();
 	menu_File->addAction(actionQuit);
 
@@ -144,12 +148,14 @@ void CMain_Window::Setup_UI() {
 
 	mWindowMapper = new QSignalMapper(this);
 
-	setWindowTitle(tr(dsGlucose_Prediction).arg(StdWStringToQString(mFilter_Configuration_File_Path)));
-
 	//and connect the actions
-	connect(act_Save_Configuration, SIGNAL(triggered()), this, SLOT(On_Save_Configuration()));
+	connect(act_New_Experimental_Setup, SIGNAL(triggered()), this, SLOT(On_New_Experimental_Setup()));
+	connect(act_Open_Experimental_Setup, SIGNAL(triggered()), this, SLOT(On_Open_Experimental_Setup()));
+	connect(act_Save_Experimental_Setup, SIGNAL(triggered()), this, SLOT(On_Save_Experimental_Setup()));
+	connect(act_Save_Experimental_Setup_As, SIGNAL(triggered()), this, SLOT(On_Save_Experimental_Setup_As()));
 	connect(actionQuit, SIGNAL(triggered()), this, SLOT(On_Quit()));
 	connect(pnlMDI_Content, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(On_Update_Actions()));
+	connect(actClose_Window, SIGNAL(triggered()), this, SLOT(On_Close_Window()));
 	connect(actClose_All_Windows, SIGNAL(triggered()), this, SLOT(On_Close_All()));
 	connect(actTile_Vertically, SIGNAL(triggered()), this, SLOT(On_Tile_Vertically()));
 	connect(actTile_Horizontally, SIGNAL(triggered()), this, SLOT(On_Tile_Horizontally()));
@@ -191,7 +197,14 @@ void CMain_Window::On_Quit() {
     QApplication::instance()->quit();
 }
 
+void CMain_Window::On_Close_Window() {
+	const auto current = pnlMDI_Content->activeSubWindow();
+	if (current)
+		current->close();
+}
+
 void CMain_Window::On_Close_All() {
+	pnlMDI_Content->closeAllSubWindows();
 }
 
 void CMain_Window::Tile_Window(std::function<QRect()> rect_fnc) {
@@ -268,27 +281,92 @@ void CMain_Window::On_Simulation_Window() {
 	CSimulation_Window::Show_Instance(mFilter_Configuration.get(), pnlMDI_Content);
 }
 
-void CMain_Window::Save_Experimental_Setup(const wchar_t *file_path) {
-	refcnt::Swstr_list errors;
-	HRESULT rc = mFilter_Configuration->Save_To_File(file_path, errors.get());
-
+void CMain_Window::Check_And_Display_Error_Description(const HRESULT rc, refcnt::Swstr_list errors) {
 	QString errors_str;
 	errors.for_each([&errors_str](auto str) {
 		errors_str += QString::fromStdWString(str);
 		errors_str += "\n";
 	});
 
-	if (!SUCCEEDED(rc) || !errors_str.isEmpty()) {
-		errors_str = tr(dsSave_Experimental_Setup_Failed) + "0x" + QString::number(rc, 16) +"\n ("
+	if ((rc != S_OK) || !errors_str.isEmpty()) {
+		errors_str = tr(dsSave_Experimental_Setup_Failed) + "0x" + QString::number(rc, 16) + "\n ("
 			+ QString::fromWCharArray(Describe_Error(rc)) + ")\n"
-			+ "\n" + errors_str;
+			+ "\n" + dsErrors_Warnings_Hints+ "\n" + errors_str;
 		QMessageBox::warning(this, tr(dsWarning), errors_str);
 	}
 }
 
-void CMain_Window::On_Save_Configuration() {
-	Save_Experimental_Setup(nullptr);
+
+void CMain_Window::Open_Experimental_Setup(const wchar_t* file_path) {
+	pnlMDI_Content->closeAllSubWindows();
+	if (pnlMDI_Content->activeSubWindow()) return;	//some window has not closed
+
+	refcnt::Swstr_list errors;
+	mFilter_Configuration = scgms::SPersistent_Filter_Chain_Configuration{};	//reset the current configuration
+	HRESULT rc = mFilter_Configuration ? mFilter_Configuration->Load_From_File(file_path, errors.get()) : E_FAIL;
+	Check_And_Display_Error_Description(rc, errors);
+
+	if (rc == S_OK)
+		setWindowTitle(tr(dsGlucose_Prediction).arg(QString::fromWCharArray(file_path)));
 }
+
+
+void CMain_Window::On_New_Experimental_Setup() {
+	pnlMDI_Content->closeAllSubWindows();
+	if (pnlMDI_Content->activeSubWindow()) return;	//some window has not closed
+
+	mFilter_Configuration = scgms::SPersistent_Filter_Chain_Configuration{};
+	if (mFilter_Configuration) setWindowTitle(tr(dsGlucose_Prediction).arg(dsUnsaved_Experimental_Setup));
+		else Check_And_Display_Error_Description(E_FAIL, refcnt::Swstr_list{});
+}
+
+void CMain_Window::On_Open_Experimental_Setup() {
+	QString selfilter;
+	QString filepath;
+	try {
+		filepath = QFileDialog::getOpenFileName(this, tr(dsOpen_Experimental_Setup),
+			QString::fromStdWString(Get_Application_Dir()), tr(dsExperimental_Setup_File_Mask), &selfilter);
+	}
+	catch (...) {
+
+	}
+
+	if (filepath.isEmpty() || selfilter.isEmpty())
+		return;
+	
+	Open_Experimental_Setup(filepath.toStdWString().c_str());		
+}
+
+void CMain_Window::On_Save_Experimental_Setup() {
+	refcnt::Swstr_list errors;
+	HRESULT rc = mFilter_Configuration->Save_To_File(nullptr, errors.get());
+
+	if (rc == E_ILLEGAL_METHOD_CALL) On_Save_Experimental_Setup_As();
+		else Check_And_Display_Error_Description(rc, errors);	
+}
+
+void CMain_Window::On_Save_Experimental_Setup_As() {
+	QString selfilter;
+	QString filepath;
+	try {
+		filepath = QFileDialog::getSaveFileName(this, tr(dsSave_Experimental_Setup_As),
+			QString::fromStdWString(Get_Application_Dir()),  tr(dsExperimental_Setup_File_Mask), &selfilter);
+	}
+	catch (...) {
+
+	}
+
+	if (filepath.isEmpty() || selfilter.isEmpty())
+		return;
+
+	refcnt::Swstr_list errors;
+	HRESULT rc = mFilter_Configuration->Save_To_File(filepath.toStdWString().c_str(), errors.get());
+	if (rc == S_OK)
+		setWindowTitle(tr(dsGlucose_Prediction).arg(filepath));
+
+	Check_And_Display_Error_Description(rc, errors);
+}
+
 
 void CMain_Window::On_Optimize_Parameters_Dialog() {
 	CParameters_Optimization_Dialog *dlg = new CParameters_Optimization_Dialog{ refcnt::make_shared_reference_ext<scgms::SFilter_Chain_Configuration, scgms::IFilter_Chain_Configuration>(mFilter_Configuration.get(), true), this };

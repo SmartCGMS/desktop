@@ -66,14 +66,19 @@ private:
 	void Close_Event(QCloseEvent *event);
 
 protected:
-	void Save_Experimental_Setup(const wchar_t* file_path);
+	void Check_And_Display_Error_Description(const HRESULT rc, refcnt::Swstr_list errors);	
+	void Open_Experimental_Setup(const wchar_t* file_path);	
 protected:
 	void Tile_Window(std::function<QRect()> rect_fnc);
 
 private slots:
-	void On_Save_Configuration();
+	void On_New_Experimental_Setup();
+	void On_Open_Experimental_Setup();
+	void On_Save_Experimental_Setup();
+	void On_Save_Experimental_Setup_As();
 	void On_Quit();
 	void On_Update_Actions();
+	void On_Close_Window();
 	void On_Close_All();
 	void On_Tile_Vertically();
 	void On_Tile_Horizontally();
@@ -86,5 +91,5 @@ private slots:
 	void Set_Active_Sub_Window(QWidget *window);
 
 public:
-	CMain_Window(const std::wstring& config, QWidget *parent = nullptr) noexcept;
+	CMain_Window(const std::wstring &experimental_setup_filepath, QWidget *parent = nullptr) noexcept;
 };
