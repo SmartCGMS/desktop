@@ -72,9 +72,16 @@ CMain_Window::CMain_Window(const std::wstring &experimental_setup_filepath, QWid
 void CMain_Window::Setup_UI() {
 
 	QAction* act_New_Experimental_Setup = new QAction{ tr(dsNew_Experimental_Setup), this };
+	//act_New_Experimental_Setup->setShortcut(QKeySequence::New); - not yet as we do not ask to save the work yet!
+
 	QAction* act_Open_Experimental_Setup = new QAction{ tr(dsOpen_Experimental_Setup), this };
+	act_Open_Experimental_Setup->setShortcut(QKeySequence::Open);
+
 	QAction *act_Save_Experimental_Setup = new QAction { tr(dsSave_Experimental_Setup), this };
+	act_Save_Experimental_Setup->setShortcut(QKeySequence::Save);
+
 	QAction* act_Save_Experimental_Setup_As = new QAction{ tr(dsSave_Experimental_Setup_As), this };
+	act_Save_Experimental_Setup_As->setShortcut(QKeySequence::SaveAs);
 
 	QAction *actionQuit = new QAction{tr(dsQuit), this };
 	QAction* act_filters = new QAction{ tr(dsFilters), this };
@@ -307,7 +314,7 @@ void CMain_Window::Open_Experimental_Setup(const wchar_t* file_path) {
 	Check_And_Display_Error_Description(rc, errors);
 
 	if (rc == S_OK)
-		setWindowTitle(tr(dsGlucose_Prediction).arg(QString::fromWCharArray(file_path)));
+		setWindowTitle(tr(dsGlucose_Prediction).arg(QString::fromWCharArray(Native_Slash(file_path).c_str())));
 }
 
 
@@ -362,7 +369,7 @@ void CMain_Window::On_Save_Experimental_Setup_As() {
 	refcnt::Swstr_list errors;
 	HRESULT rc = mFilter_Configuration->Save_To_File(filepath.toStdWString().c_str(), errors.get());
 	if (rc == S_OK)
-		setWindowTitle(tr(dsGlucose_Prediction).arg(filepath));
+		setWindowTitle(tr(dsGlucose_Prediction).arg(Native_Slash(filepath.toStdWString().c_str())));
 
 	Check_And_Display_Error_Description(rc, errors);
 }
