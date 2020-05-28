@@ -289,18 +289,28 @@ void CMain_Window::On_Simulation_Window() {
 }
 
 void CMain_Window::Check_And_Display_Error_Description(const HRESULT rc, refcnt::Swstr_list errors) {
-	QString errors_str;
-	errors.for_each([&errors_str](auto str) {
-		errors_str += QString::fromStdWString(str);
-		errors_str += "\n";
-	});
+	QString error_string;
 
-	if ((rc != S_OK) || !errors_str.isEmpty()) {
-		errors_str = tr(dsSave_Experimental_Setup_Failed) + "0x" + QString::number(rc, 16) + "\n ("
-			+ QString::fromWCharArray(Describe_Error(rc)) + ")\n"
-			+ "\n" + dsErrors_Warnings_Hints+ "\n" + errors_str;
-		QMessageBox::warning(this, tr(dsWarning), errors_str);
+	if (rc != S_OK)
+		error_string = tr(dsSave_Experimental_Setup_Failed) + "0x" + QString::number(rc, 16) + "\n ("
+		+ QString::fromWCharArray(Describe_Error(rc)) + ")";
+
+	
+	if (errors->empty() != S_OK) {
+		if (!error_string.isEmpty()) error_string += "\n";
+
+		error_string += dsErrors_Warnings_Hints;
+		error_string += "\n";
+
+		errors.for_each([&error_string](auto str) {
+			error_string += QString::fromStdWString(str);
+			error_string += "\n";
+		});
 	}
+
+		
+	if (!error_string.isEmpty())
+		QMessageBox::warning(this, tr(dsWarning), error_string);
 }
 
 
@@ -357,7 +367,7 @@ void CMain_Window::On_Save_Experimental_Setup_As() {
 	QString filepath;
 	try {
 		filepath = QFileDialog::getSaveFileName(this, tr(dsSave_Experimental_Setup_As),
-			QString::fromStdWString(Get_Application_Dir()),  tr(dsExperimental_Setup_File_Mask), &selfilter);
+			QString::fromStdWString(Get_Application_Dir()), tr(dsExperimental_Setup_File_Mask), &selfilter);
 	}
 	catch (...) {
 
