@@ -323,8 +323,11 @@ void CMain_Window::Open_Experimental_Setup(const wchar_t* file_path) {
 	HRESULT rc = mFilter_Configuration ? mFilter_Configuration->Load_From_File(file_path, errors.get()) : E_FAIL;
 	Check_And_Display_Error_Description(rc, errors);
 
-	if (rc == S_OK)
+	if (rc == S_OK) {
 		setWindowTitle(tr(dsGlucose_Prediction).arg(QString::fromWCharArray(Native_Slash(file_path).c_str())));
+		On_Filters_Window();
+	} else if (rc == ERROR_FILE_NOT_FOUND)
+		On_New_Experimental_Setup();
 }
 
 
@@ -333,8 +336,11 @@ void CMain_Window::On_New_Experimental_Setup() {
 	if (pnlMDI_Content->activeSubWindow()) return;	//some window has not closed
 
 	mFilter_Configuration = scgms::SPersistent_Filter_Chain_Configuration{};
-	if (mFilter_Configuration) setWindowTitle(tr(dsGlucose_Prediction).arg(dsUnsaved_Experimental_Setup));
-		else Check_And_Display_Error_Description(E_FAIL, refcnt::Swstr_list{});
+	if (mFilter_Configuration) {
+		setWindowTitle(tr(dsGlucose_Prediction).arg(dsUnsaved_Experimental_Setup));
+		On_Filters_Window();
+	} else 
+		Check_And_Display_Error_Description(E_FAIL, refcnt::Swstr_list{});
 }
 
 void CMain_Window::On_Open_Experimental_Setup() {
