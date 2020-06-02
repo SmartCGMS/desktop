@@ -42,6 +42,7 @@
 #include "../../../../common/rtl/referencedImpl.h"
 #include "../../../../common/rtl/UILib.h"
 #include "../../../../common/utils/string_utils.h"
+#include "../../../../common/rtl/rattime.h"
 #include "../../../../common/lang/dstrings.h"
 
 #include <QtGui/QValidator>
@@ -143,118 +144,15 @@ namespace filter_config_window {
 		return true;
 	}
 
-	bool CRatTime_Validator::string_to_rattime(const QString &input, double& converted) const {
-		double days = 0.0, hours = 0.0, minutes = 0.0, seconds = 0.0;		
-
-		double plus_minus_sign = 1.0;
-		int plus_minus_pos = 0;	//must be signed int!
-		if (input.size() == 0) return false;
-		if (input[0] == '-') {
-			plus_minus_sign = -1.0;
-			plus_minus_pos = 1;
-		}
-
-
-		int pos, last_pos = input.size();
-			
-		auto fetch_number = [&](const char sep, const char decimal, double &result, const double result_max) {
-			pos = last_pos-1;				
-
-			while (pos >= plus_minus_pos) {
-				const char ch = input[pos].toLatin1();
-				if (ch == sep) break;					
-				if (!isdigit(ch) && (ch != decimal)) return false;
-
-				pos--;
-			}
-
-			pos++;
-			QStringRef substring(&input, pos, last_pos - pos);
-			bool ok;
-			result = substring.toDouble(&ok);
-			if ((!ok) || (result >= result_max)) return false;
-
-			last_pos = pos-1;
-			return true;
-		};
-
-
-		//search for seconds, minutes, hours and days
-
-		if (!fetch_number(':', '.', seconds, 60.0)) return false;
-
-		if (last_pos > plus_minus_pos) {
-			if (!fetch_number(':', 0, minutes, 60.0)) return false;
-
-			if (last_pos > plus_minus_pos) {
-				if (!fetch_number(' ', 0, hours, 24.0)) return false;
-
-				if (last_pos> plus_minus_pos)
-					if (!fetch_number('-', 0, days, std::numeric_limits<double>::max())) return false;
-			}
-		}
-
-		converted = plus_minus_sign*(days + scgms::One_Hour * hours + scgms::One_Minute * minutes + scgms::One_Second * seconds);	
-
-		return true;
+	bool CRatTime_Validator::string_to_rattime(const QString& input, double& converted) const {
+		bool result = false;
+		converted = Default_WStr_To_Rat_Time(input.toStdWString().c_str(), result);
+		return result;
 	}
 
+
 	QString CRatTime_Validator::rattime_to_string(double rattime) {
-		if (std::isnan(rattime))
-			return QString::fromStdWString(dsNaN);
-
-		auto calc_fraction = [&](const double factor) {
-			double intpart;
-			rattime *= factor;
-			rattime = std::modf(rattime, &intpart);
-			return intpart;
-		};
-
-
-		auto add_fraction = [&](const double intpart, const double factor) {			
-			if (factor == 1.0) {	//days
-				return intpart != 0.0 ? QString::number(static_cast<int>(intpart)) + ' ' : QString{ "" };
-			} else
-				return QString::number(static_cast<int>(intpart)).rightJustified(2, '0');
-		};
-
-
-		//handle the sign
-		QString result{ rattime < 0.0 ? "-" : "" };
-		rattime = std::fabs(rattime);
-
-		//decompose to individual parts
-		double days = calc_fraction(1.0);
-		double hours = calc_fraction(24.0);
-		double minutes = calc_fraction(60.0);
-		double seconds = calc_fraction(60.0);
-
-		//perform round-up to seconds
-		if (std::round(rattime) > 0.0) {
-			seconds++;
-			
-			if (seconds >= 60.0) {				
-				minutes++;
-				seconds = 0.0;
-
-				if (minutes >= 60.0) {
-					hours++;
-					minutes = 0.0;
-			
-					if (hours >= 24.0) {
-						days++;
-					}
-				}
-			}
-		}
-
-		//and compose the string
-		result += add_fraction(days, 1.0);
-		result += add_fraction(hours, 24.0) + ':';
-		result += add_fraction(minutes, 60.0) + ':';
-		result += add_fraction(seconds, 60.0);
-
-		return result;
+		return QString::fromStdWString(Rat_Time_To_Default_WStr(rattime));
 	}
 
 	void CRatTime_Validator::fixup(QString& input) const {
@@ -265,7 +163,7 @@ namespace filter_config_window {
 		if (!allowed_chars_only(input)) return QValidator::Invalid;
 			
 		double tmp;
-		return  string_to_rattime(input.simplified(), tmp) ? QValidator::Acceptable : QValidator::Invalid; //do not allow Intermediate as the user may possible enter a non-sense
+		return string_to_rattime(input.simplified(), tmp) ? QValidator::Acceptable : QValidator::Invalid; //do not allow Intermediate as the user may possible enter a non-sense
 	}
 	
 
