@@ -51,7 +51,7 @@ namespace filter_config_window {
 	class CContainer_Edit {
 	protected:
 		scgms::SFilter_Parameter mParameter;
-		bool check_rc(const HRESULT rc);	//returns true if rc succeeded, else displays an error message
+		bool check_rc(const HRESULT rc);	//returns true if rc Succeeded, else displays an error message
 	public:
 		CContainer_Edit() {};
 		CContainer_Edit(scgms::SFilter_Parameter parameter);

@@ -325,7 +325,7 @@ void CModel_Bounds_Panel::fetch_parameter() {
 		HRESULT rc;
 		std::vector<double> parameters = mParameter.as_double_array(rc);
 		
-		if (SUCCEEDED(rc)) {
+		if (Succeeded(rc)) {
 			if (parameters.size() == model.number_of_parameters * 3) {
 				lb = parameters.data();
 				def = lb + model.number_of_parameters;

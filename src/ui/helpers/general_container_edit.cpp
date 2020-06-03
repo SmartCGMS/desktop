@@ -61,7 +61,7 @@ namespace filter_config_window {
 
 	bool CContainer_Edit::check_rc(const HRESULT rc) {
 		
-		if (!SUCCEEDED(rc)) {
+		if (!Succeeded(rc)) {
 
 			wchar_t *conf_name = nullptr;
 			mParameter->Get_Config_Name(&conf_name);
@@ -104,7 +104,7 @@ namespace filter_config_window {
 	void CWChar_Container_Edit::fetch_parameter() {
 		HRESULT rc;
 		const std::wstring str = mParameter.as_wstring(rc, false);
-		if (SUCCEEDED(rc)) setText(QString::fromStdWString(str));		
+		if (Succeeded(rc)) setText(QString::fromStdWString(str));		
 			else if (rc == E_NOT_SET) clear();	//just not set
 				else check_rc(rc); //truly en error
 	}

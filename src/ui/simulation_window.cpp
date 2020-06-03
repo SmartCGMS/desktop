@@ -411,8 +411,10 @@ void CSimulation_Window::On_Start() {
 	refcnt::Swstr_list error_description;
 	mFilter_Executor = scgms::SFilter_Executor{ mConfiguration, CSimulation_Window::On_Filter_Configured, this, error_description };
 	mLogWidget->Log_Config_Errors(error_description);
-	if (!mFilter_Executor)	{
-		QMessageBox::information(this, tr(dsInformation), tr(dsFilter_Executor_Failed_Review_Config_Errors));
+	if (!mFilter_Executor)	{		
+		mGUI_Filter_Subchain.Relase_Filter_Bindings();
+		mErrorsWidget->Clear_Filters();
+		QMessageBox::information(this, tr(dsInformation), tr(dsFilter_Executor_Failed_Review_Config_Errors));		
 
 		return;
 	}
@@ -426,7 +428,7 @@ void CSimulation_Window::On_Start() {
 	for (auto& action : mSignalSolveActions)
 		action.second->setVisible(false);
 
-	mGUI_Filter_Subchain.Start();
+	if (mFilter_Executor) mGUI_Filter_Subchain.Start();
 }
 
 HRESULT IfaceCalling CSimulation_Window::On_Filter_Configured(scgms::IFilter *filter, const void* data) {
@@ -456,7 +458,7 @@ void CSimulation_Window::On_Stop() {
 
 	Inject_Event(scgms::NDevice_Event_Code::Shut_Down, Invalid_GUID, nullptr);
 
-	if (SUCCEEDED(mFilter_Executor->Terminate(FALSE))) {	
+	if (Succeeded(mFilter_Executor->Terminate(FALSE))) {	
 		mStartButton->setEnabled(true);
 		mStopButton->setEnabled(false);
 	}

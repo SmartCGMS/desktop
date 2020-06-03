@@ -113,6 +113,7 @@ class CGUI_Filter_Subchain {
 
 		void Start();
 		void Stop();
+		void Relase_Filter_Bindings();
 };
 
 

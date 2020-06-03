@@ -67,7 +67,7 @@ public:
 
         HRESULT rc;
         const GUID selected_id = parameter.as_guid(rc);
-        if (SUCCEEDED(rc)) {
+        if (Succeeded(rc)) {
             const QVariant data{ QByteArray(reinterpret_cast<const char*>(&selected_id), sizeof(GUID)) };
             setCurrentIndex(findData(data));
         }//else it fails later on

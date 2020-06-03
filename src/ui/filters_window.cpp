@@ -212,7 +212,7 @@ void CFilters_Window::On_Remove_Filter()
 		//1. delete the item from the configuration
 		const auto row_index = lbxApplied_Filters->row(item);
 
-		if (SUCCEEDED(mFilter_Chain_Configuration->remove(row_index)))
+		if (Succeeded(mFilter_Chain_Configuration->remove(row_index)))
 			//2. and delete the item from the list if everythign went OK
 			delete lbxApplied_Filters->takeItem(row_index);
 	}

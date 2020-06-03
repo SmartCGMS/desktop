@@ -85,6 +85,10 @@ void CGUI_Filter_Subchain::Stop() {
 			mUpdater_Thread.reset();
 		}
 
+	Relase_Filter_Bindings();
+}
+
+void CGUI_Filter_Subchain::Relase_Filter_Bindings() {
 	mDrawing_Filter_Inspection = scgms::SDrawing_Filter_Inspection{ };
 	mLog_Filter_Inspection = scgms::SLog_Filter_Inspection{};
 }
