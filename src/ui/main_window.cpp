@@ -325,7 +325,7 @@ void CMain_Window::Open_Experimental_Setup(const wchar_t* file_path) {
 	Check_And_Display_Error_Description(rc, errors);
 
 	if (rc == S_OK) {
-		setWindowTitle(tr(dsGlucose_Prediction).arg(QString::fromWCharArray(Native_Slash(file_path).c_str())));
+		setWindowTitle(tr(dsGlucose_Prediction).arg(Native_Slash(file_path)));
 		On_Filters_Window();
 	} else if (rc == ERROR_FILE_NOT_FOUND)
 		On_New_Experimental_Setup();
@@ -386,7 +386,7 @@ void CMain_Window::On_Save_Experimental_Setup_As() {
 	refcnt::Swstr_list errors;
 	HRESULT rc = mFilter_Configuration->Save_To_File(filepath.toStdWString().c_str(), errors.get());
 	if (rc == S_OK)
-		setWindowTitle(tr(dsGlucose_Prediction).arg(Narrow_WString(Native_Slash(filepath.toStdWString().c_str())).c_str()));
+		setWindowTitle(tr(dsGlucose_Prediction).arg(Native_Slash(filepath.toStdWString().c_str())));
 
 	Check_And_Display_Error_Description(rc, errors);
 }
@@ -395,4 +395,8 @@ void CMain_Window::On_Save_Experimental_Setup_As() {
 void CMain_Window::On_Optimize_Parameters_Dialog() {
 	CParameters_Optimization_Dialog *dlg = new CParameters_Optimization_Dialog{ refcnt::make_shared_reference_ext<scgms::SFilter_Chain_Configuration, scgms::IFilter_Chain_Configuration>(mFilter_Configuration.get(), true), this };
 	dlg->show();
+}
+
+QString CMain_Window::Native_Slash(const wchar_t* path) {
+	return QString::fromStdString(filesystem::path{ path }.string() );
 }
