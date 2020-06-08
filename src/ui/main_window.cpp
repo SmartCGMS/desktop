@@ -398,5 +398,5 @@ void CMain_Window::On_Optimize_Parameters_Dialog() {
 }
 
 QString CMain_Window::Native_Slash(const wchar_t* path) {
-	return QString::fromStdString(filesystem::path{ path }.string() );
+	return QString::fromStdString(filesystem::path{ std::wstring{ path } }.string());
 }
