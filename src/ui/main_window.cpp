@@ -349,7 +349,7 @@ void CMain_Window::On_Open_Experimental_Setup() {
 	QString filepath;
 	try {
 		filepath = QFileDialog::getOpenFileName(this, tr(dsOpen_Experimental_Setup),
-			QString::fromStdWString(Get_Application_Dir()), tr(dsExperimental_Setup_File_Mask), &selfilter);
+			QString::fromStdWString(Get_Application_Dir().wstring()), tr(dsExperimental_Setup_File_Mask), &selfilter);
 	}
 	catch (...) {
 
@@ -374,7 +374,7 @@ void CMain_Window::On_Save_Experimental_Setup_As() {
 	QString filepath;
 	try {
 		filepath = QFileDialog::getSaveFileName(this, tr(dsSave_Experimental_Setup_As),
-			QString::fromStdWString(Get_Application_Dir()), tr(dsExperimental_Setup_File_Mask), &selfilter);
+			QString::fromStdWString(Get_Application_Dir().wstring()), tr(dsExperimental_Setup_File_Mask), &selfilter);
 	}
 	catch (...) {
 
