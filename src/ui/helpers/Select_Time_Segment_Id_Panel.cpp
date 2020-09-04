@@ -40,8 +40,11 @@
 
 #include "../../../../common/lang/dstrings.h"
 #include "../../../../common/rtl/FilterLib.h"
+#include "../../../../common/rtl/DbLib.h"
 
 #include "moc_Select_Time_Segment_Id_Panel.cpp"
+
+
 
 CSelect_Time_Segment_Id_Panel::CSelect_Time_Segment_Id_Panel(scgms::SFilter_Configuration configuration, scgms::SFilter_Parameter parameter, QWidget * parent)
 	: CContainer_Edit(parameter), QTableView(parent), mConfiguration(configuration) {
@@ -108,9 +111,13 @@ void CSelect_Time_Segment_Id_Panel::Connect_To_Db() {
 		QSqlDatabase::removeDatabase(connection);
 	}
 
+	
+	const auto effective_db_name = db::is_file_db(mConfiguration.Read_String(rsDb_Provider)) ? mConfiguration.Read_File_Path(rsDb_Name).wstring() : mConfiguration.Read_String(rsDb_Name);
+
+
 	mDb = std::make_unique<QSqlDatabase>(QSqlDatabase::addDatabase(QString::fromStdWString(mConfiguration.Read_String(rsDb_Provider)), mDb_Connection_Name));
 	mDb->setHostName(QString::fromStdWString(mConfiguration.Read_String(rsDb_Host)));
-	mDb->setDatabaseName(QString::fromStdWString(mConfiguration.Read_String(rsDb_Name)));
+	mDb->setDatabaseName(QString::fromStdWString(effective_db_name));
 	mDb->setUserName(QString::fromStdWString(mConfiguration.Read_String(rsDb_User_Name)));
 	mDb->setPassword(QString::fromStdWString(mConfiguration.Read_String(rsDb_Password)));
 	
