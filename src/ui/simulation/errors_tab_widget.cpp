@@ -145,7 +145,7 @@ QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex
 		const int col = index.column();
 
 		const int row_role = row % 3;	//0 is absolute error, then relative error
-		const size_t error_index = mSignal_Errors.size() / 3;
+		const size_t error_index = row / 3;
 
 		constexpr int absolute_role = 0;
 		constexpr int relative_role = 1;
