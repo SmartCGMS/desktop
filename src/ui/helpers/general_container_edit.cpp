@@ -65,8 +65,9 @@ namespace filter_config_window {
 
 			wchar_t *conf_name = nullptr;
 			mParameter->Get_Config_Name(&conf_name);
+			const auto narrowed_name = Narrow_WChar(conf_name);
 
-			const QString qstr = QString::fromWCharArray(dsParameter_Configuration_Failed_RC).arg(conf_name ? Narrow_WChar(conf_name).c_str() : "").arg(rc, 0, 16);
+            const QString qstr = QString::fromWCharArray(dsParameter_Configuration_Failed_RC).arg(conf_name ? narrowed_name.c_str() : "").arg(rc, 0, 16);
 			QMessageBox::warning(QApplication::activeWindow(), dsInformation, qstr);
 			return false;
 		}
@@ -110,7 +111,7 @@ namespace filter_config_window {
 	}
 
 	void CWChar_Container_Edit::store_parameter() {		
-		check_rc(mParameter.set_wstring(text().toStdWString().c_str()));
+		check_rc(mParameter.set_wstring(text().toStdWString()));
 	}
 
 	CRatTime_Validator::CRatTime_Validator(QWidget* parent) : QValidator(parent) {
@@ -146,7 +147,7 @@ namespace filter_config_window {
 
 	bool CRatTime_Validator::string_to_rattime(const QString& input, double& converted) const {
 		bool result = false;
-		converted = Default_WStr_To_Rat_Time(input.toStdWString().c_str(), result);
+		converted = Default_WStr_To_Rat_Time(input.toStdWString(), result);
 		return result;
 	}
 

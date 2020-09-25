@@ -67,8 +67,8 @@ private:
 
 protected:
 	void Check_And_Display_Error_Description(const HRESULT rc, refcnt::Swstr_list errors);	
-	void Open_Experimental_Setup(const wchar_t* file_path);	
-	QString Native_Slash(const wchar_t* path);
+	void Open_Experimental_Setup(const std::wstring &file_path);	
+	QString Native_Slash(const std::wstring& path);
 protected:
 	void Tile_Window(std::function<QRect()> rect_fnc);
 private slots:

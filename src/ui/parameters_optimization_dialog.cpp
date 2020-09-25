@@ -161,8 +161,10 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 		QGridLayout *edits_layout = new QGridLayout();
 		edits->setLayout(edits_layout);
 
-		edits_layout->addWidget(new QLabel{ tr(Narrow_WChar(dsParameters).c_str()), edits }, 0, 0);			edits_layout->addWidget(cmbParameters, 0, 1);
-		edits_layout->addWidget(new QLabel{ tr(Narrow_WChar(dsSelected_Solver).c_str()), edits }, 1, 0);	edits_layout->addWidget(cmbSolver, 1, 1);
+		const auto params = Narrow_WChar(dsParameters);
+		const auto selected_solver = Narrow_WChar(dsSelected_Solver);
+		edits_layout->addWidget(new QLabel{ tr(params.c_str()), edits }, 0, 0);			edits_layout->addWidget(cmbParameters, 0, 1);
+		edits_layout->addWidget(new QLabel{ tr(selected_solver.c_str()), edits }, 1, 0);	edits_layout->addWidget(cmbSolver, 1, 1);
 		edits_layout->addWidget(new QLabel{ dsMax_Generations, edits }, 2, 0);								edits_layout->addWidget(edtMax_Generations, 2, 1);
 		edits_layout->addWidget(new QLabel{ dsPopulation_Size, edits }, 3, 0);								edits_layout->addWidget(edtPopulation_Size, 3, 1);
 	}
