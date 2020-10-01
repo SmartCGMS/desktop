@@ -44,6 +44,8 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QMenu>
 #include <QtCore/QSignalMapper>
+#include <QtGui/QDragEnterEvent>
+#include <QtCore/QMimeData>
 
 #include "../../../common/rtl/FilterLib.h"
 
@@ -89,7 +91,11 @@ private slots:
 	void On_Optimize_Parameters_Dialog();
 
 	void Set_Active_Sub_Window(QWidget *window);
-
+protected:
+	void dragEnterEvent(QDragEnterEvent* event) override;
+	void dragMoveEvent(QDragMoveEvent* event) override;
+	void dragLeaveEvent(QDragLeaveEvent* event) override;
+	void dropEvent(QDropEvent* event) override;
 public:
 	CMain_Window(const std::wstring &experimental_setup_filepath, QWidget *parent = nullptr) noexcept;
 };

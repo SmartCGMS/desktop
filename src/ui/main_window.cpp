@@ -68,6 +68,7 @@ CMain_Window::CMain_Window(const std::wstring &experimental_setup_filepath, QWid
 		else Open_Experimental_Setup(experimental_setup_filepath); 
 
 	this->showMaximized();
+	setAcceptDrops(true);
 }
 
 void CMain_Window::Setup_UI() {
@@ -400,4 +401,23 @@ void CMain_Window::On_Optimize_Parameters_Dialog() {
 
 QString CMain_Window::Native_Slash(const std::wstring &path) {
 	return QString::fromStdString(filesystem::path{  path  }.string());
+}
+
+void CMain_Window::dragEnterEvent(QDragEnterEvent* e) {
+	if (e->mimeData()->hasUrls()) {
+		e->acceptProposedAction();
+	}
+}
+
+void CMain_Window::dropEvent(QDropEvent* e) {
+	QString fileName = e->mimeData()->urls()[0].toLocalFile();
+	Open_Experimental_Setup(fileName.toStdWString());
+}
+
+void CMain_Window::dragMoveEvent(QDragMoveEvent* event) {
+	event->acceptProposedAction();
+}
+
+void CMain_Window::dragLeaveEvent(QDragLeaveEvent* event) {
+	event->accept();
 }
