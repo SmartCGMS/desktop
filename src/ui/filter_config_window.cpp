@@ -65,7 +65,7 @@
 
 
 CFilter_Config_Window::CFilter_Config_Window(scgms::SFilter_Configuration_Link configuration, QWidget *parent) :
-	QDialog(parent), mConfiguration(refcnt::make_shared_reference_ext<scgms::SFilter_Configuration, scgms::IFilter_Configuration>(static_cast<scgms::IFilter_Configuration*>(configuration.get()), true)), mDescription(configuration.descriptor()) {
+	QDialog(parent), mConfiguration(configuration), mDescription(configuration.descriptor()) {
 
 
 	Setup_UI(configuration);
@@ -82,9 +82,28 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 	// model select combobox is directly connected with signal selector; here we store pointer to model selector to supply it to signal selector
 	filter_config_window::CContainer_Edit *model_select = nullptr;
 
-	auto create_model_select = [&](scgms::SFilter_Parameter parameter, bool discrete) {
-		model_select = new CModel_Select_ComboBox(parameter, this, discrete);
-		return model_select;
+	auto create_model_select = [this](scgms::SFilter_Parameter parameter, bool discrete)->std::tuple<filter_config_window::CContainer_Edit*, GUID> {
+		//is it a general model select, or is it a special case when a filter has fixed model parameters
+		//in such a case, there is a model id equal to the filter id
+		GUID filter_id = Invalid_GUID;
+		bool special_case = mConfiguration->Get_Filter_Id(&filter_id) == S_OK;
+		if (special_case) {
+			scgms::TModel_Descriptor desc = scgms::Null_Model_Descriptor;
+			special_case = scgms::get_model_descriptor_by_id(filter_id, desc);
+		}
+		
+		std::tuple<filter_config_window::CContainer_Edit*, GUID> result{ nullptr, Invalid_GUID };
+
+		if (special_case) {
+			//filter_id holds valid, fixed model id
+			std::get<1>(result) = filter_id;
+		}
+		else {
+			//selectable model
+			std::get<0>(result) = new CModel_Select_ComboBox(parameter, this, discrete);
+		}
+		
+		return result;
 	};
 
 	QWidget *main_tab = new QWidget{this};
@@ -147,7 +166,9 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 						break;
 
 					case scgms::NParameter_Type::ptDiscrete_Model_Id:
-						container = create_model_select(parameter, true);
+						GUID dummy;
+						std::tie(container, dummy) = create_model_select(parameter, true);						
+						model_select = container;
 						break;
 
 					case scgms::NParameter_Type::ptMetric_Id:
@@ -160,8 +181,10 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 
 					case scgms::NParameter_Type::ptModel_Produced_Signal_Id:
 						// signal selection always requires model selection field
-						if (!model_select)
-							create_model_select(parameter, false);
+						if (!model_select) {
+							GUID dummy;
+							std::tie(model_select, dummy) = create_model_select(parameter, false);
+						}
 
 						container = new CModel_Signal_Select_ComboBox(parameter, this, dynamic_cast<QComboBox*>(model_select));
 						break;
@@ -172,10 +195,12 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 
 					case scgms::NParameter_Type::ptDouble_Array:
 						// model bounds edit always requires model selection field
-						if (!model_select)
-							create_model_select(parameter, false);
+						GUID fixed_model = Invalid_GUID;
+						if (!model_select) {							
+							std::tie(model_select, fixed_model) = create_model_select(parameter, false);
+						}
 
-						container = new CModel_Bounds_Panel(parameter, dynamic_cast<QComboBox*>(model_select), this);
+						container = new CModel_Bounds_Panel(parameter, dynamic_cast<QComboBox*>(model_select), fixed_model, this);
 						break;
 
 					case scgms::NParameter_Type::ptSubject_Id:

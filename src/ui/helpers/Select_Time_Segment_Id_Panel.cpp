@@ -46,7 +46,7 @@
 
 
 
-CSelect_Time_Segment_Id_Panel::CSelect_Time_Segment_Id_Panel(scgms::SFilter_Configuration configuration, scgms::SFilter_Parameter parameter, QWidget * parent)
+CSelect_Time_Segment_Id_Panel::CSelect_Time_Segment_Id_Panel(scgms::SFilter_Configuration_Link configuration, scgms::SFilter_Parameter parameter, QWidget * parent)
 	: CContainer_Edit(parameter), QTableView(parent), mConfiguration(configuration) {
 	//
 }
