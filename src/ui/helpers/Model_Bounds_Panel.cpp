@@ -41,6 +41,7 @@
 
 #include "../../../../common/lang/dstrings.h"
 #include "../../../../common/rtl/UILib.h"
+#include "../../../../common/utils/string_utils.h"
 
 #include <QtWidgets/QLabel>
 #include <QtGui/QDoubleValidator>
@@ -92,7 +93,7 @@ QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::data(const QMode
 
 		switch (mTypes[index.row()]) {
 			case scgms::NModel_Parameter_Value::mptTime: return filter_config_window::CRatTime_Validator::rattime_to_string(get_val());
-			default: return get_val();
+			default: return QString::fromStdWString(dbl_2_wstr(get_val()));
 		}
 
 		return QVariant(std::numeric_limits<double>::quiet_NaN());

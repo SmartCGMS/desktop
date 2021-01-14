@@ -87,11 +87,11 @@ namespace filter_config_window {
 	//allows time: [-][days hours:minutes:]seconds.zzz with minutes, hours and days optional
 	class CRatTime_Validator : public QValidator {
 	protected:
-		bool allowed_chars_only(const QString& input) const;
+		static bool allowed_chars_only(const QString& input);
 	public:
 		CRatTime_Validator(QWidget* parent);
 
-		bool string_to_rattime(const QString& input, double& converted) const;
+		static bool string_to_rattime(const QString& input, double& converted);
 		static QString rattime_to_string(double rattime);
 		virtual void fixup(QString& input) const override;
 		virtual State validate(QString& input, int& pos) const override;
@@ -111,7 +111,20 @@ namespace filter_config_window {
 	};
 
 
+	//we provide custom validator that accepts symbolic constants and rat time
+	class CDouble_Validator : public QValidator {
+	public:
+		CDouble_Validator(QWidget* parent);
+
+		virtual void fixup(QString& input) const override;
+		virtual State validate(QString& input, int& pos) const override;
+
+		static std::tuple<bool, double> text_2_dbl(const QString& str);	//accepts both double and rattime
+	};
+
 	class CDouble_Container_Edit : public QLineEdit, public virtual filter_config_window::CContainer_Edit, public virtual IAs_Double_Container {
+	protected:
+		CDouble_Validator* mValidator = nullptr;
 	public:
 		CDouble_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent);
 		virtual ~CDouble_Container_Edit() {};

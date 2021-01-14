@@ -159,15 +159,17 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 
 					case scgms::NParameter_Type::ptSignal_Model_Id:
 						// "lazyload" of model selection; if the filter has model selection, it is very likely that it has signal selection as well
-						if (!model_select)
-							create_model_select(parameter, false);
+						if (!model_select) {
+							GUID dummy;
+							std::tie(model_select, dummy) = create_model_select(parameter, false);							
+						}
 
 						container = model_select;
 						break;
 
 					case scgms::NParameter_Type::ptDiscrete_Model_Id:
 						GUID dummy;
-						std::tie(container, dummy) = create_model_select(parameter, true);						
+						std::tie(container, dummy) = create_model_select(parameter, true);
 						model_select = container;
 						break;
 

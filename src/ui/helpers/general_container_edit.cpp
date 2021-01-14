@@ -118,7 +118,7 @@ namespace filter_config_window {
 
 	}
 
-	bool CRatTime_Validator::allowed_chars_only(const QString &input) const {
+	bool CRatTime_Validator::allowed_chars_only(const QString &input) {
 
 		int first = 0;
 		int len = input.size();
@@ -145,7 +145,7 @@ namespace filter_config_window {
 		return true;
 	}
 
-	bool CRatTime_Validator::string_to_rattime(const QString& input, double& converted) const {
+	bool CRatTime_Validator::string_to_rattime(const QString& input, double& converted) {
 		bool result = false;
 		converted = Default_WStr_To_Rat_Time(input.toStdWString(), result);
 		return result;
@@ -196,18 +196,46 @@ namespace filter_config_window {
 	}
 
 
-	CDouble_Container_Edit::CDouble_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : CContainer_Edit(parameter), QLineEdit(parent) {
-		auto validator = new QDoubleValidator(this);
-		// force english locale rules (e.g. dot decimal separator)
-		validator->setLocale(QLocale(QLocale::English));
-		setValidator(validator);
+	CDouble_Validator::CDouble_Validator(QWidget* parent) : QValidator(parent)  {
+		//
+	}
+
+	void CDouble_Validator::fixup(QString& input) const {
+		input = input.simplified();
+	}
+
+	QValidator::State CDouble_Validator::validate(QString& input, int& pos) const {
+		auto [ok, dbl] = text_2_dbl(input);
+		
+		return ok ? QValidator::Acceptable : QValidator::Intermediate; 
+	}
+
+	std::tuple<bool, double> CDouble_Validator::text_2_dbl(const QString& text) {
+		bool ok = false;
+		std::wstring str = text.simplified().toStdWString(); //wstr to allow infinity symbol
+		double converted = wstr_2_dbl(str.c_str(), ok);
+		if (!ok) 
+			ok = CRatTime_Validator::string_to_rattime(text, converted);
+		
+
+		if (!ok)
+			converted = std::numeric_limits<double>::quiet_NaN();
+
+		return std::tuple<bool, double>{ok, converted};
+	}
+
+
+	CDouble_Container_Edit::CDouble_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : 
+			CContainer_Edit(parameter), QLineEdit(parent), mValidator(new  CDouble_Validator{ parent }) {
+		
+		setValidator(mValidator);
 	}
 
 	void CDouble_Container_Edit::store_parameter() {
 		HRESULT rc;
 
-		bool ok;
-		const double dbl = text().toDouble(&ok);
+		auto [ok, dbl] = mValidator->text_2_dbl(text());
+		
 		if (ok) rc = mParameter->Set_Double(dbl);
 			else rc = E_FAIL;
 		
@@ -217,21 +245,21 @@ namespace filter_config_window {
 	void CDouble_Container_Edit::fetch_parameter() {
 		if (mParameter) {
 			HRESULT rc;
-			setText(QString::number(mParameter.as_double(rc)));
-			check_rc(rc);
+			std::wstring converted = dbl_2_wstr(mParameter.as_double(rc));
+			if (check_rc(rc))
+				setText(QString::fromStdWString(converted));
 		}
 	}
 	
 
 	double CDouble_Container_Edit::as_double() {
-		bool ok;
-		const double dbl = text().toDouble(&ok);
-		if (ok) return dbl;
-			else return std::numeric_limits<double>::quiet_NaN();
+		auto [ok, dbl] = mValidator->text_2_dbl(text());
+		return dbl;	//nan if !ok
 	}
 
 	void CDouble_Container_Edit::set_double(const double value) {
-		setText(QString::number(value));
+		std::wstring converted = dbl_2_wstr(value);
+		setText(QString::fromStdWString(converted));
 	}
 
 	CBoolean_Container_Edit::CBoolean_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : CContainer_Edit(parameter), QCheckBox(parent) {
