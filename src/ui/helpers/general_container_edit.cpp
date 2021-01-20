@@ -135,6 +135,7 @@ namespace filter_config_window {
 
 		for (auto ch : vw) {
 			switch (ch.toLatin1()) {
+				case '$': case '(': case ')':		//support for variables
 				case ' ': case ':': case '.':
 				case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': break;
 				default: return false;
@@ -147,7 +148,7 @@ namespace filter_config_window {
 
 	bool CRatTime_Validator::string_to_rattime(const QString& input, double& converted) {
 		bool result = false;
-		converted = Default_WStr_To_Rat_Time(input.toStdWString(), result);
+		converted = Default_Str_To_Rat_Time(input.toStdWString(), result);
 		return result;
 	}
 
@@ -163,6 +164,10 @@ namespace filter_config_window {
 	QValidator::State CRatTime_Validator::validate(QString& input, int& pos) const {
 		if (!allowed_chars_only(input)) return QValidator::Invalid;
 			
+		auto [is_var, var_name] = scgms::Is_Variable_Name(input.toStdWString());
+		if (is_var)
+			return QValidator::Acceptable;
+
 		double tmp;
 		return string_to_rattime(input.simplified(), tmp) ? QValidator::Acceptable : QValidator::Invalid; //do not allow Intermediate as the user may possible enter a non-sense
 	}
@@ -176,13 +181,14 @@ namespace filter_config_window {
 	void CRatTime_Container_Edit::fetch_parameter() {
 		if (mParameter) {
 			HRESULT rc;
-			setText(mValidator->rattime_to_string(mParameter.as_double(rc)));
-			check_rc(rc);
+			std::wstring raw_text = mParameter.as_wstring(rc, false);
+			if (check_rc(rc))
+				setText(QString::fromStdWString(raw_text));			
 		}
 	}
 	
 	void CRatTime_Container_Edit::store_parameter() {
-		check_rc(mParameter->Set_Double(as_double()));
+		check_rc(mParameter.set_wstring(text().toStdWString()));
 	}
 
 
@@ -205,6 +211,10 @@ namespace filter_config_window {
 	}
 
 	QValidator::State CDouble_Validator::validate(QString& input, int& pos) const {
+		auto [is_var, var_name] = scgms::Is_Variable_Name(input.toStdWString());
+		if (is_var)
+			return QValidator::Acceptable;
+
 		auto [ok, dbl] = text_2_dbl(input);
 		
 		return ok ? QValidator::Acceptable : QValidator::Intermediate; 
@@ -213,7 +223,7 @@ namespace filter_config_window {
 	std::tuple<bool, double> CDouble_Validator::text_2_dbl(const QString& text) {
 		bool ok = false;
 		std::wstring str = text.simplified().toStdWString(); //wstr to allow infinity symbol
-		double converted = wstr_2_dbl(str.c_str(), ok);
+		double converted = str_2_dbl(str.c_str(), ok);
 		if (!ok) 
 			ok = CRatTime_Validator::string_to_rattime(text, converted);
 		
@@ -232,22 +242,15 @@ namespace filter_config_window {
 	}
 
 	void CDouble_Container_Edit::store_parameter() {
-		HRESULT rc;
-
-		auto [ok, dbl] = mValidator->text_2_dbl(text());
-		
-		if (ok) rc = mParameter->Set_Double(dbl);
-			else rc = E_FAIL;
-		
-		check_rc(rc);
+		check_rc(mParameter.set_wstring(text().toStdWString()));		
 	}
 
 	void CDouble_Container_Edit::fetch_parameter() {
 		if (mParameter) {
 			HRESULT rc;
-			std::wstring converted = dbl_2_wstr(mParameter.as_double(rc));
+			std::wstring raw_text = mParameter.as_wstring(rc, false);
 			if (check_rc(rc))
-				setText(QString::fromStdWString(converted));
+				setText(QString::fromStdWString(raw_text));
 		}
 	}
 	
