@@ -44,11 +44,13 @@
 
 #include "moc_Select_Time_Segment_Id_Panel.cpp"
 
+#include <QtCore/QSortFilterProxyModel>
 
 
 CSelect_Time_Segment_Id_Panel::CSelect_Time_Segment_Id_Panel(scgms::SFilter_Configuration_Link configuration, scgms::SFilter_Parameter parameter, QWidget * parent)
 	: CContainer_Edit(parameter), QTableView(parent), mConfiguration(configuration) {
 	//
+	setSortingEnabled(true);
 }
 
 
@@ -130,12 +132,17 @@ void CSelect_Time_Segment_Id_Panel::Connect_To_Db() {
 		mSegmentsModel = std::make_unique<QSqlQueryModel>();
 		mSegmentsModel->setQuery(*mSegmentsQuery.get());
 
+		QSortFilterProxyModel* proxyModel = new QSortFilterProxyModel(mSegmentsModel.get()); // create proxy
+		proxyModel->setSourceModel(mSegmentsModel.get());	//to actually do the sorting
+
 		//and fix the UI
-		setModel(mSegmentsModel.get());
+		//setModel(mSegmentsModel.get());
+		setModel(proxyModel);
+
 		setSelectionMode(QAbstractItemView::MultiSelection);
 		setSelectionBehavior(QAbstractItemView::SelectRows);
 
-		hideColumn(0); //segment it id
+		hideColumn(0); //segment id
 		mSegmentsModel->setHeaderData(1, Qt::Horizontal, tr(dsSubject));
 		mSegmentsModel->setHeaderData(2, Qt::Horizontal, tr(dsSegment));
 		mSegmentsModel->setHeaderData(3, Qt::Horizontal, tr(dsValue_Count));
