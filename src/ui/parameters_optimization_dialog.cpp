@@ -325,7 +325,8 @@ void CParameters_Optimization_Dialog::Stop_Threads() {
 		}
 	};
 
-	mProgress.cancelled = FALSE;
+	mProgress.cancelled = TRUE;
 	wait_for_thread(mSolver_Thread);
 	wait_for_thread(mProgress_Update_Thread);
+	mProgress.cancelled = FALSE;
 }
