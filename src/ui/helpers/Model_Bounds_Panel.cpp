@@ -41,6 +41,7 @@
 
 #include "../../../../common/lang/dstrings.h"
 #include "../../../../common/rtl/UILib.h"
+#include "../../../../common/utils/string_utils.h"
 
 #include <QtWidgets/QLabel>
 #include <QtGui/QDoubleValidator>
@@ -92,7 +93,7 @@ QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::data(const QMode
 
 		switch (mTypes[index.row()]) {
 			case scgms::NModel_Parameter_Value::mptTime: return filter_config_window::CRatTime_Validator::rattime_to_string(get_val());
-			default: return get_val();
+			default: return QString::fromStdWString(dbl_2_wstr(get_val()));
 		}
 
 		return QVariant(std::numeric_limits<double>::quiet_NaN());
@@ -215,8 +216,8 @@ void CModel_Bounds_Panel_internal::CParameter_Value_Delegate::setModelData(QWidg
 	model->setData(index, QVariant(vv));
 }
 
-CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QComboBox* modelSelector, QWidget * parent)
-	: CContainer_Edit(parameter), QWidget(parent), mModelSelector(modelSelector) {
+CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QComboBox* modelSelector, const GUID& fixed_model, QWidget * parent)
+	: CContainer_Edit(parameter), QWidget(parent), mModelSelector(modelSelector), mFixed_Model(fixed_model) {
 	QVBoxLayout* layout = new QVBoxLayout();
 	setLayout(layout);
 
@@ -261,9 +262,11 @@ CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QCo
 	layout->addWidget(contents);
 	layout->addStretch();
 
-	connect(mModelSelector, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {
-		fetch_parameter();
-	});
+	if (mModelSelector) {
+		connect(mModelSelector, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {
+			fetch_parameter();
+		});
+	}
 
 	fetch_parameter();
 }
@@ -298,18 +301,18 @@ void CModel_Bounds_Panel::On_Reset_Upper() {
 	Reset_Parameters(mModel->mUpper_Bounds, [](const scgms::TModel_Descriptor& model)->const double* {return model.upper_bound; });
 }
 
-bool CModel_Bounds_Panel::Get_Currently_Selected_Model(scgms::TModel_Descriptor& model)
-{
-	if (mModelSelector->currentIndex() >= 0)
-	{
-		// get selected model GUID
-		const GUID selectedModelGUID = *reinterpret_cast<const GUID*>(mModelSelector->currentData().toByteArray().constData());
+bool CModel_Bounds_Panel::Get_Currently_Selected_Model(scgms::TModel_Descriptor& model) {
+	GUID selectedModelGUID = Invalid_GUID;
 
-		if (scgms::get_model_descriptor_by_id(selectedModelGUID, model))
-			return true;
+	// get selected model GUID
+	if (mModelSelector) {
+		if (mModelSelector->currentIndex() >= 0)
+			selectedModelGUID = *reinterpret_cast<const GUID*>(mModelSelector->currentData().toByteArray().constData());
 	}
+	else
+		selectedModelGUID = mFixed_Model;
 
-	return false;
+	return scgms::get_model_descriptor_by_id(selectedModelGUID, model);
 }
 
 void CModel_Bounds_Panel::fetch_parameter() {

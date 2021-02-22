@@ -46,6 +46,7 @@
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QProgressBar>
+#include <QtWidgets/QListView>
 
 #include <vector>
 #include <thread>
@@ -64,7 +65,8 @@ protected:
 	std::vector<TParameters_Info> mParameters_Info;
 	void Populate_Parameters_Info(scgms::SFilter_Chain_Configuration configuration);
 protected:
-	QComboBox *cmbParameters = nullptr, *cmbSolver;
+	QListView* cmbParameters = nullptr;
+	QComboBox* cmbSolver = nullptr;
 	QLineEdit *edtMax_Generations, *edtPopulation_Size;
 	QLabel *lblSolver_Info;
 	QProgressBar *barProgress;

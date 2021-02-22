@@ -81,8 +81,9 @@ void CFilter_List_Item::Refresh()
 	//variables for signal mappers, etc.
 	bool src_signal_set = false;
 	bool dst_signal_set = false;
+	bool src_file_set = false;
 	bool reference_signal_set = false;
-	std::wstring src_signal_str, dst_signal_str;
+	std::wstring src_signal_str, dst_signal_str, src_file_str;
 
 	// traverse configuration and find items to put into description
 	//for (auto& cfg : mConfiguration)
@@ -148,19 +149,34 @@ void CFilter_List_Item::Refresh()
 					break;															
 
 
+				case scgms::NParameter_Type::ptWChar_Array: {
+								const std::wstring cfg_name{ cfg.configuration_name() };	//converts from wchar_t*!
+								if (cfg_name == L"Source_File") {
+									HRESULT rc;
+									src_file_str = cfg.as_filepath(rc).filename();
+									src_file_set = (rc == S_OK) && (!src_file_str.empty());
+								}								
+						};
+					break;
+
 				default: break;	//keepping compiler happy
 			}	
 
 		});
 	}
-
+	
 	if (src_signal_set) {
 		appendSplitter();
 		text += QString::fromStdWString(src_signal_str);
 		if (dst_signal_set) {			
 			text += QString::fromWCharArray(reference_signal_set ?  L" vs. " : L" -> ");
 			text += QString::fromStdWString(dst_signal_str);
-		}
+		}		
+	}
+
+	if (src_file_set) {
+		appendSplitter();
+		text += QString::fromStdWString(src_file_str);
 	}
 
 	setText(text);

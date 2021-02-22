@@ -48,7 +48,7 @@
 class CFilter_Config_Window : public QDialog {
 	Q_OBJECT
 protected:
-	scgms::SFilter_Configuration mConfiguration;
+	scgms::SFilter_Configuration_Link mConfiguration;
 	const scgms::TFilter_Descriptor mDescription;	
 
 	std::vector<filter_config_window::CContainer_Edit*> mContainer_Edits;

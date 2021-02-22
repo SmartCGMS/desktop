@@ -44,6 +44,8 @@
 #include <QtWidgets/QAction>
 #include <QtWidgets/QMenu>
 #include <QtCore/QSignalMapper>
+#include <QtGui/QDragEnterEvent>
+#include <QtCore/QMimeData>
 
 #include "../../../common/rtl/FilterLib.h"
 
@@ -67,8 +69,8 @@ private:
 
 protected:
 	void Check_And_Display_Error_Description(const HRESULT rc, refcnt::Swstr_list errors);	
-	void Open_Experimental_Setup(const wchar_t* file_path);	
-	QString Native_Slash(const wchar_t* path);
+	void Open_Experimental_Setup(const std::wstring &file_path);	
+	QString Native_Slash(const std::wstring& path);
 protected:
 	void Tile_Window(std::function<QRect()> rect_fnc);
 private slots:
@@ -89,7 +91,11 @@ private slots:
 	void On_Optimize_Parameters_Dialog();
 
 	void Set_Active_Sub_Window(QWidget *window);
-
+protected:
+	void dragEnterEvent(QDragEnterEvent* event) override;
+	void dragMoveEvent(QDragMoveEvent* event) override;
+	void dragLeaveEvent(QDragLeaveEvent* event) override;
+	void dropEvent(QDropEvent* event) override;
 public:
 	CMain_Window(const std::wstring &experimental_setup_filepath, QWidget *parent = nullptr) noexcept;
 };

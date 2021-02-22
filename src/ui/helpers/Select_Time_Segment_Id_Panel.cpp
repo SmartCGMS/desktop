@@ -40,12 +40,17 @@
 
 #include "../../../../common/lang/dstrings.h"
 #include "../../../../common/rtl/FilterLib.h"
+#include "../../../../common/rtl/DbLib.h"
 
 #include "moc_Select_Time_Segment_Id_Panel.cpp"
 
-CSelect_Time_Segment_Id_Panel::CSelect_Time_Segment_Id_Panel(scgms::SFilter_Configuration configuration, scgms::SFilter_Parameter parameter, QWidget * parent)
+#include <QtCore/QSortFilterProxyModel>
+
+
+CSelect_Time_Segment_Id_Panel::CSelect_Time_Segment_Id_Panel(scgms::SFilter_Configuration_Link configuration, scgms::SFilter_Parameter parameter, QWidget * parent)
 	: CContainer_Edit(parameter), QTableView(parent), mConfiguration(configuration) {
 	//
+	setSortingEnabled(true);
 }
 
 
@@ -108,9 +113,13 @@ void CSelect_Time_Segment_Id_Panel::Connect_To_Db() {
 		QSqlDatabase::removeDatabase(connection);
 	}
 
+	
+	const auto effective_db_name = db::is_file_db(mConfiguration.Read_String(rsDb_Provider)) ? mConfiguration.Read_File_Path(rsDb_Name).wstring() : mConfiguration.Read_String(rsDb_Name);
+
+
 	mDb = std::make_unique<QSqlDatabase>(QSqlDatabase::addDatabase(QString::fromStdWString(mConfiguration.Read_String(rsDb_Provider)), mDb_Connection_Name));
 	mDb->setHostName(QString::fromStdWString(mConfiguration.Read_String(rsDb_Host)));
-	mDb->setDatabaseName(QString::fromStdWString(mConfiguration.Read_String(rsDb_Name)));
+	mDb->setDatabaseName(QString::fromStdWString(effective_db_name));
 	mDb->setUserName(QString::fromStdWString(mConfiguration.Read_String(rsDb_User_Name)));
 	mDb->setPassword(QString::fromStdWString(mConfiguration.Read_String(rsDb_Password)));
 	
@@ -123,12 +132,17 @@ void CSelect_Time_Segment_Id_Panel::Connect_To_Db() {
 		mSegmentsModel = std::make_unique<QSqlQueryModel>();
 		mSegmentsModel->setQuery(*mSegmentsQuery.get());
 
+		QSortFilterProxyModel* proxyModel = new QSortFilterProxyModel(mSegmentsModel.get()); // create proxy
+		proxyModel->setSourceModel(mSegmentsModel.get());	//to actually do the sorting
+
 		//and fix the UI
-		setModel(mSegmentsModel.get());
+		//setModel(mSegmentsModel.get());
+		setModel(proxyModel);
+
 		setSelectionMode(QAbstractItemView::MultiSelection);
 		setSelectionBehavior(QAbstractItemView::SelectRows);
 
-		hideColumn(0); //segment it id
+		hideColumn(0); //segment id
 		mSegmentsModel->setHeaderData(1, Qt::Horizontal, tr(dsSubject));
 		mSegmentsModel->setHeaderData(2, Qt::Horizontal, tr(dsSegment));
 		mSegmentsModel->setHeaderData(3, Qt::Horizontal, tr(dsValue_Count));

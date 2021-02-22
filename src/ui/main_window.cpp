@@ -65,9 +65,10 @@ CMain_Window::CMain_Window(const std::wstring &experimental_setup_filepath, QWid
 	Setup_UI();
 
 	if (experimental_setup_filepath.empty()) On_New_Experimental_Setup();
-		else Open_Experimental_Setup(experimental_setup_filepath.c_str()); 
+		else Open_Experimental_Setup(experimental_setup_filepath); 
 
 	this->showMaximized();
+	setAcceptDrops(true);
 }
 
 void CMain_Window::Setup_UI() {
@@ -315,13 +316,13 @@ void CMain_Window::Check_And_Display_Error_Description(const HRESULT rc, refcnt:
 }
 
 
-void CMain_Window::Open_Experimental_Setup(const wchar_t* file_path) {
+void CMain_Window::Open_Experimental_Setup(const std::wstring &file_path) {
 	pnlMDI_Content->closeAllSubWindows();
 	if (pnlMDI_Content->activeSubWindow()) return;	//some window has not closed
 
 	refcnt::Swstr_list errors;
 	mFilter_Configuration = scgms::SPersistent_Filter_Chain_Configuration{};	//reset the current configuration
-	HRESULT rc = mFilter_Configuration ? mFilter_Configuration->Load_From_File(file_path, errors.get()) : E_FAIL;
+	HRESULT rc = mFilter_Configuration ? mFilter_Configuration->Load_From_File(file_path.c_str(), errors.get()) : E_FAIL;
 	Check_And_Display_Error_Description(rc, errors);
 
 	if (rc == S_OK) {
@@ -358,7 +359,7 @@ void CMain_Window::On_Open_Experimental_Setup() {
 	if (filepath.isEmpty() || selfilter.isEmpty())
 		return;
 	
-	Open_Experimental_Setup(filepath.toStdWString().c_str());		
+	Open_Experimental_Setup(filepath.toStdWString());		
 }
 
 void CMain_Window::On_Save_Experimental_Setup() {
@@ -384,9 +385,10 @@ void CMain_Window::On_Save_Experimental_Setup_As() {
 		return;
 
 	refcnt::Swstr_list errors;
-	HRESULT rc = mFilter_Configuration->Save_To_File(filepath.toStdWString().c_str(), errors.get());
+	const auto converted_path = filepath.toStdWString();
+	HRESULT rc = mFilter_Configuration->Save_To_File(converted_path.c_str(), errors.get());
 	if (rc == S_OK)
-		setWindowTitle(tr(dsGlucose_Prediction).arg(Native_Slash(filepath.toStdWString().c_str())));
+		setWindowTitle(tr(dsGlucose_Prediction).arg(Native_Slash(filepath.toStdWString())));
 
 	Check_And_Display_Error_Description(rc, errors);
 }
@@ -397,6 +399,25 @@ void CMain_Window::On_Optimize_Parameters_Dialog() {
 	dlg->show();
 }
 
-QString CMain_Window::Native_Slash(const wchar_t* path) {
-	return QString::fromStdString(filesystem::path{ std::wstring{ path } }.string());
+QString CMain_Window::Native_Slash(const std::wstring &path) {
+	return QString::fromStdString(filesystem::path{  path  }.string());
+}
+
+void CMain_Window::dragEnterEvent(QDragEnterEvent* e) {
+	if (e->mimeData()->hasUrls()) {
+		e->acceptProposedAction();
+	}
+}
+
+void CMain_Window::dropEvent(QDropEvent* e) {
+	QString fileName = e->mimeData()->urls()[0].toLocalFile();
+	Open_Experimental_Setup(fileName.toStdWString());
+}
+
+void CMain_Window::dragMoveEvent(QDragMoveEvent* event) {
+	event->acceptProposedAction();
+}
+
+void CMain_Window::dragLeaveEvent(QDragLeaveEvent* event) {
+	event->accept();
 }

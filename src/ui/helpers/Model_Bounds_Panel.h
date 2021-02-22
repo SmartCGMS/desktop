@@ -104,6 +104,7 @@ class CModel_Bounds_Panel : public QWidget, public virtual filter_config_window:
 protected:
 	// connected model selector
 	QComboBox *mModelSelector;
+	const GUID mFixed_Model;	//in a case that mModelSelector is nullptr
 	// inner layout
 	QVBoxLayout* mLayout;
 
@@ -121,7 +122,8 @@ protected slots:
 	void On_Reset_Upper();
 
 public:
-	CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QComboBox* modelSelector, QWidget *parent);
+		//modelSelector can be nullptr, but fixed_model must be a valid model ID then
+	CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QComboBox* modelSelector, const GUID &fixed_model, QWidget *parent);
 
 	virtual void fetch_parameter() override;
 	virtual void store_parameter() override;

@@ -55,11 +55,11 @@ protected:
 	std::unique_ptr<QSqlDatabase> mDb;
 	std::unique_ptr<QSqlQueryModel> mSegmentsModel;
 	std::unique_ptr<QSqlQuery> mSegmentsQuery;
-	scgms::SFilter_Configuration mConfiguration;
+	scgms::SFilter_Configuration_Link mConfiguration;
 
 	void Connect_To_Db();
 public:
-	CSelect_Time_Segment_Id_Panel(scgms::SFilter_Configuration configuration, scgms::SFilter_Parameter parameter, QWidget *parent);
+	CSelect_Time_Segment_Id_Panel(scgms::SFilter_Configuration_Link configuration, scgms::SFilter_Parameter parameter, QWidget *parent);
 	virtual void fetch_parameter() override;
 	virtual void store_parameter() override;
 };

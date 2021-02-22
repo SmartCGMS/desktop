@@ -112,7 +112,8 @@ void CSimulation_Window::Setup_Solve_Button_Menu()
 
 	QMenu* menu = new QMenu(this);
 
-	QAction* anyaction = menu->addAction(StdWStringToQString(mSignal_Descriptors.Get_Name(scgms::signal_All).c_str()));
+	auto sig_name = mSignal_Descriptors.Get_Name(scgms::signal_All);
+	QAction* anyaction = menu->addAction(StdWStringToQString(sig_name.c_str()));
 	connect(anyaction, SIGNAL(triggered()), mSolveSignalMapper, SLOT(map()));
 	mSolveSignalMapper->setMapping(anyaction, StdWStringToQString(GUID_To_WString(scgms::signal_All)));
 
@@ -125,7 +126,8 @@ void CSimulation_Window::Setup_Solve_Button_Menu()
 		{
 			auto& action = mSignalSolveActions[model.calculated_signal_ids[i]];
 
-			action = menu->addAction(StdWStringToQString(mSignal_Descriptors.Get_Name(model.calculated_signal_ids[i]).c_str()));
+			sig_name = mSignal_Descriptors.Get_Name(model.calculated_signal_ids[i]);
+			action = menu->addAction(StdWStringToQString(sig_name.c_str()));
 			action->setVisible(false);
 			connect(action, SIGNAL(triggered()), mSolveSignalMapper, SLOT(map()));
 			mSolveSignalMapper->setMapping(action, StdWStringToQString(GUID_To_WString(model.calculated_signal_ids[i])));

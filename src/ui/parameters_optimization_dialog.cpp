@@ -47,6 +47,7 @@
 
 #include <QtWidgets/QBoxLayout>
 #include <QtWidgets/QPushButton>
+#include <QtGui/QStandardItem>
 
 #include <thread>
 #include <chrono>
@@ -141,9 +142,23 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 
 	QWidget* edits = new QWidget();
 	
-	cmbParameters = new QComboBox{ edits };
-	for (size_t i = 0; i < mParameters_Info.size(); i++)
-		cmbParameters->addItem(QString::fromStdWString(mParameters_Info[i].filter_name + L" / " + mParameters_Info[i].parameters_name), QVariant(static_cast<int>(i)));
+	QStandardItemModel* model = new QStandardItemModel{ static_cast<int>(mParameters_Info.size()), static_cast<int>(1), edits }; // x rows, 1 col
+	
+	for (size_t i = 0; i < mParameters_Info.size(); i++) {
+
+		QStandardItem* item = new QStandardItem{ QString::fromStdWString(mParameters_Info[i].filter_name + L" / " + mParameters_Info[i].parameters_name )};
+		/*item->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
+		item->setCheckable(true);
+		item->setCheckState(Qt::CheckState::Unchecked);
+		*/
+		item->setData(QVariant(static_cast<int>(i)));
+
+		model->setItem(static_cast<int>(i), item);
+	}
+
+	cmbParameters = new QListView{ edits };
+	cmbParameters->setModel(model);
+	cmbParameters->setSelectionMode(QAbstractItemView::SelectionMode::MultiSelection);
 
 	cmbSolver = new QComboBox{ edits };
 	for (const auto &item : scgms::get_solver_descriptors())
@@ -161,10 +176,12 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 		QGridLayout *edits_layout = new QGridLayout();
 		edits->setLayout(edits_layout);
 
-		edits_layout->addWidget(new QLabel{ tr(Narrow_WChar(dsParameters).c_str()), edits }, 0, 0);			edits_layout->addWidget(cmbParameters, 0, 1);
-		edits_layout->addWidget(new QLabel{ tr(Narrow_WChar(dsSelected_Solver).c_str()), edits }, 1, 0);	edits_layout->addWidget(cmbSolver, 1, 1);
-		edits_layout->addWidget(new QLabel{ dsMax_Generations, edits }, 2, 0);								edits_layout->addWidget(edtMax_Generations, 2, 1);
-		edits_layout->addWidget(new QLabel{ dsPopulation_Size, edits }, 3, 0);								edits_layout->addWidget(edtPopulation_Size, 3, 1);
+		const auto params = Narrow_WChar(dsParameters);
+		const auto selected_solver = Narrow_WChar(dsSelected_Solver);
+		edits_layout->addWidget(new QLabel{ tr(params.c_str()), edits }, 0, 0);				edits_layout->addWidget(cmbParameters, 0, 1);
+		edits_layout->addWidget(new QLabel{ tr(selected_solver.c_str()), edits }, 1, 0);	edits_layout->addWidget(cmbSolver, 1, 1);
+		edits_layout->addWidget(new QLabel{ dsMax_Generations, edits }, 2, 0);				edits_layout->addWidget(edtMax_Generations, 2, 1);
+		edits_layout->addWidget(new QLabel{ dsPopulation_Size, edits }, 3, 0);				edits_layout->addWidget(edtPopulation_Size, 3, 1);
 	}
 
 	
@@ -222,18 +239,30 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 void CParameters_Optimization_Dialog::On_Solve() {
 	if (!mIs_Solving) {
 		const QVariant solver_variant = cmbSolver->currentData();
-		const size_t filter_info_index = static_cast<size_t>(cmbParameters->currentIndex());
 
-		if (!solver_variant.isNull() && (filter_info_index < mParameters_Info.size())) {
+		std::vector<size_t> filter_info_indices;
+		std::vector<const wchar_t*> filter_parameter_names;
+
+		
+		auto model = cmbParameters->selectionModel();
+		QStandardItemModel* casted_model = dynamic_cast<QStandardItemModel*>(model->model());
+		foreach(const QModelIndex & index, model->selectedIndexes()) {
+			const size_t filter_info_index = casted_model->itemFromIndex(index)->data().toInt();
+			filter_info_indices.push_back(mParameters_Info[filter_info_index].filter_index);
+			filter_parameter_names.push_back(mParameters_Info[filter_info_index].parameters_name.c_str());
+		}
+	
+
+		if (!solver_variant.isNull() && (!filter_info_indices.empty())) {
 			mIs_Solving = true;
 
 			Stop_Threads();
 
 			mProgress = solver::Null_Solver_Progress;
 			mSolver_Thread = std::make_unique<std::thread>(
-				[this, &solver_variant, filter_info_index]() {
+				[this, &solver_variant, filter_info_indices, filter_parameter_names]() {	//yes, we transfer copies of both vectors so that survive in this thread
 					refcnt::Swstr_list error_description;
-					HRESULT res = scgms::Optimize_Parameters(mConfiguration, mParameters_Info[filter_info_index].filter_index, mParameters_Info[filter_info_index].parameters_name.c_str(),
+					HRESULT res = scgms::Optimize_Multiple_Parameters(mConfiguration, filter_info_indices.data(), const_cast<const wchar_t**>(filter_parameter_names.data()), filter_info_indices.size(),
 						Setup_Filter_DB_Access, nullptr,
 						QUuid_To_GUID(solver_variant.toUuid()),
 						edtPopulation_Size->text().toInt(),
