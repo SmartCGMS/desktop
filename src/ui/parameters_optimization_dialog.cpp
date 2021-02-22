@@ -258,15 +258,18 @@ void CParameters_Optimization_Dialog::On_Solve() {
 
 			Stop_Threads();
 
+			const int popSize = edtPopulation_Size->text().toInt();
+			const int maxGens = edtMax_Generations->text().toInt();
+
 			mProgress = solver::Null_Solver_Progress;
 			mSolver_Thread = std::make_unique<std::thread>(
-				[this, &solver_variant, filter_info_indices, filter_parameter_names]() {	//yes, we transfer copies of both vectors so that survive in this thread
+				[this, popSize, maxGens, &solver_variant, filter_info_indices, filter_parameter_names]() {	//yes, we transfer copies of both vectors so that survive in this thread
 					refcnt::Swstr_list error_description;
 					HRESULT res = scgms::Optimize_Multiple_Parameters(mConfiguration, filter_info_indices.data(), const_cast<const wchar_t**>(filter_parameter_names.data()), filter_info_indices.size(),
 						Setup_Filter_DB_Access, nullptr,
 						QUuid_To_GUID(solver_variant.toUuid()),
-						edtPopulation_Size->text().toInt(),
-						edtMax_Generations->text().toInt(),
+						popSize,
+						maxGens,
 						mProgress,
 						error_description);
 
