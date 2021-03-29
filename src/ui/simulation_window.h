@@ -60,6 +60,7 @@
 #include "helpers/Signal_Group_Widget.h"
 #include "helpers/gui_subchain.h"
 
+class CGUI_Terminal_Filter;
 
 /*
  * Simulation control and results window
@@ -88,6 +89,8 @@ class CSimulation_Window : public QMdiSubWindow {
 
 		CGUI_Filter_Subchain mGUI_Filter_Subchain;
 		int mBase_Tab_Count = 0;
+
+		std::unique_ptr<CGUI_Terminal_Filter> mTerminal_Filter;
 		
 	protected:					
 		// tab widget for filter outputs
@@ -138,6 +141,7 @@ class CSimulation_Window : public QMdiSubWindow {
 		void On_Start_Time_Segment(quint64 id);
 		void On_Add_Signal(QUuid id);
 		void On_Update_Solver_Progress(QUuid solver);
+		void On_Shut_Down_Received();
 
 	protected slots:
 		void On_Start();
@@ -157,7 +161,7 @@ class CSimulation_Window : public QMdiSubWindow {
 
 		void Slot_Start_Time_Segment(quint64 id);
 		void Slot_Add_Signal(QUuid id);
-		void Slot_Update_Solver_Progress(QUuid solver);		
+		void Slot_Update_Solver_Progress(QUuid solver);
 
 	protected:
 		void Inject_Event(const scgms::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info, const uint64_t segment_id = scgms::Invalid_Segment_Id);
@@ -185,3 +189,15 @@ class CSimulation_Window : public QMdiSubWindow {
 		
 		void Stop_Simulation();
 };
+
+#pragma warning( push )
+#pragma warning( disable : 4250 ) // C4250 - 'class1' : inherits 'class2::member' via dominance
+
+class CGUI_Terminal_Filter : public virtual scgms::IFilter, public virtual refcnt::CNotReferenced
+{
+	public:
+		HRESULT IfaceCalling Configure(scgms::IFilter_Configuration* configuration, refcnt::wstr_list* error_description) override;
+		HRESULT IfaceCalling Execute(scgms::IDevice_Event* event) override;
+};
+
+#pragma warning( pop )

@@ -216,14 +216,14 @@ CErrors_Tab_Widget_internal::CError_Table_Model* CErrors_Tab_Widget_internal::CE
 void CErrors_Tab_Widget_internal::CError_Table_Model::On_Filter_Configured(scgms::IFilter *filter) {
 	CErrors_Tab_Widget_internal::TSignal_Error_Inspection inspection;
 
-	inspection.signal_error = scgms::SSignal_Error_Inspection{ scgms::SFilter{filter} };
+	/*inspection.signal_error = scgms::SSignal_Error_Inspection{ scgms::SFilter{filter} };
 	if (inspection.signal_error) {
 		wchar_t *tmp_desc;
 		inspection.description = inspection.signal_error->Get_Description(&tmp_desc) == S_OK ? tmp_desc : dsSignal_Unknown;		
 		inspection.signal_error->Calculate_Signal_Error(scgms::All_Segments_Id, &inspection.recent_abs_error, &inspection.recent_rel_error);
 		inspection.r5 = inspection.r10 = inspection.r25 = inspection.r50 = std::numeric_limits<double>::quiet_NaN();
 		mSignal_Errors.push_back(inspection);
-	}
+	}*/
 }
 
 void CErrors_Tab_Widget_internal::CError_Table_Model::Update_Errors() {
