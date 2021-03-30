@@ -61,7 +61,7 @@ public:
 		auto entities = G();
 
 		// add entities retrieved using template function
-		for (auto entity : entities)
+		for (const auto &entity : entities)
             if (!filter || filter(entity))
 			    addItem(StdWStringToQString(entity.description), QVariant{ QByteArray(reinterpret_cast<const char*>(&entity.id), sizeof(GUID)) });
 

@@ -586,7 +586,7 @@ void CSimulation_Window::On_Segments_Draw_Request()
 			segmentsToDraw.push_back(ctrl.second->Get_Segment_Id());
 	}
 
-	for (auto ctrl : mSignalWidgets)
+	for (const auto &ctrl : mSignalWidgets)
 	{
 		if (ctrl.second->Is_Checked())
 			signalsToDraw.push_back(ctrl.second->Get_Signal_Id());
