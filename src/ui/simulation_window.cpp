@@ -445,17 +445,18 @@ void CSimulation_Window::On_Start() {
 	if (lay)
 		lay->addStretch();
 
-	if (!mTerminal_Filter)
-		mTerminal_Filter = std::make_unique<CGUI_Terminal_Filter>();
+	mTerminal_Filter = std::make_unique<CGUI_Terminal_Filter>();
 
 	// initialize and start filter holder, this will start filters
 	refcnt::Swstr_list error_description;
 	mFilter_Executor = scgms::SFilter_Executor{ mConfiguration, CSimulation_Window::On_Filter_Configured, this, error_description, mTerminal_Filter.get() };
 	mLogWidget->Log_Config_Errors(error_description);
-	if (!mFilter_Executor)	{		
+	if (!mFilter_Executor)	{
 		mGUI_Filter_Subchain.Relase_Filter_Bindings();
 		mErrorsWidget->Clear_Filters();
-		QMessageBox::information(this, tr(dsInformation), tr(dsFilter_Executor_Failed_Review_Config_Errors));		
+		mSolver_Filters.clear();
+		mTerminal_Filter.reset();
+		QMessageBox::information(this, tr(dsInformation), tr(dsFilter_Executor_Failed_Review_Config_Errors));
 
 		return;
 	}
@@ -496,6 +497,7 @@ void CSimulation_Window::On_Stop() {
 	for (const auto& solvers : mSolver_Filters)
 		solvers->Cancel_Solver();
 	mSolver_Filters.clear();
+	mTerminal_Filter.reset();
 
 	Inject_Event(scgms::NDevice_Event_Code::Shut_Down, Invalid_GUID, nullptr);
 
