@@ -75,6 +75,7 @@ protected:
 	QLabel* progressLabel1, *progressLabel2;
 	QPushButton *btnSolve, *btnStop, *btnClose;
 	QStandardItemModel* mdlMetricHistoryModel;
+	QLabel* timestampLabelStart, *timestampLabelEnd;
 	double lastMetric = 0;
 	void Setup_UI();
 

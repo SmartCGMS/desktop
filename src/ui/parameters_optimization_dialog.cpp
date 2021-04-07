@@ -45,6 +45,7 @@
 #include "../../../common/utils/QtUtils.h"
 #include "../../../common/utils/string_utils.h"
 
+#include <QtCore/QDateTime>
 #include <QtWidgets/QBoxLayout>
 #include <QtWidgets/QPushButton>
 
@@ -259,8 +260,32 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 		lstMetricHistory->setMinimumWidth(250);
 		mdlMetricHistoryModel->setHeaderData(0, Qt::Orientation::Horizontal, "aaa");
 
+		QWidget* startLbl = new QWidget();
+		{
+			QHBoxLayout* ly = new QHBoxLayout();
+			startLbl->setLayout(ly);
+
+			timestampLabelStart = new QLabel("N/A");
+
+			ly->addWidget(new QLabel("Start:"));
+			ly->addWidget(timestampLabelStart);
+		}
+
+		QWidget* endLbl = new QWidget();
+		{
+			QHBoxLayout* ly = new QHBoxLayout();
+			endLbl->setLayout(ly);
+
+			timestampLabelEnd = new QLabel("N/A");
+
+			ly->addWidget(new QLabel("End:"));
+			ly->addWidget(timestampLabelEnd);
+		}
+
 		mhb_layout->addWidget(new QLabel("Metric history"));
 		mhb_layout->addWidget(history, 1);
+		mhb_layout->addWidget(startLbl);
+		mhb_layout->addWidget(endLbl);
 
 		metric_history_box->setMinimumSize(300, 300);
 	}
@@ -293,7 +318,9 @@ void CParameters_Optimization_Dialog::On_Solve() {
 		}
 
 		mdlMetricHistoryModel->clear();
-	
+
+		timestampLabelStart->setText("N/A");
+		timestampLabelEnd->setText("N/A");
 
 		if (!solver_variant.isNull() && (!mSolve_filter_info_indices.empty())) {
 			mIs_Solving = true;
@@ -302,6 +329,8 @@ void CParameters_Optimization_Dialog::On_Solve() {
 
 			const int popSize = edtPopulation_Size->text().toInt();
 			const int maxGens = edtMax_Generations->text().toInt();
+
+			timestampLabelStart->setText(QDateTime::currentDateTime().toLocalTime().toString());
 
 			mProgress = solver::Null_Solver_Progress;
 			mSolver_Thread = std::make_unique<std::thread>(
@@ -360,6 +389,7 @@ void CParameters_Optimization_Dialog::On_Update_Progress() {
 		progressLabel1->setText(QString("N/A"));
 		progressLabel2->setText(QString("0 %"));
 		lblSolver_Info->setText(QString(tr(dsSolver_Status_Stopped)) + ", "+ QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric));
+		timestampLabelEnd->setText(QDateTime::currentDateTime().toLocalTime().toString());
 		barProgress->setValue(0);
 	}
 }

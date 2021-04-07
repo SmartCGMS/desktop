@@ -497,14 +497,15 @@ void CSimulation_Window::On_Stop() {
 	for (const auto& solvers : mSolver_Filters)
 		solvers->Cancel_Solver();
 	mSolver_Filters.clear();
-	mTerminal_Filter.reset();
 
 	Inject_Event(scgms::NDevice_Event_Code::Shut_Down, Invalid_GUID, nullptr);
 
-	if (Succeeded(mFilter_Executor->Terminate(TRUE))) {	
+	if (Succeeded(mFilter_Executor->Terminate(TRUE))) {
 		mStartButton->setEnabled(true);
 		mStopButton->setEnabled(false);
 	}
+
+	mTerminal_Filter.reset();
 }
 
 void CSimulation_Window::On_Reset_And_Solve_Params() {
