@@ -48,6 +48,7 @@
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QListView>
 #include <QtGui/QStandardItem>
+#include <QtCore/QDateTime>
 
 #include <vector>
 #include <thread>
@@ -76,7 +77,9 @@ protected:
 	QPushButton *btnSolve, *btnStop, *btnClose;
 	QStandardItemModel* mdlMetricHistoryModel;
 	QLabel* timestampLabelStart, *timestampLabelEnd;
+	QDateTime startDateTime;
 	double lastMetric = 0;
+	size_t lastProgress = 0;
 	void Setup_UI();
 
 	std::vector<size_t> mSolve_filter_info_indices;

@@ -258,7 +258,6 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 		lstMetricHistory = new QListView{ history };
 		lstMetricHistory->setModel(mdlMetricHistoryModel);
 		lstMetricHistory->setMinimumWidth(250);
-		mdlMetricHistoryModel->setHeaderData(0, Qt::Orientation::Horizontal, "aaa");
 
 		QWidget* startLbl = new QWidget();
 		{
@@ -330,11 +329,14 @@ void CParameters_Optimization_Dialog::On_Solve() {
 			const int popSize = edtPopulation_Size->text().toInt();
 			const int maxGens = edtMax_Generations->text().toInt();
 
-			timestampLabelStart->setText(QDateTime::currentDateTime().toLocalTime().toString());
+			lastMetric = std::numeric_limits<double>::max();
+			lastProgress = 0;
+			startDateTime = QDateTime::currentDateTime();
+			timestampLabelStart->setText(startDateTime.toLocalTime().toString());
 
 			mProgress = solver::Null_Solver_Progress;
 			mSolver_Thread = std::make_unique<std::thread>(
-				[this, popSize, maxGens]() {	//yes, we transfer copies of both vectors so that survive in this thread
+				[this, popSize, maxGens]() {
 					refcnt::Swstr_list error_description;
 					HRESULT res = scgms::Optimize_Multiple_Parameters(mConfiguration, mSolve_filter_info_indices.data(), const_cast<const wchar_t**>(mSolve_filter_parameter_names.data()), mSolve_filter_info_indices.size(),
 						Setup_Filter_DB_Access, nullptr,
@@ -375,6 +377,21 @@ void CParameters_Optimization_Dialog::On_Update_Progress() {
 			progressLabel1->setText(QString("%1 / %2").arg(mProgress.current_progress).arg(mProgress.max_progress));
 			progressLabel2->setText(QString("%1 %").arg(progressValue));
 			lblSolver_Info->setText(QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric));
+
+			if (lastProgress != mProgress.current_progress)
+			{
+				lastProgress = mProgress.current_progress;
+
+				if (mProgress.current_progress > 0)
+				{
+					const auto msPerUnit = (QDateTime::currentDateTime().toMSecsSinceEpoch() - startDateTime.toMSecsSinceEpoch()) / mProgress.current_progress;
+					const QDateTime etaEnd = startDateTime.addMSecs(msPerUnit * mProgress.max_progress);
+
+					timestampLabelEnd->setText(QString("%1 (ETA)").arg(etaEnd.toLocalTime().toString()));
+				}
+				else
+					timestampLabelEnd->setText("N/A");
+			}
 
 			if (mProgress.best_metric != lastMetric) {
 				lastMetric = mProgress.best_metric;
