@@ -43,6 +43,7 @@
 #include "../../common/utils/winapi_mapping.h"
 #include "../../common/utils/DebugHelper.h"
 #include "../../common/lang/dstrings.h"
+#include "../../common/utils/QtUtils.h"
 
 #include "ui/main_window.h"
 
@@ -51,6 +52,8 @@ int MainCalling main(int argc, char *argv[]) {
 
 	QApplication application(argc, argv);
     qGuiApp->setWindowIcon(QIcon(":/app/appicon.png"));
+	qGuiApp->setApplicationName(StdWStringToQString(dsGPredict3_App_Name));
+	qGuiApp->setOrganizationDomain(StdWStringToQString(dsGPredict3_App_Domain));
 
 	if (!scgms::is_scgms_loaded()) {
 		QMessageBox::information(nullptr, dsInformation, dsSCGMS_Not_Loaded);

@@ -38,6 +38,8 @@
 
 #pragma once
 
+#include <array>
+
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMdiArea>
 #include <QtGui/QCloseEvent>
@@ -46,8 +48,11 @@
 #include <QtCore/QSignalMapper>
 #include <QtGui/QDragEnterEvent>
 #include <QtCore/QMimeData>
+#include <QtCore/QStandardPaths>
+#include <QtCore/QDir>
 
 #include "../../../common/rtl/FilterLib.h"
+#include "../../common/rtl/FilesystemLib.h"
 
 class CMain_Window : public QMainWindow {
 	Q_OBJECT
@@ -55,9 +60,20 @@ protected:
 	std::wstring mFilter_Configuration_File_Path;
 	scgms::SPersistent_Filter_Chain_Configuration mFilter_Configuration;
 
+	filesystem::path mStorage_Path;
+
+	static constexpr size_t Recent_File_Count = 10;
+
+	struct TRecent_File {
+		std::wstring name{ L"" };
+		filesystem::path path;
+	};
+	std::list<TRecent_File> mRecent_Files;
+
 private:
 	QMdiArea *pnlMDI_Content = nullptr;
 	QMenu* mniWindow = nullptr;
+	QMenu* mniRecent_Files = nullptr;
 	QAction *actClose_Window = nullptr, *actClose_All_Windows,
 			*actTile_Vertically, *actTile_Horizontally,
 			*actCascade, *actNext_Window,
@@ -65,7 +81,11 @@ private:
 	QSignalMapper *mWindowMapper;
 	
 	void Setup_UI();
+	void Setup_Storage();
 	void Close_Event(QCloseEvent *event);
+	void Update_Recent_Files();
+	void Save_Recent_Files();
+	void Push_Recent_File(const filesystem::path& path);
 
 protected:
 	void Check_And_Display_Error_Description(const HRESULT rc, refcnt::Swstr_list errors);	
@@ -89,6 +109,7 @@ private slots:
 	void On_Filters_Window();
 	void On_Simulation_Window();
 	void On_Optimize_Parameters_Dialog();
+	void On_Open_Recent_Experimental_Setup(QAction* action);
 
 	void Set_Active_Sub_Window(QWidget *window);
 protected:
