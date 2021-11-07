@@ -330,13 +330,9 @@ namespace filter_config_window {
 		//else, we store the currentData
 	
 		GUID id = Invalid_GUID;
-		QString current_no_spaces = currentText();
-		{
-			QRegExp space("\\s");
-			current_no_spaces.remove(space);
-		}
-		
-		const auto current_str = current_no_spaces.toStdWString();
+		std::wstring current_str = currentText().toStdWString();
+		current_str.erase(std::remove_if(current_str.begin(), current_str.end(), ::iswspace), current_str.end());
+				
 		const bool user_intends_invalid_guid = current_str == GUID_To_WString(Invalid_GUID);
 
 		if (!user_intends_invalid_guid) {
