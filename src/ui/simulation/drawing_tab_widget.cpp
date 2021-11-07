@@ -80,7 +80,8 @@ CDrawing_Graphics_View::CDrawing_Graphics_View()
 
 void CDrawing_Graphics_View::wheelEvent(QWheelEvent * event)
 {
-	const int numSteps = event->delta() / 120;
+	const auto delta = event->angleDelta();
+	const int numSteps = (delta.x() + delta.y()) / 120;
 
 	mNumScheduledScalings += numSteps;
 	if (mNumScheduledScalings * numSteps < 0)
@@ -115,7 +116,7 @@ CDrawing_Tab_Widget::CDrawing_Tab_Widget(const scgms::TDrawing_Image_Type type, 
 	mView->setScene(mScene);
 
 	mView->setDragMode(QGraphicsView::ScrollHandDrag);
-	mView->setRenderHints(QPainter::HighQualityAntialiasing | QPainter::TextAntialiasing);
+	mView->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
 	mRenderer = new QSvgRenderer();
 
@@ -154,7 +155,7 @@ CDrawing_Tab_Widget::~CDrawing_Tab_Widget()
 
 void CDrawing_Tab_Widget::Update_View_Size()
 {
-	mView->resetMatrix();
+	mView->resetTransform();
 }
 
 CAbstract_Simulation_Tab_Widget* CDrawing_Tab_Widget::Clone()
@@ -243,7 +244,7 @@ void CDrawing_Tab_Widget::Show_Context_Menu(const QPoint& pos)
 	});
 	myMenu.addSeparator();
 	myMenu.addAction(dsReset_Zoom, [this]() {
-		mView->resetMatrix();
+		mView->resetTransform();
 	});
 
 	myMenu.exec(globalPos);

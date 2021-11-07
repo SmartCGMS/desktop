@@ -230,11 +230,11 @@ void CMain_Window::Tile_Window(std::function<QRect()> rect_fnc) {
 }
 
 void CMain_Window::On_Tile_Horizontally() {
-	Tile_Window([this]() {return QRect{ 0, 0, pnlMDI_Content->width(), pnlMDI_Content->height() / pnlMDI_Content->subWindowList().count() }; });
+	Tile_Window([this]() {return QRect{ 0, 0, pnlMDI_Content->width(), pnlMDI_Content->height() / static_cast<int>(pnlMDI_Content->subWindowList().count()) }; });
 }
 
 void CMain_Window::On_Tile_Vertically() {
-	Tile_Window([this]() {return QRect{ 0, 0, pnlMDI_Content->width() / pnlMDI_Content->subWindowList().count(), pnlMDI_Content->height() }; });
+	Tile_Window([this]() {return QRect{ 0, 0, pnlMDI_Content->width() / static_cast<int>(pnlMDI_Content->subWindowList().count()), pnlMDI_Content->height() }; });
 }
 
 void CMain_Window::On_Update_Window_Menu() {

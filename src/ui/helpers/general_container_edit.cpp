@@ -128,12 +128,12 @@ namespace filter_config_window {
 		//we allow minus only as the very first char
 		if (input[0] == '-') {
 			first++;
-			len--;
+			//len--;
 		}
 		
 
-		for (auto ch : input) {
-			switch (ch.toLatin1()) {
+		for (auto i = first; i < len; i++) {
+			switch (input[i].toLatin1()) {
 				case '$': case '(': case ')':		//support for variables
 				case ' ': case ':': case '.':
 				case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': break;
