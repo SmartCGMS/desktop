@@ -41,7 +41,7 @@
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMdiArea>
 #include <QtGui/QCloseEvent>
-#include <QtWidgets/QAction>
+#include <QtGui/QAction>
 #include <QtWidgets/QMenu>
 #include <QtCore/QSignalMapper>
 #include <QtGui/QDragEnterEvent>

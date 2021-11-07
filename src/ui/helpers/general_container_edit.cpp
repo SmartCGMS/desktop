@@ -131,7 +131,7 @@ namespace filter_config_window {
 			len--;
 		}
 
-		QStringRef vw(&input, first, len);
+		QStringView vw(&input, first, len);
 
 		for (auto ch : vw) {
 			switch (ch.toLatin1()) {

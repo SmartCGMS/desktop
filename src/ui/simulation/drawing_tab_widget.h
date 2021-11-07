@@ -44,7 +44,7 @@
 #include <QtWidgets/QGraphicsView>
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QComboBox>
-#include <QtSvg/QGraphicsSvgItem>
+#include <QtSvgWidgets/QGraphicsSvgItem>
 #include <QtSvg/QSvgRenderer>
 
 #include "../../../../common/iface/FilterIface.h"
