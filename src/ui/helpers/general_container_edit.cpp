@@ -130,10 +130,9 @@ namespace filter_config_window {
 			first++;
 			len--;
 		}
+		
 
-		QStringView vw(&input, first, len);
-
-		for (auto ch : vw) {
+		for (auto ch : input) {
 			switch (ch.toLatin1()) {
 				case '$': case '(': case ')':		//support for variables
 				case ' ': case ':': case '.':
