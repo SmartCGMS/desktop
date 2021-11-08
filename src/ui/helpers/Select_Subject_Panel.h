@@ -61,7 +61,7 @@ class CSelect_Subject_Panel : public QWidget, public virtual filter_config_windo
 		const QString mDb_Connection_Name = "CSelect_Subject_Panel_Connection";
 		std::unique_ptr<QSqlDatabase> mDb;
 		std::unique_ptr<QSqlQueryModel> mSubjectsModel;
-		std::unique_ptr<QSqlQuery> mSubjectsQuery;
+//		std::unique_ptr<QSqlQuery> mSubjectsQuery;
 		scgms::SFilter_Configuration_Link mConfiguration;
 
 		QButtonGroup* mButtonGroup;

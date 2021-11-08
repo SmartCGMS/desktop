@@ -105,7 +105,7 @@ void CSelect_Time_Segment_Id_Panel::Connect_To_Db() {
 //	auto current_selection = get_parameter();
 
 	mSegmentsModel.reset(nullptr);
-	mSegmentsQuery.reset(nullptr);
+	
 	if (mDb) {
 		QString connection;
 		connection = mDb->connectionName();
@@ -125,12 +125,12 @@ void CSelect_Time_Segment_Id_Panel::Connect_To_Db() {
 	
 	if (mDb->open()) {
 
-		mSegmentsQuery = std::make_unique<QSqlQuery>(*mDb.get());
-		mSegmentsQuery->prepare(QString::fromWCharArray(rsSelect_Subjects_And_Segments_For_Db_Reader_Filter));
-		mSegmentsQuery->exec();
+		QSqlQuery segments_query{ *mDb.get() };
+		segments_query.prepare(QString::fromWCharArray(rsSelect_Subjects_And_Segments_For_Db_Reader_Filter));
+		segments_query.exec();
 
 		mSegmentsModel = std::make_unique<QSqlQueryModel>();
-		mSegmentsModel->setQuery(*mSegmentsQuery.get());
+		mSegmentsModel->setQuery(std::move(segments_query));
 
 		QSortFilterProxyModel* proxyModel = new QSortFilterProxyModel(mSegmentsModel.get()); // create proxy
 		proxyModel->setSourceModel(mSegmentsModel.get());	//to actually do the sorting

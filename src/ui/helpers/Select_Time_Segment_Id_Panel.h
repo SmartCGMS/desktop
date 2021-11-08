@@ -53,8 +53,7 @@ class CSelect_Time_Segment_Id_Panel : public QTableView, public virtual filter_c
 protected:
 	const QString mDb_Connection_Name = "CSelect_Time_Segment_Id_Panel_Connection";
 	std::unique_ptr<QSqlDatabase> mDb;
-	std::unique_ptr<QSqlQueryModel> mSegmentsModel;
-	std::unique_ptr<QSqlQuery> mSegmentsQuery;
+	std::unique_ptr<QSqlQueryModel> mSegmentsModel;	
 	scgms::SFilter_Configuration_Link mConfiguration;
 
 	void Connect_To_Db();

@@ -162,7 +162,7 @@ void CSelect_Subject_Panel::Connect_To_Db() {
 	//auto current_selection = get_parameter();
 
 	mSubjectsModel.reset(nullptr);
-	mSubjectsQuery.reset(nullptr);
+	
 	if (mDb) {
 		QString connection;
 		connection = mDb->connectionName();
@@ -176,14 +176,14 @@ void CSelect_Subject_Panel::Connect_To_Db() {
 	mDb->setUserName(QString::fromStdWString(mConfiguration.Read_String(rsDb_User_Name)));
 	mDb->setPassword(QString::fromStdWString(mConfiguration.Read_String(rsDb_Password)));
 	
-	if (mDb->open())
-	{
-		mSubjectsQuery = std::make_unique<QSqlQuery>(*mDb.get());
-		mSubjectsQuery->prepare(QString::fromWCharArray(rsSelect_Subjects));
-		mSubjectsQuery->exec();
+	if (mDb->open()) {
+		QSqlQuery subjects_query{ *mDb.get() };
+
+		subjects_query.prepare(QString::fromWCharArray(rsSelect_Subjects));
+		subjects_query.exec();
 
 		mSubjectsModel = std::make_unique<QSqlQueryModel>();
-		mSubjectsModel->setQuery(*mSubjectsQuery.get());
+		mSubjectsModel->setQuery( std::move(subjects_query));
 
 		mDbSubjects->setModel(mSubjectsModel.get());
 		mDbSubjects->setSelectionMode(QAbstractItemView::SingleSelection);
