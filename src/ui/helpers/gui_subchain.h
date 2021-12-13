@@ -86,6 +86,10 @@ class CGUI_Filter_Subchain {
 
 		// is the subchain still running?
 		bool mRunning = false;
+		// should the GUI be updated one last time after simulation end?
+		bool mUpdateOnStop = false;
+		// should we update GUI even though filters do not signalize anything new?
+		bool mForceUpdate = false;
 		// was marker received?
 		bool mMarker_Received = false;
 
@@ -112,7 +116,7 @@ class CGUI_Filter_Subchain {
 		void Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds);		
 
 		void Start();
-		void Stop();
+		void Stop(bool update_gui = false);
 		void Relase_Filter_Bindings();
 };
 

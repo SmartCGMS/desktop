@@ -47,6 +47,8 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QListView>
+#include <QtGui/QStandardItem>
+#include <QtCore/QDateTime>
 
 #include <vector>
 #include <thread>
@@ -66,16 +68,27 @@ protected:
 	void Populate_Parameters_Info(scgms::SFilter_Chain_Configuration configuration);
 protected:
 	QListView* cmbParameters = nullptr;
+	QListView* lstMetricHistory = nullptr;
 	QComboBox* cmbSolver = nullptr;
 	QLineEdit *edtMax_Generations, *edtPopulation_Size;
 	QLabel *lblSolver_Info;
 	QProgressBar *barProgress;
+	QLabel* progressLabel1, *progressLabel2;
 	QPushButton *btnSolve, *btnStop, *btnClose;
+	QStandardItemModel* mdlMetricHistoryModel;
+	QLabel* timestampLabelStart, *timestampLabelEnd;
+	QDateTime startDateTime;
+	double lastMetric = 0;
+	size_t lastProgress = 0;
 	void Setup_UI();
+
+	std::vector<size_t> mSolve_filter_info_indices;
+	std::vector<const wchar_t*> mSolve_filter_parameter_names;
+	GUID mChosen_Solver_Id;
 protected:
 	std::unique_ptr<std::thread> mSolver_Thread, mProgress_Update_Thread;
 	solver::TSolver_Progress mProgress;
-	bool mIs_Solving;
+	bool mIs_Solving = false;
 
 	void Stop_Threads();
 signals:

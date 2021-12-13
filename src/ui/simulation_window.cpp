@@ -68,6 +68,41 @@ constexpr size_t Invalid_Value = static_cast<size_t>(-1);
 
 std::atomic<CSimulation_Window*> CSimulation_Window::mInstance = nullptr;
 
+HRESULT IfaceCalling CGUI_Terminal_Filter::Configure(scgms::IFilter_Configuration* configuration, refcnt::wstr_list* error_description)
+{
+	return S_OK;
+}
+
+HRESULT IfaceCalling CGUI_Terminal_Filter::Execute(scgms::IDevice_Event* event)
+{
+	if (!event)
+		return E_INVALIDARG;
+
+	scgms::TDevice_Event* raw_event;
+	HRESULT rc = event->Raw(&raw_event);
+	if (rc != S_OK) {
+		event->Release();
+		return rc;
+	}
+
+	CSimulation_Window* simwin = CSimulation_Window::Get_Instance();
+
+	if (raw_event->signal_id != Invalid_GUID) {
+		simwin->Add_Signal(raw_event->signal_id);
+	}
+
+	if (raw_event->event_code == scgms::NDevice_Event_Code::Time_Segment_Start) {
+		simwin->Start_Time_Segment(raw_event->segment_id);
+	}
+	else if (raw_event->event_code == scgms::NDevice_Event_Code::Shut_Down) {
+		simwin->Stop_Simulation();
+	}
+
+	event->Release();
+
+	return S_OK;
+}
+
 CSimulation_Window* CSimulation_Window::Show_Instance(refcnt::SReferenced<scgms::IFilter_Chain_Configuration> configuration, QWidget *owner)
 {
 	if (mInstance)
@@ -306,7 +341,8 @@ void CSimulation_Window::Setup_UI() {
 	// GUI asynchronous updaters
 	connect(this, SIGNAL(On_Start_Time_Segment(quint64)), this, SLOT(Slot_Start_Time_Segment(quint64)), Qt::QueuedConnection);
 	connect(this, SIGNAL(On_Add_Signal(QUuid)), this, SLOT(Slot_Add_Signal(QUuid)), Qt::QueuedConnection);
-	connect(this, SIGNAL(On_Update_Solver_Progress(QUuid)), this, SLOT(Slot_Update_Solver_Progress(QUuid)), Qt::QueuedConnection);	
+	connect(this, SIGNAL(On_Update_Solver_Progress(QUuid)), this, SLOT(Slot_Update_Solver_Progress(QUuid)), Qt::QueuedConnection);
+	connect(this, SIGNAL(On_Shut_Down_Received()), this, SLOT(On_Stop()));
 }
 
 void CSimulation_Window::Show_Tab_Context_Menu(const QPoint &point)
@@ -409,14 +445,18 @@ void CSimulation_Window::On_Start() {
 	if (lay)
 		lay->addStretch();
 
+	mTerminal_Filter = std::make_unique<CGUI_Terminal_Filter>();
+
 	// initialize and start filter holder, this will start filters
 	refcnt::Swstr_list error_description;
-	mFilter_Executor = scgms::SFilter_Executor{ mConfiguration, CSimulation_Window::On_Filter_Configured, this, error_description };
+	mFilter_Executor = scgms::SFilter_Executor{ mConfiguration, CSimulation_Window::On_Filter_Configured, this, error_description, mTerminal_Filter.get() };
 	mLogWidget->Log_Config_Errors(error_description);
-	if (!mFilter_Executor)	{		
+	if (!mFilter_Executor)	{
 		mGUI_Filter_Subchain.Relase_Filter_Bindings();
 		mErrorsWidget->Clear_Filters();
-		QMessageBox::information(this, tr(dsInformation), tr(dsFilter_Executor_Failed_Review_Config_Errors));		
+		mSolver_Filters.clear();
+		mTerminal_Filter.reset();
+		QMessageBox::information(this, tr(dsInformation), tr(dsFilter_Executor_Failed_Review_Config_Errors));
 
 		return;
 	}
@@ -450,7 +490,7 @@ void CSimulation_Window::On_Stop() {
 	if (!mSimulationInProgress) return;
 
 	mSimulationInProgress = false;
-	mGUI_Filter_Subchain.Stop();
+	mGUI_Filter_Subchain.Stop(true);
 
 	mErrorsWidget->Clear_Filters();
 	
@@ -460,10 +500,12 @@ void CSimulation_Window::On_Stop() {
 
 	Inject_Event(scgms::NDevice_Event_Code::Shut_Down, Invalid_GUID, nullptr);
 
-	if (Succeeded(mFilter_Executor->Terminate(FALSE))) {	
+	if (Succeeded(mFilter_Executor->Terminate(TRUE))) {
 		mStartButton->setEnabled(true);
 		mStopButton->setEnabled(false);
 	}
+
+	mTerminal_Filter.reset();
 }
 
 void CSimulation_Window::On_Reset_And_Solve_Params() {
@@ -580,7 +622,7 @@ void CSimulation_Window::On_Segments_Draw_Request()
 	std::vector<uint64_t> segmentsToDraw;
 	std::vector<GUID> signalsToDraw;
 
-	for (auto ctrl : mSegmentWidgets)
+	for (const auto& ctrl : mSegmentWidgets)
 	{
 		if (ctrl.second->Is_Checked())
 			segmentsToDraw.push_back(ctrl.second->Get_Segment_Id());
@@ -710,4 +752,8 @@ void CSimulation_Window::Inject_Event(const scgms::NDevice_Event_Code &code, con
 
 void CSimulation_Window::Update_Errors() {
 	if (mErrorsWidget) mErrorsWidget->Refresh();
+}
+
+void CSimulation_Window::Stop_Simulation() {
+	emit On_Shut_Down_Received();
 }

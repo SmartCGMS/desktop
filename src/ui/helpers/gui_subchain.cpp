@@ -68,7 +68,7 @@ void CGUI_Filter_Subchain::Start() {
 	mUpdater_Thread = std::make_unique<std::thread>(&CGUI_Filter_Subchain::Run_Updater, this);
 }
 
-void CGUI_Filter_Subchain::Stop() {
+void CGUI_Filter_Subchain::Stop(bool update_gui) {
 	if (!mRunning) return;
 
 	// terminate updater thread
@@ -76,6 +76,7 @@ void CGUI_Filter_Subchain::Stop() {
 		std::unique_lock<std::mutex> lck(mUpdater_Mtx);
 
 		mRunning = false;
+		mUpdateOnStop = update_gui;
 		mUpdater_Cv.notify_all();
 	}
 
@@ -107,6 +108,9 @@ void CGUI_Filter_Subchain::Run_Updater()
 
 		// TODO: configurable delay, maybe even during simulation?
 		mUpdater_Cv.wait_for(lck, std::chrono::milliseconds(GUI_Subchain_Default_Drawing_Update));
+
+		if (!mRunning && mUpdateOnStop)
+			Update_GUI();
 	}
 }
 
@@ -129,6 +133,8 @@ void CGUI_Filter_Subchain::Request_Redraw(std::vector<uint64_t>& segmentIds, std
 	mDraw_Segment_Ids = refcnt::Create_Container_shared<uint64_t>(segmentIds.data(), segmentIds.data() + segmentIds.size());
 	mDraw_Signal_Ids = refcnt::Create_Container_shared<GUID>(signalIds.data(), signalIds.data() + signalIds.size());
 
+	mForceUpdate = true;
+
 	Update_Drawing();
 }
 
@@ -142,7 +148,7 @@ void CGUI_Filter_Subchain::Update_GUI()
 
 void CGUI_Filter_Subchain::Update_Drawing() {
 	if (!mDrawing_Filter_Inspection) return;
-	if (mDrawing_Filter_Inspection->New_Data_Available() != S_OK) return;	//nothing to update
+	if (!mForceUpdate && mDrawing_Filter_Inspection->New_Data_Available() != S_OK) return;	//nothing to update
 
 	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
 	if (!simwin) return;

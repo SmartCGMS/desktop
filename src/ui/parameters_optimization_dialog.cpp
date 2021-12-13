@@ -45,9 +45,9 @@
 #include "../../../common/utils/QtUtils.h"
 #include "../../../common/utils/string_utils.h"
 
+#include <QtCore/QDateTime>
 #include <QtWidgets/QBoxLayout>
 #include <QtWidgets/QPushButton>
-#include <QtGui/QStandardItem>
 
 #include <thread>
 #include <chrono>
@@ -136,101 +136,163 @@ void CParameters_Optimization_Dialog::Populate_Parameters_Info(scgms::SFilter_Ch
 void CParameters_Optimization_Dialog::Setup_UI() {
 	setWindowTitle(dsOptimize_Parameters);
 
+	QHBoxLayout* main_layout = new QHBoxLayout();
+	setLayout(main_layout);
 	
-	QVBoxLayout* vertical_layout = new QVBoxLayout();
-	setLayout(vertical_layout);
-
-	QWidget* edits = new QWidget();
-	
-	QStandardItemModel* model = new QStandardItemModel{ static_cast<int>(mParameters_Info.size()), static_cast<int>(1), edits }; // x rows, 1 col
-	
-	for (size_t i = 0; i < mParameters_Info.size(); i++) {
-
-		QStandardItem* item = new QStandardItem{ QString::fromStdWString(mParameters_Info[i].filter_name + L" / " + mParameters_Info[i].parameters_name )};
-		/*item->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
-		item->setCheckable(true);
-		item->setCheckState(Qt::CheckState::Unchecked);
-		*/
-		item->setData(QVariant(static_cast<int>(i)));
-
-		model->setItem(static_cast<int>(i), item);
-	}
-
-	cmbParameters = new QListView{ edits };
-	cmbParameters->setModel(model);
-	cmbParameters->setSelectionMode(QAbstractItemView::SelectionMode::MultiSelection);
-
-	cmbSolver = new QComboBox{ edits };
-	for (const auto &item : scgms::get_solver_descriptors())
-		cmbSolver->addItem(QString::fromStdWString(item.description), QVariant(GUID_To_QUuid(item.id)));
-	
-	
-	edtMax_Generations = new QLineEdit{ edits };
-	edtMax_Generations->setValidator(new QIntValidator(edits));
-	edtMax_Generations->setText("10000");
-	edtPopulation_Size = new QLineEdit{ edits };
-	edtPopulation_Size->setValidator(new QIntValidator(edits));
-	edtPopulation_Size->setText("100");
-	
+	QWidget* params_box = new QWidget();
 	{
-		QGridLayout *edits_layout = new QGridLayout();
-		edits->setLayout(edits_layout);
+		QVBoxLayout* vertical_layout = new QVBoxLayout();
+		params_box->setLayout(vertical_layout);
 
-		const auto params = Narrow_WChar(dsParameters);
-		const auto selected_solver = Narrow_WChar(dsSelected_Solver);
-		edits_layout->addWidget(new QLabel{ tr(params.c_str()), edits }, 0, 0);				edits_layout->addWidget(cmbParameters, 0, 1);
-		edits_layout->addWidget(new QLabel{ tr(selected_solver.c_str()), edits }, 1, 0);	edits_layout->addWidget(cmbSolver, 1, 1);
-		edits_layout->addWidget(new QLabel{ dsMax_Generations, edits }, 2, 0);				edits_layout->addWidget(edtMax_Generations, 2, 1);
-		edits_layout->addWidget(new QLabel{ dsPopulation_Size, edits }, 3, 0);				edits_layout->addWidget(edtPopulation_Size, 3, 1);
-	}
+		QWidget* edits = new QWidget();
+	
+		QStandardItemModel* model = new QStandardItemModel{ static_cast<int>(mParameters_Info.size()), static_cast<int>(1), edits }; // x rows, 1 col
+	
+		for (size_t i = 0; i < mParameters_Info.size(); i++) {
+
+			QStandardItem* item = new QStandardItem{ QString::fromStdWString(L"[%1] " + mParameters_Info[i].filter_name + L" / " + mParameters_Info[i].parameters_name ).arg(mParameters_Info[i].filter_index)};
+			item->setData(QVariant(static_cast<int>(i)));
+			item->setEditable(false);
+
+			model->setItem(static_cast<int>(i), item);
+		}
+
+		cmbParameters = new QListView{ edits };
+		cmbParameters->setModel(model);
+		cmbParameters->setSelectionMode(QAbstractItemView::SelectionMode::MultiSelection);
+
+		cmbSolver = new QComboBox{ edits };
+		for (const auto &item : scgms::get_solver_descriptors())
+			cmbSolver->addItem(QString::fromStdWString(item.description), QVariant(GUID_To_QUuid(item.id)));
+	
+	
+		edtMax_Generations = new QLineEdit{ edits };
+		edtMax_Generations->setValidator(new QIntValidator(edits));
+		edtMax_Generations->setText("10000");
+		edtPopulation_Size = new QLineEdit{ edits };
+		edtPopulation_Size->setValidator(new QIntValidator(edits));
+		edtPopulation_Size->setText("100");
+	
+		{
+			QGridLayout *edits_layout = new QGridLayout();
+			edits->setLayout(edits_layout);
+
+			const auto params = Narrow_WChar(dsParameters);
+			const auto selected_solver = Narrow_WChar(dsSelected_Solver);
+			edits_layout->addWidget(new QLabel{ tr(params.c_str()), edits }, 0, 0);				edits_layout->addWidget(cmbParameters, 0, 1);
+			edits_layout->addWidget(new QLabel{ tr(selected_solver.c_str()), edits }, 1, 0);	edits_layout->addWidget(cmbSolver, 1, 1);
+			edits_layout->addWidget(new QLabel{ dsMax_Generations, edits }, 2, 0);				edits_layout->addWidget(edtMax_Generations, 2, 1);
+			edits_layout->addWidget(new QLabel{ dsPopulation_Size, edits }, 3, 0);				edits_layout->addWidget(edtPopulation_Size, 3, 1);
+		}
 
 	
 
-	QWidget* progress = new QWidget();
-	{
-		QVBoxLayout *progress_layout = new QVBoxLayout();
-		progress->setLayout(progress_layout);
+		QWidget* progress = new QWidget();
+		{
+			QVBoxLayout *progress_layout = new QVBoxLayout();
+			progress->setLayout(progress_layout);
 
-		lblSolver_Info = new QLabel{ QString::fromStdWString(dsSolver_Progress_Box_Title), progress };
-		barProgress = new QProgressBar{ progress };
-		barProgress->setMinimum(0);
-		barProgress->setMaximum(100);		
+			lblSolver_Info = new QLabel{ QString::fromStdWString(dsSolver_Progress_Box_Title), progress };
+			barProgress = new QProgressBar{ progress };
+			barProgress->setTextVisible(false);
+			barProgress->setMinimum(0);
+			barProgress->setMaximum(100);
 
-		progress_layout->addWidget(lblSolver_Info);
-		progress_layout->addWidget(barProgress);
+			QWidget* progressLabels = new QWidget();
+			{
+				QHBoxLayout* labels_layout = new QHBoxLayout();
+				progressLabels->setLayout(labels_layout);
+
+				progressLabel1 = new QLabel("N/A");
+				progressLabel2 = new QLabel("0 %");
+
+				labels_layout->addWidget(progressLabel1, 0, Qt::AlignCenter);
+				labels_layout->addWidget(progressLabel2, 0, Qt::AlignCenter);
+			}
+
+			progress_layout->addWidget(lblSolver_Info);
+			progress_layout->addWidget(barProgress);
+			progress_layout->addWidget(progressLabels);
+		}
+
+		QWidget* buttons = new QWidget();
+		{
+			QHBoxLayout *buttons_layout = new QHBoxLayout();
+			buttons->setLayout(buttons_layout);
+
+			btnSolve = new QPushButton{ dsSolve, buttons };
+			btnStop = new QPushButton{ dsStop, buttons };
+			btnClose = new QPushButton{ dsClose, buttons };
+
+			buttons_layout->addWidget(btnSolve);	buttons_layout->addWidget(btnStop);	buttons_layout->addWidget(btnClose);
+			connect(btnSolve, SIGNAL(clicked()), this, SLOT(On_Solve()));
+			connect(btnStop, SIGNAL(clicked()), this, SLOT(On_Stop()));
+			connect(btnClose, SIGNAL(clicked()), this, SLOT(close()));
+		}
+
+
+		auto add_separator = [](QWidget *parent) {QFrame *line;
+											 line = new QFrame(parent);
+											 line->setFrameShape(QFrame::HLine);
+											 line->setFrameShadow(QFrame::Sunken);
+											 return line; };
+
+		vertical_layout->addWidget(edits);	
+		vertical_layout->addWidget(new QLabel{ dsParameters_Optimization_Use, this });
+		vertical_layout->addWidget(add_separator(this));
+		vertical_layout->addWidget(progress);
+		vertical_layout->addWidget(add_separator(this));
+		vertical_layout->addWidget(buttons);
+		vertical_layout->addStretch();
 	}
 
-	QWidget* buttons = new QWidget();
+	QWidget* metric_history_box = new QWidget();
 	{
-		QHBoxLayout *buttons_layout = new QHBoxLayout();
-		buttons->setLayout(buttons_layout);
+		QVBoxLayout* mhb_layout = new QVBoxLayout();
+		metric_history_box->setLayout(mhb_layout);
 
-		btnSolve = new QPushButton{ dsSolve, buttons };
-		btnStop = new QPushButton{ dsStop, buttons };
-		btnClose = new QPushButton{ dsClose, buttons };
+		QWidget* history = new QWidget();
 
-		buttons_layout->addWidget(btnSolve);	buttons_layout->addWidget(btnStop);	buttons_layout->addWidget(btnClose);
-		connect(btnSolve, SIGNAL(clicked()), this, SLOT(On_Solve()));
-		connect(btnStop, SIGNAL(clicked()), this, SLOT(On_Stop()));
-		connect(btnClose, SIGNAL(clicked()), this, SLOT(close()));
+		mdlMetricHistoryModel = new QStandardItemModel{ 0, static_cast<int>(1), history };
+
+		lstMetricHistory = new QListView{ history };
+		lstMetricHistory->setModel(mdlMetricHistoryModel);
+		lstMetricHistory->setMinimumWidth(250);
+
+		QWidget* startLbl = new QWidget();
+		{
+			QHBoxLayout* ly = new QHBoxLayout();
+			startLbl->setLayout(ly);
+
+			timestampLabelStart = new QLabel("N/A");
+
+			ly->addWidget(new QLabel("Start:"));
+			ly->addWidget(timestampLabelStart);
+		}
+
+		QWidget* endLbl = new QWidget();
+		{
+			QHBoxLayout* ly = new QHBoxLayout();
+			endLbl->setLayout(ly);
+
+			timestampLabelEnd = new QLabel("N/A");
+
+			ly->addWidget(new QLabel("End:"));
+			ly->addWidget(timestampLabelEnd);
+		}
+
+		mhb_layout->addWidget(new QLabel("Metric history"));
+		mhb_layout->addWidget(history, 1);
+		mhb_layout->addWidget(startLbl);
+		mhb_layout->addWidget(endLbl);
+
+		metric_history_box->setMinimumSize(300, 300);
 	}
 
+	main_layout->addWidget(params_box);
+	main_layout->addWidget(metric_history_box);
 
-	auto add_separator = [](QWidget *parent) {QFrame *line;
-										 line = new QFrame(parent);
-										 line->setFrameShape(QFrame::HLine);
-										 line->setFrameShadow(QFrame::Sunken);
-										 return line; };
-
-	vertical_layout->addWidget(edits);	
-	vertical_layout->addWidget(new QLabel{ dsParameters_Optimization_Use, this });
-	vertical_layout->addWidget(add_separator(this));
-	vertical_layout->addWidget(progress);
-	vertical_layout->addWidget(add_separator(this));
-	vertical_layout->addWidget(buttons);
-	vertical_layout->addStretch();
-
-	setMinimumSize(200, 200);	//keeping Qt happy although it should already calculate from the controls
+	setMinimumSize(300, 200);	//keeping Qt happy although it should already calculate from the controls
 
 	connect(this, SIGNAL(Update_Progress_Signal()), this, SLOT(On_Update_Progress()), Qt::BlockingQueuedConnection);
 }
@@ -239,21 +301,27 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 void CParameters_Optimization_Dialog::On_Solve() {
 	if (!mIs_Solving) {
 		const QVariant solver_variant = cmbSolver->currentData();
+		if (!solver_variant.isNull())
+			mChosen_Solver_Id = QUuid_To_GUID(solver_variant.toUuid());
 
-		std::vector<size_t> filter_info_indices;
-		std::vector<const wchar_t*> filter_parameter_names;
+		mSolve_filter_info_indices.clear();
+		mSolve_filter_parameter_names.clear();
 
 		
 		auto model = cmbParameters->selectionModel();
 		QStandardItemModel* casted_model = dynamic_cast<QStandardItemModel*>(model->model());
 		foreach(const QModelIndex & index, model->selectedIndexes()) {
 			const size_t filter_info_index = casted_model->itemFromIndex(index)->data().toInt();
-			filter_info_indices.push_back(mParameters_Info[filter_info_index].filter_index);
-			filter_parameter_names.push_back(mParameters_Info[filter_info_index].parameters_name.c_str());
+			mSolve_filter_info_indices.push_back(mParameters_Info[filter_info_index].filter_index);
+			mSolve_filter_parameter_names.push_back(mParameters_Info[filter_info_index].parameters_name.c_str());
 		}
-	
 
-		if (!solver_variant.isNull() && (!filter_info_indices.empty())) {
+		mdlMetricHistoryModel->clear();
+
+		timestampLabelStart->setText("N/A");
+		timestampLabelEnd->setText("N/A");
+
+		if (!solver_variant.isNull() && (!mSolve_filter_info_indices.empty())) {
 			mIs_Solving = true;
 
 			Stop_Threads();
@@ -261,13 +329,18 @@ void CParameters_Optimization_Dialog::On_Solve() {
 			const int popSize = edtPopulation_Size->text().toInt();
 			const int maxGens = edtMax_Generations->text().toInt();
 
+			lastMetric = std::numeric_limits<double>::max();
+			lastProgress = 0;
+			startDateTime = QDateTime::currentDateTime();
+			timestampLabelStart->setText(startDateTime.toLocalTime().toString());
+
 			mProgress = solver::Null_Solver_Progress;
 			mSolver_Thread = std::make_unique<std::thread>(
-				[this, popSize, maxGens, &solver_variant, filter_info_indices, filter_parameter_names]() {	//yes, we transfer copies of both vectors so that survive in this thread
+				[this, popSize, maxGens]() {
 					refcnt::Swstr_list error_description;
-					HRESULT res = scgms::Optimize_Multiple_Parameters(mConfiguration, filter_info_indices.data(), const_cast<const wchar_t**>(filter_parameter_names.data()), filter_info_indices.size(),
+					HRESULT res = scgms::Optimize_Multiple_Parameters(mConfiguration, mSolve_filter_info_indices.data(), const_cast<const wchar_t**>(mSolve_filter_parameter_names.data()), mSolve_filter_info_indices.size(),
 						Setup_Filter_DB_Access, nullptr,
-						QUuid_To_GUID(solver_variant.toUuid()),
+						mChosen_Solver_Id,
 						popSize,
 						maxGens,
 						mProgress,
@@ -285,7 +358,7 @@ void CParameters_Optimization_Dialog::On_Solve() {
 			mProgress_Update_Thread = std::make_unique<std::thread>([this]() {
 				while (mProgress.cancelled == FALSE) {
 					if (mIs_Solving) emit Update_Progress_Signal();
-					std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+					std::this_thread::sleep_for(std::chrono::milliseconds(500));
 				}
 			});
 		
@@ -297,12 +370,43 @@ void CParameters_Optimization_Dialog::On_Solve() {
 void CParameters_Optimization_Dialog::On_Update_Progress() {
 	if (mIs_Solving) {
 		if (mProgress.max_progress > 0) {
-			barProgress->setValue(static_cast<int>(std::round(100.0*mProgress.current_progress / mProgress.max_progress)));
+
+			int progressValue = static_cast<int>(std::round(100.0 * mProgress.current_progress / mProgress.max_progress));
+
+			barProgress->setValue(progressValue);
+			progressLabel1->setText(QString("%1 / %2").arg(mProgress.current_progress).arg(mProgress.max_progress));
+			progressLabel2->setText(QString("%1 %").arg(progressValue));
 			lblSolver_Info->setText(QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric));
+
+			if (lastProgress != mProgress.current_progress)
+			{
+				lastProgress = mProgress.current_progress;
+
+				if (mProgress.current_progress > 0)
+				{
+					const auto msPerUnit = (QDateTime::currentDateTime().toMSecsSinceEpoch() - startDateTime.toMSecsSinceEpoch()) / mProgress.current_progress;
+					const QDateTime etaEnd = startDateTime.addMSecs(msPerUnit * mProgress.max_progress);
+
+					timestampLabelEnd->setText(QString("%1 (ETA)").arg(etaEnd.toLocalTime().toString()));
+				}
+				else
+					timestampLabelEnd->setText("N/A");
+			}
+
+			if (mProgress.best_metric != lastMetric) {
+				lastMetric = mProgress.best_metric;
+
+				QStandardItem* item = new QStandardItem{ QString("%1 (%2/%3)").arg(lastMetric).arg(mProgress.current_progress).arg(mProgress.max_progress) };
+				mdlMetricHistoryModel->appendRow(item);
+				lstMetricHistory->scrollToBottom();
+			}
 		} else
 			lblSolver_Info->setText(QString(tr(dsSolver_Status_In_Progress)));
 	} else {
+		progressLabel1->setText(QString("N/A"));
+		progressLabel2->setText(QString("0 %"));
 		lblSolver_Info->setText(QString(tr(dsSolver_Status_Stopped)) + ", "+ QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric));
+		timestampLabelEnd->setText(QDateTime::currentDateTime().toLocalTime().toString());
 		barProgress->setValue(0);
 	}
 }

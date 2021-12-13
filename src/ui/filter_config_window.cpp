@@ -127,6 +127,8 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 			auto add_edit_control = [&]() {
 				filter_config_window::CContainer_Edit *container = nullptr;
 
+				GUID fixed_model = Invalid_GUID;
+
 				switch (mDescription.parameter_type[i])
 				{
 					case scgms::NParameter_Type::ptNull:
@@ -197,8 +199,7 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 
 					case scgms::NParameter_Type::ptDouble_Array:
 						// model bounds edit always requires model selection field
-						GUID fixed_model = Invalid_GUID;
-						if (!model_select) {							
+						if (!model_select) {
 							std::tie(model_select, fixed_model) = create_model_select(parameter, false);
 						}
 
