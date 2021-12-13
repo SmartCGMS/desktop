@@ -153,7 +153,7 @@ void CFilter_List_Item::Refresh()
 								const std::wstring cfg_name{ cfg.configuration_name() };	//converts from wchar_t*!
 								if (cfg_name == L"Source_File") {
 									HRESULT rc;
-									src_file_str = cfg.as_filepath(rc).filename().wstring();
+									src_file_str = cfg.as_filepath(rc).filename();
 									src_file_set = (rc == S_OK) && (!src_file_str.empty());
 								}								
 						};
