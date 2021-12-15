@@ -142,14 +142,14 @@ void CModel_Bounds_Panel_internal::CParameters_Table_Model::Load_Parameters(cons
 
 	mNames.clear();
 	if (model.id != Invalid_GUID) {
-		for (size_t i = 0; i < model.number_of_parameters; i++) {
+		for (size_t i = 0; i < model.total_number_of_parameters; i++) {
 			mNames.push_back(QString::fromWCharArray(model.parameter_ui_names[i]));
 		}
 
-		mTypes.assign(model.parameter_types, model.parameter_types + model.number_of_parameters);
-		mLower_Bounds.assign(lower_bounds, lower_bounds + model.number_of_parameters);
-		mDefault_Values.assign(defaults, defaults + model.number_of_parameters);
-		mUpper_Bounds.assign(upper_bounds, upper_bounds + model.number_of_parameters);
+		mTypes.assign(model.parameter_types, model.parameter_types + model.total_number_of_parameters);
+		mLower_Bounds.assign(lower_bounds, lower_bounds + model.total_number_of_parameters);
+		mDefault_Values.assign(defaults, defaults + model.total_number_of_parameters);
+		mUpper_Bounds.assign(upper_bounds, upper_bounds + model.total_number_of_parameters);
 	}
 
 	emit dataChanged(createIndex(0, 0), createIndex(rowCount() - 1, columnCount() - 1));
@@ -284,7 +284,7 @@ void CModel_Bounds_Panel::Reset_Parameters(std::vector<double> &values, std::fun
 		return;
 
 	const double* bounds = get_bounds(model);
-	values.assign(bounds, bounds + model.number_of_parameters);
+	values.assign(bounds, bounds + model.total_number_of_parameters);
 
 	mTableView->viewport()->update();
 }
@@ -329,10 +329,10 @@ void CModel_Bounds_Panel::fetch_parameter() {
 		std::vector<double> parameters = mParameter.as_double_array(rc);
 		
 		if (Succeeded(rc)) {
-			if (parameters.size() == model.number_of_parameters * 3) {
+			if (parameters.size() == model.total_number_of_parameters * 3) {
 				lb = parameters.data();
-				def = lb + model.number_of_parameters;
-				ub = lb + 2 * model.number_of_parameters;
+				def = lb + model.total_number_of_parameters;
+				ub = lb + 2 * model.total_number_of_parameters;
 			}
 			else
 				//signalize the error!
