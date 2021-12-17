@@ -77,12 +77,27 @@ double *CModel_Bounds_Panel_internal::CParameters_Table_Model::Get_Data(const in
 	return data;
 }
 
+int CModel_Bounds_Panel_internal::CParameters_Table_Model::UI_Idx_To_Data_Idx(const int ui) const {
+
+	if (mIndividualized_Segment_Count > 1) {
+		const size_t rows_per_segment = mSegment_Specific_Parameter_Count + 1;	//+1 to denote the heading row
+
+		if (ui >= mNames.size() - mSegment_Agnostic_Parameter_Count) {
+			return static_cast<int>(ui - (mIndividualized_Segment_Count - 1) * rows_per_segment);
+		} else {					
+			return ui % rows_per_segment;
+		}		
+	}
+	else
+		return ui;
+}
+
 QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::data(const QModelIndex &index, int role) const {
 	auto get_val = [this, &index]()->double {
 		switch (index.column()) {
-			case 0: return mLower_Bounds[index.row()];
-			case 1: return mDefault_Values[index.row()];
-			case 2: return mUpper_Bounds[index.row()];
+			case 0: return mLower_Bounds[UI_Idx_To_Data_Idx(index.row())];
+			case 1: return mDefault_Values[UI_Idx_To_Data_Idx(index.row())];
+			case 2: return mUpper_Bounds[UI_Idx_To_Data_Idx(index.row())];
 			default: return std::numeric_limits<double>::quiet_NaN();
 		}
 	
@@ -110,7 +125,7 @@ bool CModel_Bounds_Panel_internal::CParameters_Table_Model::setData(const QModel
 	if (!ok) return false;
 	
 
-	Get_Data(index.column())[index.row()] = val;
+	Get_Data(index.column())[UI_Idx_To_Data_Idx(index.row())] = val;
 	return true;
 }
 
@@ -137,19 +152,57 @@ Qt::ItemFlags CModel_Bounds_Panel_internal::CParameters_Table_Model::flags(const
 	return result;
 }
 
-void CModel_Bounds_Panel_internal::CParameters_Table_Model::Load_Parameters(const scgms::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds) {
+void CModel_Bounds_Panel_internal::CParameters_Table_Model::Load_Parameters(const scgms::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds, const size_t count) {
 	beginResetModel();
 
 	mNames.clear();
-	if (model.id != Invalid_GUID) {
-		for (size_t i = 0; i < model.total_number_of_parameters; i++) {
-			mNames.push_back(QString::fromWCharArray(model.parameter_ui_names[i]));
-		}
+	mTypes.clear();
+	mLower_Bounds.clear();
+	mDefault_Values.clear();
+	mUpper_Bounds.clear();
 
-		mTypes.assign(model.parameter_types, model.parameter_types + model.total_number_of_parameters);
-		mLower_Bounds.assign(lower_bounds, lower_bounds + model.total_number_of_parameters);
-		mDefault_Values.assign(defaults, defaults + model.total_number_of_parameters);
-		mUpper_Bounds.assign(upper_bounds, upper_bounds + model.total_number_of_parameters);
+	if (model.id != Invalid_GUID) {
+		mSegment_Agnostic_Parameter_Count = model.total_number_of_parameters - model.number_of_segment_specific_parameters;
+		mSegment_Specific_Parameter_Count = model.number_of_segment_specific_parameters;
+		size_t total_specific_parameters_in_doubles = count - mSegment_Agnostic_Parameter_Count;
+
+		size_t segment_UI_idx = 1;
+
+		//check that the number of parameters is correct => check that they are not corrupted
+		if ((total_specific_parameters_in_doubles % mSegment_Specific_Parameter_Count) == 0) {
+			
+				mIndividualized_Segment_Count = total_specific_parameters_in_doubles / mSegment_Specific_Parameter_Count;
+
+				for (size_t i = 0; i < count; i++) {
+					//do we need to push a segment number name?
+					if (mIndividualized_Segment_Count > 1) {
+						if (i < total_specific_parameters_in_doubles) {
+							if (i % mSegment_Specific_Parameter_Count == 0) {
+								QString name{ dsSegment };
+								name += QStringLiteral(" %1").arg(segment_UI_idx);								
+								mNames.push_back(name);
+								segment_UI_idx++;
+							}
+						}
+					} 
+			
+					if (i < total_specific_parameters_in_doubles) {
+						const size_t idx = i % mSegment_Specific_Parameter_Count;
+						mTypes.push_back(model.parameter_types[idx]);
+						mNames.push_back(QString::fromWCharArray(model.parameter_ui_names[idx]));
+					}
+					else {
+						const size_t idx = i - total_specific_parameters_in_doubles + mSegment_Specific_Parameter_Count;
+						mTypes.push_back(model.parameter_types[idx]);
+						mNames.push_back(QString::fromWCharArray(model.parameter_ui_names[idx]));
+					}
+				}
+
+				
+				mLower_Bounds.assign(lower_bounds, lower_bounds + count);
+				mDefault_Values.assign(defaults, defaults + count);
+				mUpper_Bounds.assign(upper_bounds, upper_bounds + count);
+			}
 	}
 
 	emit dataChanged(createIndex(0, 0), createIndex(rowCount() - 1, columnCount() - 1));
@@ -323,13 +376,20 @@ void CModel_Bounds_Panel::fetch_parameter() {
 		double* lb = const_cast<double*>(model.lower_bound);
 		double* def = const_cast<double*>(model.default_values);
 		double* ub = const_cast<double*>(model.upper_bound);
+		size_t param_count = model.total_number_of_parameters;
 
 		//and try to load custom ones
 		HRESULT rc;
 		std::vector<double> parameters = mParameter.as_double_array(rc);
 		
 		if (Succeeded(rc)) {
-			if (parameters.size() == model.total_number_of_parameters * 3) {
+			param_count = parameters.size() / 3;
+
+			bool valid_param_size = parameters.size() % 3 == 0;	//OK, looks like we have low, def and upper
+			if (valid_param_size)//also check, if the number of parameters is actually OK when considering segment sepcific and segment agnostic parameters
+				valid_param_size = (param_count -model.total_number_of_parameters + model.number_of_segment_specific_parameters) % model.number_of_segment_specific_parameters == 0;
+
+			if (valid_param_size) {
 				lb = parameters.data();
 				def = lb + model.total_number_of_parameters;
 				ub = lb + 2 * model.total_number_of_parameters;
@@ -341,9 +401,9 @@ void CModel_Bounds_Panel::fetch_parameter() {
 			if (rc != E_NOT_SET)		//ignore if we know that the parameter was not set yet
 				check_rc(rc);
 
-		mModel->Load_Parameters(model, lb, def, ub);
+		mModel->Load_Parameters(model, lb, def, ub, param_count);
 	} else
-		mModel->Load_Parameters(scgms::Null_Model_Descriptor, nullptr, nullptr, nullptr);
+		mModel->Load_Parameters(scgms::Null_Model_Descriptor, nullptr, nullptr, nullptr, 0);
 
 	mTableView->resizeColumnsToContents();
 	mTableView->resizeRowsToContents();

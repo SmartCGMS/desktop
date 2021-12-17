@@ -58,11 +58,15 @@ namespace CModel_Bounds_Panel_internal {
 		Q_OBJECT
 	protected:		
 		std::vector<QString> mNames;
-		double *Get_Data(const int col);
+		size_t mSegment_Agnostic_Parameter_Count;
+		size_t mIndividualized_Segment_Count;
+		size_t mSegment_Specific_Parameter_Count;
+		int UI_Idx_To_Data_Idx(const int ui) const;
 	public:
 		std::vector<scgms::NModel_Parameter_Value> mTypes;
 		std::vector<double> mLower_Bounds, mDefault_Values, mUpper_Bounds;
-
+	protected:
+		double* Get_Data(const int col);
 	public:
 		explicit CParameters_Table_Model(QObject *parent = 0) noexcept;
 
@@ -73,7 +77,7 @@ namespace CModel_Bounds_Panel_internal {
 		virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 		virtual Qt::ItemFlags flags(const QModelIndex & index) const override;
 		
-		void Load_Parameters(const scgms::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds);
+		void Load_Parameters(const scgms::TModel_Descriptor& model, const double* lower_bounds, const double* defaults, const double* upper_bounds, const size_t count);
 		std::vector<double> Store_Parameters();
 	};
 
