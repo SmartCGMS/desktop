@@ -42,6 +42,8 @@
 
 #include "../../../../common/rtl/FilterLib.h"
 
+#include <tuple>
+
 
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QComboBox>
@@ -61,7 +63,7 @@ namespace CModel_Bounds_Panel_internal {
 		size_t mSegment_Agnostic_Parameter_Count;
 		size_t mIndividualized_Segment_Count;
 		size_t mSegment_Specific_Parameter_Count;
-		int UI_Idx_To_Data_Idx(const int ui) const;
+		std::tuple<bool, size_t> UI_Idx_To_Data_Idx(const int ui) const;
 	public:
 		std::vector<scgms::NModel_Parameter_Value> mTypes;
 		std::vector<double> mLower_Bounds, mDefault_Values, mUpper_Bounds;

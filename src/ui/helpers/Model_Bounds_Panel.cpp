@@ -77,27 +77,31 @@ double *CModel_Bounds_Panel_internal::CParameters_Table_Model::Get_Data(const in
 	return data;
 }
 
-int CModel_Bounds_Panel_internal::CParameters_Table_Model::UI_Idx_To_Data_Idx(const int ui) const {
+std::tuple<bool, size_t> CModel_Bounds_Panel_internal::CParameters_Table_Model::UI_Idx_To_Data_Idx(const int ui) const {
+	if (ui > mNames.size())
+		return { false, 0 };
+
 
 	if (mIndividualized_Segment_Count > 1) {
 		const size_t rows_per_segment = mSegment_Specific_Parameter_Count + 1;	//+1 to denote the heading row
 
 		if (ui >= mNames.size() - mSegment_Agnostic_Parameter_Count) {
-			return static_cast<int>(ui - (mIndividualized_Segment_Count - 1) * rows_per_segment);
+			return { true, ui - (mIndividualized_Segment_Count - 1) * rows_per_segment };
 		} else {					
-			return ui % rows_per_segment;
+			const size_t rem = ui % rows_per_segment;
+			return { rem != 0, rem };
 		}		
 	}
 	else
-		return ui;
+		return { true, static_cast<size_t>(ui) };
 }
 
 QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::data(const QModelIndex &index, int role) const {
-	auto get_val = [this, &index]()->double {
+	auto get_val = [this, &index](const size_t data_row)->double {
 		switch (index.column()) {
-			case 0: return mLower_Bounds[UI_Idx_To_Data_Idx(index.row())];
-			case 1: return mDefault_Values[UI_Idx_To_Data_Idx(index.row())];
-			case 2: return mUpper_Bounds[UI_Idx_To_Data_Idx(index.row())];
+			case 0: return mLower_Bounds[data_row];
+			case 1: return mDefault_Values[data_row];
+			case 2: return mUpper_Bounds[data_row];
 			default: return std::numeric_limits<double>::quiet_NaN();
 		}
 	
@@ -106,10 +110,15 @@ QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::data(const QMode
 	if (role == Qt::DisplayRole || role == Qt::EditRole) {
 		if (static_cast<size_t>(index.row()) >= mNames.size()) return QVariant(std::numeric_limits<double>::quiet_NaN());
 
-		switch (mTypes[index.row()]) {
-			case scgms::NModel_Parameter_Value::mptTime: return filter_config_window::CRatTime_Validator::rattime_to_string(get_val());
-			default: return QString::fromStdWString(dbl_2_wstr(get_val()));
-		}
+		auto [non_empty_line, data_idx] = UI_Idx_To_Data_Idx(index.row());
+
+		if (non_empty_line) {
+			switch (mTypes[data_idx]) {
+				case scgms::NModel_Parameter_Value::mptTime: return filter_config_window::CRatTime_Validator::rattime_to_string(get_val(data_idx));
+				default:									 return QString::fromStdWString(dbl_2_wstr(get_val(data_idx)));
+			}
+		} else
+			return QVariant{};
 
 		return QVariant(std::numeric_limits<double>::quiet_NaN());
 	}
@@ -125,8 +134,11 @@ bool CModel_Bounds_Panel_internal::CParameters_Table_Model::setData(const QModel
 	if (!ok) return false;
 	
 
-	Get_Data(index.column())[UI_Idx_To_Data_Idx(index.row())] = val;
-	return true;
+	auto [non_empty_line, data_idx] = UI_Idx_To_Data_Idx(index.row());
+
+	if (non_empty_line)
+		Get_Data(index.column())[data_idx] = val;
+	return non_empty_line;
 }
 
 QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::headerData(int section, Qt::Orientation orientation, int role) const {
@@ -148,7 +160,11 @@ QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::headerData(int s
 
 Qt::ItemFlags CModel_Bounds_Panel_internal::CParameters_Table_Model::flags(const QModelIndex & index) const {
 	auto result = QAbstractTableModel::flags(index);
-	result |= Qt::ItemIsEditable;
+	
+	auto [non_empty_line, data_idx] = UI_Idx_To_Data_Idx(index.row());
+	if (non_empty_line)
+		result |= Qt::ItemIsEditable;
+
 	return result;
 }
 
@@ -232,6 +248,8 @@ CModel_Bounds_Panel_internal::CParameter_Value_Delegate::CParameter_Value_Delega
 
 QWidget* CModel_Bounds_Panel_internal::CParameter_Value_Delegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option,	const QModelIndex &index) const {
 	const int idx = index.row();
+
+
 
 	QWidget* editor = nullptr;
 	switch (mTypes[idx]) {
@@ -391,8 +409,8 @@ void CModel_Bounds_Panel::fetch_parameter() {
 
 			if (valid_param_size) {
 				lb = parameters.data();
-				def = lb + model.total_number_of_parameters;
-				ub = lb + 2 * model.total_number_of_parameters;
+				def = lb + param_count;
+				ub = lb + 2 * param_count;
 			}
 			else
 				//signalize the error!
