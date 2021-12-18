@@ -89,7 +89,7 @@ std::tuple<bool, size_t> CModel_Bounds_Panel_internal::CParameters_Table_Model::
 			return { true, ui - (mIndividualized_Segment_Count - 1) * rows_per_segment };
 		} else {					
 			const size_t rem = ui % rows_per_segment;
-			return { rem != 0, rem };
+			return { rem != 0, ui - (ui/ rows_per_segment) };
 		}		
 	}
 	else
@@ -239,26 +239,25 @@ std::vector<double> CModel_Bounds_Panel_internal::CParameters_Table_Model::Store
 	return values;
 }
 
-CModel_Bounds_Panel_internal::CParameter_Value_Delegate::CParameter_Value_Delegate(std::vector<scgms::NModel_Parameter_Value> &types,
-	std::vector<double> &lower, std::vector<double> &default_values, std::vector<double> &upper,
-	QObject *parent) :
-	QItemDelegate(parent), mTypes(types), mLower_Bounds(lower), mDefault_Values(default_values), mUpper_Bounds(upper) {
+CModel_Bounds_Panel_internal::CParameter_Value_Delegate::CParameter_Value_Delegate(CModel_Bounds_Panel_internal::CParameters_Table_Model* model, QObject* parent) :
+	QItemDelegate(parent), mModel(model) {
 
 }
 
 QWidget* CModel_Bounds_Panel_internal::CParameter_Value_Delegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option,	const QModelIndex &index) const {
-	const int idx = index.row();
-
-
+	
+	auto [non_empty_line, data_idx] = mModel->UI_Idx_To_Data_Idx(index.row());
 
 	QWidget* editor = nullptr;
-	switch (mTypes[idx]) {
-		case scgms::NModel_Parameter_Value::mptTime: 
-			editor = new filter_config_window::CRatTime_Container_Edit{ scgms::SFilter_Parameter{}, parent };			
-			break;		
-		default://double and bool
-			editor = new filter_config_window::CDouble_Container_Edit{ scgms::SFilter_Parameter{}, parent };
-			break;
+	if (non_empty_line) {
+		switch (mModel->mTypes[data_idx]) {
+			case scgms::NModel_Parameter_Value::mptTime:
+				editor = new filter_config_window::CRatTime_Container_Edit{ scgms::SFilter_Parameter{}, parent };
+				break;
+			default://double and bool
+				editor = new filter_config_window::CDouble_Container_Edit{ scgms::SFilter_Parameter{}, parent };
+				break;
+		}
 	}
 
 	return editor;
@@ -266,19 +265,23 @@ QWidget* CModel_Bounds_Panel_internal::CParameter_Value_Delegate::createEditor(Q
 
 void CModel_Bounds_Panel_internal::CParameter_Value_Delegate::setEditorData(QWidget *editor, const QModelIndex &index) const {	
 
-	auto get_val = [this, &index]()->double {
-		if (static_cast<size_t>(index.row()) >= mTypes.size()) return std::numeric_limits<double>::quiet_NaN();
+	auto get_val = [this, &index](const size_t data_row)->double {
+		//if (static_cast<size_t>(data_idx) >= mMOlde-mTypes.size()) return std::numeric_limits<double>::quiet_NaN();
 
 		switch (index.column()) {
-			case 0: return mLower_Bounds[index.row()];
-			case 1: return mDefault_Values[index.row()];
-			case 2: return mUpper_Bounds[index.row()];
+			case 0: return mModel->mLower_Bounds[data_row];
+			case 1: return mModel->mDefault_Values[data_row];
+			case 2: return mModel->mUpper_Bounds[data_row];
 			default: return std::numeric_limits<double>::quiet_NaN();
 		}
 	};
 	
-	filter_config_window::IAs_Double_Container* true_editor = dynamic_cast<filter_config_window::IAs_Double_Container*>(editor);
-	true_editor->set_double(get_val());
+	auto [non_empty_line, data_row] = mModel->UI_Idx_To_Data_Idx(index.row());
+
+	if (non_empty_line) {
+		filter_config_window::IAs_Double_Container* true_editor = dynamic_cast<filter_config_window::IAs_Double_Container*>(editor);
+		true_editor->set_double(get_val(data_row));
+	}
 }
 
 void CModel_Bounds_Panel_internal::CParameter_Value_Delegate::setModelData(QWidget *editor, QAbstractItemModel *model,const QModelIndex &index) const {
@@ -299,8 +302,7 @@ CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QCo
 	mModel = new CModel_Bounds_Panel_internal::CParameters_Table_Model(this);
 	mTableView->setModel(mModel);
 
-	auto delegate = new CModel_Bounds_Panel_internal::CParameter_Value_Delegate(mModel->mTypes, mModel->mLower_Bounds,
-		mModel->mDefault_Values, mModel->mUpper_Bounds, this);
+	auto delegate = new CModel_Bounds_Panel_internal::CParameter_Value_Delegate(mModel, this);
 	mTableView->setItemDelegate(delegate);
 
 	mTableView->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::SelectedClicked | QAbstractItemView::EditKeyPressed);

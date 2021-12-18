@@ -62,11 +62,11 @@ namespace CModel_Bounds_Panel_internal {
 		std::vector<QString> mNames;
 		size_t mSegment_Agnostic_Parameter_Count;
 		size_t mIndividualized_Segment_Count;
-		size_t mSegment_Specific_Parameter_Count;
-		std::tuple<bool, size_t> UI_Idx_To_Data_Idx(const int ui) const;
+		size_t mSegment_Specific_Parameter_Count;		
 	public:
 		std::vector<scgms::NModel_Parameter_Value> mTypes;
 		std::vector<double> mLower_Bounds, mDefault_Values, mUpper_Bounds;
+		std::tuple<bool, size_t> UI_Idx_To_Data_Idx(const int ui) const;
 	protected:
 		double* Get_Data(const int col);
 	public:
@@ -86,12 +86,9 @@ namespace CModel_Bounds_Panel_internal {
 	class CParameter_Value_Delegate : public QItemDelegate {
 		Q_OBJECT
 	protected:
-		std::vector<scgms::NModel_Parameter_Value> &mTypes;
-		std::vector<double> &mLower_Bounds, &mDefault_Values, &mUpper_Bounds;
+		CParameters_Table_Model* mModel;
 	public:
-		CParameter_Value_Delegate(std::vector<scgms::NModel_Parameter_Value> &types,
-			std::vector<double> &lower, std::vector<double> &default_values, std::vector<double> &upper,
-			QObject *parent);
+		CParameter_Value_Delegate(CParameters_Table_Model *model, QObject *parent);
 
 		QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
 			const QModelIndex &index) const override;
