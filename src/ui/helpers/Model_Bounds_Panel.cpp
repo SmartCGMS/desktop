@@ -84,12 +84,12 @@ std::tuple<bool, size_t> CModel_Bounds_Panel_internal::CParameters_Table_Model::
 
 	if (mIndividualized_Segment_Count > 1) {
 		const size_t rows_per_segment = mSegment_Specific_Parameter_Count + 1;	//+1 to denote the heading row
-
-		if (ui >= mNames.size() - mSegment_Agnostic_Parameter_Count) {
-			return { true, ui - (mIndividualized_Segment_Count - 1) * rows_per_segment };
+		
+		if (ui > mNames.size() - mSegment_Agnostic_Parameter_Count) {	//ui points to the common parameters
+			return { true, mDefault_Values.size() - mNames.size() + ui};
 		} else {					
 			const size_t rem = ui % rows_per_segment;
-			return { rem != 0, ui - (ui/ rows_per_segment) };
+			return { rem != 0, ui - (ui/ rows_per_segment) - 1};	//-1 to account the first string - "Segment 1"
 		}		
 	}
 	else
@@ -189,6 +189,7 @@ void CModel_Bounds_Panel_internal::CParameters_Table_Model::Load_Parameters(cons
 			
 				mIndividualized_Segment_Count = total_specific_parameters_in_doubles / mSegment_Specific_Parameter_Count;
 
+				bool common_params_str = false;
 				for (size_t i = 0; i < count; i++) {
 					//do we need to push a segment number name?
 					if (mIndividualized_Segment_Count > 1) {
@@ -199,6 +200,10 @@ void CModel_Bounds_Panel_internal::CParameters_Table_Model::Load_Parameters(cons
 								mNames.push_back(name);
 								segment_UI_idx++;
 							}
+						}
+						else if ((i % mSegment_Specific_Parameter_Count == 0) && !common_params_str) {
+							common_params_str = true;
+							mNames.push_back(QString::fromWCharArray(dsCommon));
 						}
 					} 
 			
