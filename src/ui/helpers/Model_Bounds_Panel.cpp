@@ -185,9 +185,9 @@ void CModel_Bounds_Panel_internal::CParameters_Table_Model::Load_Parameters(cons
 		size_t segment_UI_idx = 1;
 
 		//check that the number of parameters is correct => check that they are not corrupted
-		if ((total_specific_parameters_in_doubles % mSegment_Specific_Parameter_Count) == 0) {
+		if ((mSegment_Specific_Parameter_Count == 0) || (total_specific_parameters_in_doubles % mSegment_Specific_Parameter_Count) == 0) {
 			
-				mIndividualized_Segment_Count = total_specific_parameters_in_doubles / mSegment_Specific_Parameter_Count;
+				mIndividualized_Segment_Count = mSegment_Specific_Parameter_Count > 0 ? total_specific_parameters_in_doubles / mSegment_Specific_Parameter_Count : 0;
 
 				bool common_params_str = false;
 				for (size_t i = 0; i < count; i++) {
@@ -411,8 +411,10 @@ void CModel_Bounds_Panel::fetch_parameter() {
 			param_count = parameters.size() / 3;
 
 			bool valid_param_size = parameters.size() % 3 == 0;	//OK, looks like we have low, def and upper
-			if (valid_param_size)//also check, if the number of parameters is actually OK when considering segment sepcific and segment agnostic parameters
-				valid_param_size = (param_count -model.total_number_of_parameters + model.number_of_segment_specific_parameters) % model.number_of_segment_specific_parameters == 0;
+			if (valid_param_size) {//also check, if the number of parameters is actually OK when considering segment specific and segment agnostic parameters
+				if (model.number_of_segment_specific_parameters>0)	//beware, parameter-classification is not mandatory, hence it could be zero
+					valid_param_size = (param_count - model.total_number_of_parameters + model.number_of_segment_specific_parameters) % model.number_of_segment_specific_parameters == 0;
+			}
 
 			if (valid_param_size) {
 				lb = parameters.data();
