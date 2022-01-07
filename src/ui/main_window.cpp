@@ -209,7 +209,7 @@ void CMain_Window::Update_Recent_Files() {
 
 			const auto ppath = mRecent_Files[i].parent_path();
 			if (!ppath.empty()) {
-				menu_caption += L"(";
+				menu_caption += L" (";
 				menu_caption += ppath.wstring();
 				menu_caption += L")";
 			}
