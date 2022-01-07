@@ -210,7 +210,7 @@ void CModel_Bounds_Panel_internal::CParameters_Table_Model::Load_Parameters(cons
 					if (i < total_specific_parameters_in_doubles) {
 						const size_t idx = i % mSegment_Specific_Parameter_Count;
 						mTypes.push_back(model.parameter_types[idx]);
-						mNames.push_back(QString::fromWCharArray(model.parameter_ui_names[idx]));
+						mNames.push_back(QStringLiteral("{%1} %2").arg(segment_UI_idx-1).arg(QString::fromWCharArray(model.parameter_ui_names[idx])));
 					}
 					else {
 						const size_t idx = i - total_specific_parameters_in_doubles + mSegment_Specific_Parameter_Count;
