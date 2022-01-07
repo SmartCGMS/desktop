@@ -39,6 +39,7 @@
 #pragma once
 
 #include <array>
+#include <vector>
 
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMdiArea>
@@ -62,13 +63,8 @@ protected:
 
 	filesystem::path mStorage_Path;
 
-	static constexpr size_t Recent_File_Count = 10;
-
-	struct TRecent_File {
-		std::wstring name{ L"" };
-		filesystem::path path;
-	};
-	std::list<TRecent_File> mRecent_Files;
+	static constexpr size_t Max_Recent_File_Count = 9;	//must be nine to avoid duplicate underscore for 1 and 10
+	std::vector<filesystem::path> mRecent_Files;
 
 private:
 	QMdiArea *pnlMDI_Content = nullptr;

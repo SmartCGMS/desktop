@@ -191,26 +191,27 @@ void CMain_Window::Update_Recent_Files() {
 
 	mniRecent_Files->clear();
 
-	if (mRecent_Files.empty())
-	{
+	if (mRecent_Files.empty())	{
 		auto act = mniRecent_Files->addAction(dsNo_Recent_Files);
 		act->setDisabled(true);
-		return;
 	}
+	else {
 
-	// go through the recent files, add actions and connect it to handler
-	size_t cnt = 0;
-	for (const auto& rfile : mRecent_Files)
-	{
-		if (rfile.name.empty())
-			break;
+		// go through the recent files, add actions and connect it to handler	
+		for (size_t i = 0; (i < mRecent_Files.size()) && (i < Max_Recent_File_Count); i++) {
+			if (mRecent_Files[i].empty())
+				continue;
 
-		auto act = mniRecent_Files->addAction(StdWStringToQString(rfile.name));
-		act->setData(cnt);
+			std::wstring menu_caption = L"&";
+			menu_caption += std::to_wstring(i + 1);
+			menu_caption += L" ";
+			menu_caption += mRecent_Files[i].filename().wstring();
 
-		connect(act, &QAction::triggered, std::bind(&CMain_Window::On_Open_Recent_Experimental_Setup, this, act));
+			auto act = mniRecent_Files->addAction(StdWStringToQString(menu_caption));
+			act->setData(i);
 
-		cnt++;
+			connect(act, &QAction::triggered, std::bind(&CMain_Window::On_Open_Recent_Experimental_Setup, this, act));
+		}
 	}
 }
 
@@ -222,27 +223,19 @@ void CMain_Window::Setup_Storage() {
 	if (!std::filesystem::exists(mStorage_Path) || !std::filesystem::is_directory(mStorage_Path))
 		std::filesystem::create_directories(mStorage_Path);
 
-	for (auto& f : mRecent_Files)
-		f.name.clear();
+
+	mRecent_Files.clear();
 
 	const filesystem::path recent_files_path = mStorage_Path / dsRecent_Files_Filename;
 	if (std::filesystem::exists(recent_files_path))
 	{
 		std::wifstream ifs(recent_files_path.wstring());
-
-		size_t i;
-		std::wstring name, path;
-		for (i = 0; i < Recent_File_Count; i++)
-		{
-			if (ifs >> name >> path)
-			{
-				if (!name.empty() && !path.empty())
-				{
-					mRecent_Files.push_back({
-						name,
-						path
-					});
-				}
+		
+		std::wstring path;
+		for (size_t i = 0; i < Max_Recent_File_Count; i++) {
+			if (std::getline(ifs, path)) {
+				if (!path.empty()) 
+					mRecent_Files.push_back(path);				
 			}
 		}
 	}
@@ -253,13 +246,9 @@ void CMain_Window::Save_Recent_Files()
 	const filesystem::path recent_files_path = mStorage_Path / dsRecent_Files_Filename;
 	std::wofstream ifs(recent_files_path.wstring());
 
-	if (ifs.is_open())
-	{
-		for (const auto& rfile : mRecent_Files)
-		{
-			if (rfile.name.empty())
-				break;
-			ifs << rfile.name << std::endl << filesystem::absolute(rfile.path).wstring() << std::endl;
+	if (ifs.is_open())	{
+		for (size_t i = 0; i < mRecent_Files.size(); i++) {
+			ifs << filesystem::absolute(mRecent_Files[i]).wstring() << std::endl;
 		}
 	}
 }
@@ -426,18 +415,15 @@ void CMain_Window::Push_Recent_File(const filesystem::path& path) {
 
 	for (auto itr = mRecent_Files.begin(); itr != mRecent_Files.end(); )
 	{
-		if (itr->path == path)
+		if (*itr == path)
 			itr = mRecent_Files.erase(itr);
 		else
 			++itr;
 	}
 
-	mRecent_Files.push_front({
-		path.filename().wstring(),
-		path
-	});
+	mRecent_Files.insert(mRecent_Files.begin(), path);
 
-	while (mRecent_Files.size() > Recent_File_Count)
+	while (mRecent_Files.size() > Max_Recent_File_Count)
 		mRecent_Files.pop_back();
 }
 
@@ -484,12 +470,11 @@ void CMain_Window::On_Open_Recent_Experimental_Setup(QAction* action) {
 
 	auto itr = mRecent_Files.begin();
 	std::advance(itr, index);
-
-	const auto& fl = *itr;
-	if (fl.name.empty() || fl.path.empty())
+	
+	if (itr->empty())
 		return;
 
-	Open_Experimental_Setup(fl.path.wstring());
+	Open_Experimental_Setup(itr->wstring());
 }
 
 void CMain_Window::On_Save_Experimental_Setup() {
