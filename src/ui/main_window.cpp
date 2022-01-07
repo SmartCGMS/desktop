@@ -202,10 +202,17 @@ void CMain_Window::Update_Recent_Files() {
 			if (mRecent_Files[i].empty())
 				continue;
 
-			std::wstring menu_caption = L"&";
+			std::wstring menu_caption = i<=9 ? L"&" : L"";
 			menu_caption += std::to_wstring(i + 1);
 			menu_caption += L" ";
 			menu_caption += mRecent_Files[i].filename().wstring();
+
+			const auto ppath = mRecent_Files[i].parent_path();
+			if (!ppath.empty()) {
+				menu_caption += L"(";
+				menu_caption += ppath.wstring();
+				menu_caption += L")";
+			}
 
 			auto act = mniRecent_Files->addAction(StdWStringToQString(menu_caption));
 			act->setData(i);
