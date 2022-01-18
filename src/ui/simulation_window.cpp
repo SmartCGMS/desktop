@@ -350,9 +350,14 @@ void CSimulation_Window::Show_Tab_Context_Menu(const QPoint &point)
 	if (point.isNull())
 		return;
 
+	// "close" is displayed after the dynamically added widgets
+	size_t sumDrawingV2 = 0;
+	for (const auto& v : mDrawing_v2_Widgets)
+		sumDrawingV2 += v.size();
+
 	int tabIndex = mTabWidget->tabBar()->tabAt(point);
 	QMenu menu(this);
-	if (tabIndex >= mBase_Tab_Count)
+	if (tabIndex >= mBase_Tab_Count + sumDrawingV2)
 		menu.addAction(tr(dsClose_Tab), std::bind(&CSimulation_Window::Close_Tab, this, tabIndex));
 	else
 		menu.addAction(tr(dsSave_Tab_State), std::bind(&CSimulation_Window::Save_Tab_State, this, tabIndex));
@@ -470,7 +475,50 @@ void CSimulation_Window::On_Start() {
 	for (auto& action : mSignalSolveActions)
 		action.second->setVisible(false);
 
-	if (mFilter_Executor) mGUI_Filter_Subchain.Start();
+	if (mFilter_Executor)
+	{
+		mGUI_Filter_Subchain.Start();
+
+		// store old index of selected tab
+		int curIdx = mTabWidget->currentIndex();
+
+		// remove all dynamically added widgets from drawing v2
+		for (auto& i : mDrawing_v2_Widgets)
+		{
+			for (auto& j : i)
+			{
+				mTabWidget->removeTab(j.second);
+				delete j.first;
+			}
+		}
+		// clear the original vector
+		mDrawing_v2_Widgets.clear();
+
+		// counter - so we could add them directly after the base tab set (before "saved" tabs)
+		int tabOffset = mBase_Tab_Count;
+
+		// create tabs/widgets
+		auto drawings = mGUI_Filter_Subchain.Get_Drawing_v2_Drawings();
+		mDrawing_v2_Widgets.resize(drawings.size());
+		for (size_t i = 0; i < drawings.size(); i++)
+		{
+			mDrawing_v2_Widgets[i].resize(drawings[i].size());
+
+			for (size_t j = 0; j < drawings[i].size(); j++)
+			{
+				auto tab = new CDrawing_v2_Tab_Widget(mTabWidget);
+
+				mDrawing_v2_Widgets[i][j] = {
+					tab,
+					mTabWidget->insertTab(tabOffset++, tab, StdWStringToQString(drawings[i][j]))
+				};
+			}
+		}
+
+		// restore selected tab index
+		if (curIdx < mTabWidget->count())
+			mTabWidget->setCurrentIndex(curIdx);
+	}
 }
 
 HRESULT IfaceCalling CSimulation_Window::On_Filter_Configured(scgms::IFilter *filter, const void* data) {
@@ -521,6 +569,24 @@ void CSimulation_Window::Drawing_Callback(const scgms::TDrawing_Image_Type type,
 {
 	for (CDrawing_Tab_Widget* wg : mDrawingWidgets)
 		wg->Drawing_Callback(type, diagnosis, image_data);
+}
+
+void CSimulation_Window::Drawing_v2_Callback(size_t filterIdx, size_t drawingIdx, const std::string& svg)
+{
+	if (filterIdx >= mDrawing_v2_Widgets.size() || drawingIdx >= mDrawing_v2_Widgets[filterIdx].size())
+		return;
+
+	mDrawing_v2_Widgets[filterIdx][drawingIdx].first->Drawing_Callback(svg);
+}
+
+void CSimulation_Window::Update_Preferred_Drawing_Dimensions(size_t filterIdx, size_t drawingIdx, int& width, int& height)
+{
+	//does not work on non-visible elements:
+	//mDrawing_v2_Widgets[filterIdx][drawingIdx].first->Get_Canvas_Dimensions(width, height);
+
+	// TODO: proper way of obtaining width and height of viewport; for now, just tse 95 % of widget space
+	width = mTabWidget->currentWidget()->width() * 0.95;
+	height = mTabWidget->currentWidget()->height() * 0.95;
 }
 
 void CSimulation_Window::Log_Callback(std::shared_ptr<refcnt::wstr_list> messages) {

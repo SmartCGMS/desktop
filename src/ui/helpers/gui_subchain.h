@@ -47,6 +47,7 @@
 #include <thread>
 #include <set>
 #include <mutex>
+#include <vector>
 #include <condition_variable>
 #include <set>
 
@@ -64,8 +65,15 @@ constexpr size_t GUI_Subchain_Default_Drawing_Update = 500;
  */
 class CGUI_Filter_Subchain {
 	protected:
-		scgms::SDrawing_Filter_Inspection mDrawing_Filter_Inspection;		
-		scgms::SLog_Filter_Inspection mLog_Filter_Inspection;		
+		scgms::SDrawing_Filter_Inspection mDrawing_Filter_Inspection;
+		std::vector<scgms::SDrawing_Filter_Inspection_v2> mDrawing_Filter_Inspection_v2;
+		scgms::SLog_Filter_Inspection mLog_Filter_Inspection;
+
+		ULONG mDrawing_Clock = 0;
+		std::vector<std::vector<scgms::TPlot_Descriptor>> mAvailable_Plot_Views;
+
+		int mDrawing_v2_Width = 800;
+		int mDrawing_v2_Height = 600;
 
 		// set of all GUIDs of calculated signals that came through pipe
 		std::set<GUID> mCalculatedSignalGUIDs;
@@ -113,11 +121,15 @@ class CGUI_Filter_Subchain {
 		void On_Filter_Configured(scgms::IFilter *filter);
 			
 
-		void Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds);		
+		void Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds);
 
 		void Start();
 		void Stop(bool update_gui = false);
 		void Relase_Filter_Bindings();
+
+		void Set_Preferred_Drawing_Dimensions(const int width, const int height);
+
+		std::vector<std::vector<std::wstring>> Get_Drawing_v2_Drawings() const;
 };
 
 

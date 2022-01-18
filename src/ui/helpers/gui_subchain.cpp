@@ -43,6 +43,8 @@
 #include "../../../../common/rtl/rattime.h"
 #include "../../ui/simulation_window.h"
 
+#include "../../../../common/utils/DebugHelper.h"
+
 CGUI_Filter_Subchain::CGUI_Filter_Subchain() : mChange_Available(false), mRunning(false) {
 
 	// take all model-calculated signals and put them into calculated signal guids set
@@ -91,6 +93,9 @@ void CGUI_Filter_Subchain::Stop(bool update_gui) {
 
 void CGUI_Filter_Subchain::Relase_Filter_Bindings() {
 	mDrawing_Filter_Inspection = scgms::SDrawing_Filter_Inspection{ };
+	mDrawing_Filter_Inspection_v2.clear();
+	mAvailable_Plot_Views.clear();
+	mDrawing_Clock = 0;
 	mLog_Filter_Inspection = scgms::SLog_Filter_Inspection{};
 }
 
@@ -118,6 +123,16 @@ void CGUI_Filter_Subchain::Run_Updater()
 void CGUI_Filter_Subchain::On_Filter_Configured(scgms::IFilter *filter) {
 	if (scgms::SDrawing_Filter_Inspection insp = scgms::SDrawing_Filter_Inspection{ scgms::SFilter{filter} })
 		mDrawing_Filter_Inspection = insp;
+
+	if (scgms::SDrawing_Filter_Inspection_v2 insp = scgms::SDrawing_Filter_Inspection_v2{ scgms::SFilter{filter} })
+	{
+		auto caps = refcnt::Create_Container_shared<scgms::TPlot_Descriptor>(nullptr, nullptr);
+		if (insp->Get_Capabilities(caps.get()) == S_OK && caps->empty() != S_OK)
+		{
+			mAvailable_Plot_Views.emplace_back(caps.begin(), caps.end());
+			mDrawing_Filter_Inspection_v2.push_back(insp);
+		}
+	}
 		
 	if (scgms::SLog_Filter_Inspection insp = scgms::SLog_Filter_Inspection{ scgms::SFilter{filter} })
 		mLog_Filter_Inspection = insp;
@@ -147,22 +162,60 @@ void CGUI_Filter_Subchain::Update_GUI()
 }
 
 void CGUI_Filter_Subchain::Update_Drawing() {
-	if (!mDrawing_Filter_Inspection) return;
-	if (!mForceUpdate && mDrawing_Filter_Inspection->New_Data_Available() != S_OK) return;	//nothing to update
 
 	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
-	if (!simwin) return;
+	if (!simwin)
+		return;
 
-	auto svg = refcnt::Create_Container_shared<char>(nullptr, nullptr);
+	if (mDrawing_Filter_Inspection && (mForceUpdate || mDrawing_Filter_Inspection->New_Data_Available() == S_OK)) {
 
-	for (size_t type = 0; type < (size_t)scgms::TDrawing_Image_Type::count; type++) {
-		if (mDrawing_Filter_Inspection->Draw((scgms::TDrawing_Image_Type)type, scgms::TDiagnosis::NotSpecified, svg.get(), mDraw_Segment_Ids.get(), mDraw_Signal_Ids.get()) == S_OK) {
-			simwin->Drawing_Callback((scgms::TDrawing_Image_Type)type, scgms::TDiagnosis::NotSpecified, refcnt::Char_Container_To_String(svg.get()));
+		auto svg = refcnt::Create_Container_shared<char>(nullptr, nullptr);
+
+		for (size_t type = 0; type < (size_t)scgms::TDrawing_Image_Type::count; type++) {
+			if (mDrawing_Filter_Inspection->Draw((scgms::TDrawing_Image_Type)type, scgms::TDiagnosis::NotSpecified, svg.get(), mDraw_Segment_Ids.get(), mDraw_Signal_Ids.get()) == S_OK) {
+				simwin->Drawing_Callback((scgms::TDrawing_Image_Type)type, scgms::TDiagnosis::NotSpecified, refcnt::Char_Container_To_String(svg.get()));
+			}
+		}
+
+		if (mDrawing_Filter_Inspection->Draw(scgms::TDrawing_Image_Type::Parkes, scgms::TDiagnosis::Type2, svg.get(), mDraw_Segment_Ids.get(), mDraw_Signal_Ids.get()) == S_OK) {
+			simwin->Drawing_Callback(scgms::TDrawing_Image_Type::Parkes, scgms::TDiagnosis::Type2, refcnt::Char_Container_To_String(svg.get()));
 		}
 	}
 
-	if (mDrawing_Filter_Inspection->Draw(scgms::TDrawing_Image_Type::Parkes, scgms::TDiagnosis::Type2, svg.get(), mDraw_Segment_Ids.get(), mDraw_Signal_Ids.get()) == S_OK) {
-		simwin->Drawing_Callback(scgms::TDrawing_Image_Type::Parkes, scgms::TDiagnosis::Type2, refcnt::Char_Container_To_String(svg.get()));
+	if (!mDrawing_Filter_Inspection_v2.empty()) {
+
+		scgms::TDraw_Options opts;
+		opts.width = mDrawing_v2_Width;
+		opts.height = mDrawing_v2_Height;
+		// TODO: following is not yet implemented; reference signals should also be implemented in simulation window and the rest of the GUI
+		// for now, just draw everything
+		opts.in_signals = nullptr;
+		opts.reference_signals = nullptr;
+		opts.signal_count = 0;
+		opts.segments = nullptr;
+		opts.segment_count = 0;
+		
+		for (size_t i = 0; i < mDrawing_Filter_Inspection_v2.size(); i++)
+		{
+			auto& insp = mDrawing_Filter_Inspection_v2[i];
+
+			if (!mForceUpdate && insp->Logical_Clock(&mDrawing_Clock) != S_OK)
+				continue;
+
+			for (size_t j = 0; j < mAvailable_Plot_Views[i].size(); j++)
+			{
+				simwin->Update_Preferred_Drawing_Dimensions(i, j, opts.width, opts.height);
+
+				auto svg = refcnt::Create_Container_shared<char>(nullptr, nullptr);
+
+				if (insp->Draw(&mAvailable_Plot_Views[i][j].id, svg.get(), &opts) == S_OK)
+				{
+					auto str = refcnt::Char_Container_To_String(svg.get());
+
+					simwin->Drawing_v2_Callback(i, j, str);
+				}
+			}
+		}
 	}
 }
 
@@ -192,4 +245,27 @@ void CGUI_Filter_Subchain::Hint_Update_Solver_Progress()
 		return;
 
 	simwin->Update_Solver_Progress();
+}
+
+void CGUI_Filter_Subchain::Set_Preferred_Drawing_Dimensions(const int width, const int height)
+{
+	mDrawing_v2_Width = width;
+	mDrawing_v2_Height = height;
+}
+
+std::vector<std::vector<std::wstring>> CGUI_Filter_Subchain::Get_Drawing_v2_Drawings() const
+{
+	std::vector<std::vector<std::wstring>> ret;
+
+	ret.resize(mAvailable_Plot_Views.size());
+
+	for (size_t i = 0; i < mAvailable_Plot_Views.size(); i++)
+	{
+		ret[i].resize(mAvailable_Plot_Views[i].size());
+		
+		for (size_t j = 0; j < mAvailable_Plot_Views[i].size(); j++)
+			ret[i][j] = mAvailable_Plot_Views[i][j].name;
+	}
+
+	return ret;
 }

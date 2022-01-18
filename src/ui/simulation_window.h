@@ -55,6 +55,7 @@
 
 #include "simulation/log_tab_widget.h"
 #include "simulation/drawing_tab_widget.h"
+#include "simulation/drawing_v2_tab_widget.h"
 #include "simulation/errors_tab_widget.h"
 #include "helpers/Time_Segment_Group_Widget.h"
 #include "helpers/Signal_Group_Widget.h"
@@ -74,6 +75,8 @@ class CSimulation_Window : public QMdiSubWindow {
 		CLog_Tab_Widget* mLogWidget = nullptr;
 		// stored drawing widgets
 		std::vector<CDrawing_Tab_Widget*> mDrawingWidgets;
+		// stored drawing_v2 widgets
+		std::vector<std::vector<std::pair<CDrawing_v2_Tab_Widget*, int>>> mDrawing_v2_Widgets;
 		// stored errors widget
 		CErrors_Tab_Widget* mErrorsWidget = nullptr;
 
@@ -178,6 +181,9 @@ class CSimulation_Window : public QMdiSubWindow {
 		bool Is_Simulation_In_Progress() const;
 
 		void Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::TDiagnosis diagnosis, const std::string &svg);
+		void Drawing_v2_Callback(size_t filterIdx, size_t drawingIdx, const std::string& svg);
+		void Update_Preferred_Drawing_Dimensions(size_t filterIdx, size_t drawingIdx, int& width, int& height);
+
 		void Log_Callback(std::shared_ptr<refcnt::wstr_list> messages);
 		void Update_Solver_Progress(const GUID& solver, size_t progress, double bestMetric, scgms::TSolver_Status status);
 		void Update_Error_Metrics(const GUID& signal_id, scgms::TError_Markers& container, scgms::NError_Type type);	//remove
