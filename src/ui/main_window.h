@@ -63,7 +63,7 @@ protected:
 
 	filesystem::path mStorage_Path;
 
-	static constexpr size_t Max_Recent_File_Count = 9;	//must be nine to avoid duplicate underscore for 1 and 10
+	static constexpr size_t Max_Recent_File_Count = 15;	
 	std::vector<filesystem::path> mRecent_Files;
 
 private:
