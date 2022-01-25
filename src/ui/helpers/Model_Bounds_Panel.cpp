@@ -362,7 +362,19 @@ void CModel_Bounds_Panel::Reset_Parameters(std::vector<double> &values, std::fun
 		return;
 
 	const double* bounds = get_bounds(model);
-	values.assign(bounds, bounds + model.total_number_of_parameters);
+	
+	//setup the segment-common/agnostic parameters
+	const size_t first_common_parameter_in_model = model.total_number_of_parameters - model.number_of_segment_specific_parameters;
+	const size_t first_common_parameter_in_values = values.size() - first_common_parameter_in_model;
+
+	size_t copy_start = 0;
+	while (copy_start < first_common_parameter_in_values) {
+		std::copy(bounds, bounds + model.number_of_segment_specific_parameters, values.begin() + copy_start);
+		copy_start += model.total_number_of_parameters;
+	}
+
+	std::copy(bounds + first_common_parameter_in_model, bounds + model.total_number_of_parameters, values.end() - first_common_parameter_in_model);
+
 
 	mTableView->viewport()->update();
 }
