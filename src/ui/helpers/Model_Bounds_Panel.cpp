@@ -363,17 +363,18 @@ void CModel_Bounds_Panel::Reset_Parameters(std::vector<double> &values, std::fun
 
 	const double* bounds = get_bounds(model);
 	
-	//setup the segment-common/agnostic parameters
-	const size_t first_common_parameter_in_model = model.total_number_of_parameters - model.number_of_segment_specific_parameters;
-	const size_t first_common_parameter_in_values = values.size() - first_common_parameter_in_model;
+	//setup the segment-common/agnostic parameters	
+	const size_t number_of_segment_common_parametes = model.total_number_of_parameters - model.number_of_segment_specific_parameters;
+	const size_t first_common_parameter_in_values = values.size() - number_of_segment_common_parametes;
 
 	size_t copy_start = 0;
 	while (copy_start < first_common_parameter_in_values) {
 		std::copy(bounds, bounds + model.number_of_segment_specific_parameters, values.begin() + copy_start);
-		copy_start += model.total_number_of_parameters;
+		copy_start += model.number_of_segment_specific_parameters;
 	}
 
-	std::copy(bounds + first_common_parameter_in_model, bounds + model.total_number_of_parameters, values.end() - first_common_parameter_in_model);
+	std::copy(bounds + model.number_of_segment_specific_parameters, bounds + model.total_number_of_parameters, 
+				values.end() - number_of_segment_common_parametes);
 
 
 	mTableView->viewport()->update();
@@ -384,6 +385,18 @@ void CModel_Bounds_Panel::On_Reset_Lower() {
 }
 
 void CModel_Bounds_Panel::On_Reset_Defaults() {
+	scgms::TModel_Descriptor model = scgms::Null_Model_Descriptor;
+	if (!Get_Currently_Selected_Model(model))
+		return;
+	//also trim down the number of segmetns to one
+	mModel->mLower_Bounds.resize(model.total_number_of_parameters);
+	mModel->mDefault_Values.resize(model.total_number_of_parameters);
+	mModel->mUpper_Bounds.resize(model.total_number_of_parameters);
+
+
+	mTableView->resizeColumnsToContents();
+	mTableView->resizeRowsToContents();
+
 	Reset_Parameters(mModel->mDefault_Values, [](const scgms::TModel_Descriptor& model)->const double* {return model.default_values; });
 }
 
