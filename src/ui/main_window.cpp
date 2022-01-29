@@ -202,8 +202,7 @@ void CMain_Window::Update_Recent_Files() {
 			if (mRecent_Files[i].empty())
 				continue;
 
-			std::wstring menu_caption = i<=9 ? L"&" : L"";
-			menu_caption += std::to_wstring(i + 1);
+			std::wstring menu_caption = i<9 ? L" &" + std::to_wstring(i + 1) : (i == 9 ? L"1&0" : L"");			
 			menu_caption += L" ";
 			menu_caption += mRecent_Files[i].filename().wstring();
 

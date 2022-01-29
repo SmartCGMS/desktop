@@ -343,6 +343,7 @@ void CParameters_Optimization_Dialog::On_Solve() {
 						mChosen_Solver_Id,
 						popSize,
 						maxGens,
+						nullptr, 0,	//additional hints
 						mProgress,
 						error_description);
 
