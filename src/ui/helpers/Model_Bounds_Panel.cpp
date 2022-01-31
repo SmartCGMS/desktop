@@ -337,7 +337,7 @@ CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QCo
 
 	contents->setLayout(mLayout);
 
-	layout->addWidget(contents);
+	layout->addWidget(contents, Qt::AlignCenter);
 	layout->addStretch();
 
 	if (mModelSelector) {
