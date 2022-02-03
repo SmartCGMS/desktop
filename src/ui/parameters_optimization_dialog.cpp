@@ -44,6 +44,7 @@
 #include "../../../common/rtl/qdb_connector.h"
 #include "../../../common/utils/QtUtils.h"
 #include "../../../common/utils/string_utils.h"
+#include "../../../common/iface/SolverIface.h"
 
 #include <QtCore/QDateTime>
 #include <QtWidgets/QBoxLayout>
@@ -237,8 +238,8 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 											 line->setFrameShadow(QFrame::Sunken);
 											 return line; };
 
-		vertical_layout->addWidget(edits);	
-		vertical_layout->addWidget(new QLabel{ dsParameters_Optimization_Use, this });
+		vertical_layout->addWidget(edits);			
+		vertical_layout->addWidget(new QLabel{ QString::fromUtf8(dsParameters_Optimization_Use).arg(solver::Maximum_Objectives_Count) , this });
 		vertical_layout->addWidget(add_separator(this));
 		vertical_layout->addWidget(progress);
 		vertical_layout->addWidget(add_separator(this));
