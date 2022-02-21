@@ -180,12 +180,21 @@ void CModel_Bounds_Panel_internal::CParameters_Table_Model::Load_Parameters(cons
 	if (model.id != Invalid_GUID) {
 		mSegment_Agnostic_Parameter_Count = model.total_number_of_parameters - model.number_of_segment_specific_parameters;
 		mSegment_Specific_Parameter_Count = model.number_of_segment_specific_parameters;
-		size_t total_specific_parameters_in_doubles = count - mSegment_Agnostic_Parameter_Count;
+		size_t total_specific_parameters_in_doubles = model.number_of_segment_specific_parameters > 0 ? count - mSegment_Agnostic_Parameter_Count : 0;
 
 		size_t segment_UI_idx = 1;
 
+		bool valid_config = false;
+		if (mSegment_Specific_Parameter_Count > 0) {
+			valid_config = (total_specific_parameters_in_doubles % mSegment_Specific_Parameter_Count) == 0;
+		}
+		else {
+			valid_config = count == model.total_number_of_parameters;
+		}
+
+
 		//check that the number of parameters is correct => check that they are not corrupted
-		if ((mSegment_Specific_Parameter_Count == 0) || (total_specific_parameters_in_doubles % mSegment_Specific_Parameter_Count) == 0) {
+		if (valid_config) {
 			
 				mIndividualized_Segment_Count = mSegment_Specific_Parameter_Count > 0 ? total_specific_parameters_in_doubles / mSegment_Specific_Parameter_Count : 0;
 
