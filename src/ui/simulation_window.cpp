@@ -802,7 +802,7 @@ void CSimulation_Window::Update_Solver_Progress()
 		else if (progress.current_progress != 0)
 			pct = progress.current_progress;
 
-		Update_Solver_Progress(guid, pct, progress.best_metric, status);
+		Update_Solver_Progress(guid, pct, progress.best_metric[0], status);
 	}
 }
 

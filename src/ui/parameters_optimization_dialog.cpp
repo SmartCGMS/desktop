@@ -44,6 +44,7 @@
 #include "../../../common/rtl/qdb_connector.h"
 #include "../../../common/utils/QtUtils.h"
 #include "../../../common/utils/string_utils.h"
+#include "../../../common/iface/SolverIface.h"
 
 #include <QtCore/QDateTime>
 #include <QtWidgets/QBoxLayout>
@@ -237,8 +238,8 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 											 line->setFrameShadow(QFrame::Sunken);
 											 return line; };
 
-		vertical_layout->addWidget(edits);	
-		vertical_layout->addWidget(new QLabel{ dsParameters_Optimization_Use, this });
+		vertical_layout->addWidget(edits);			
+		vertical_layout->addWidget(new QLabel{ QString::fromUtf8(dsParameters_Optimization_Use).arg(solver::Maximum_Objectives_Count) , this });
 		vertical_layout->addWidget(add_separator(this));
 		vertical_layout->addWidget(progress);
 		vertical_layout->addWidget(add_separator(this));
@@ -377,7 +378,7 @@ void CParameters_Optimization_Dialog::On_Update_Progress() {
 			barProgress->setValue(progressValue);
 			progressLabel1->setText(QString("%1 / %2").arg(mProgress.current_progress).arg(mProgress.max_progress));
 			progressLabel2->setText(QString("%1 %").arg(progressValue));
-			lblSolver_Info->setText(QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric));
+			lblSolver_Info->setText(QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric[0]));
 
 			if (lastProgress != mProgress.current_progress)
 			{
@@ -394,8 +395,8 @@ void CParameters_Optimization_Dialog::On_Update_Progress() {
 					timestampLabelEnd->setText("N/A");
 			}
 
-			if (mProgress.best_metric != lastMetric) {
-				lastMetric = mProgress.best_metric;
+			if (mProgress.best_metric[0] != lastMetric) {
+				lastMetric = mProgress.best_metric[0];
 
 				QStandardItem* item = new QStandardItem{ QString("%1 (%2/%3)").arg(lastMetric).arg(mProgress.current_progress).arg(mProgress.max_progress) };
 				mdlMetricHistoryModel->appendRow(item);
@@ -406,7 +407,7 @@ void CParameters_Optimization_Dialog::On_Update_Progress() {
 	} else {
 		progressLabel1->setText(QString("N/A"));
 		progressLabel2->setText(QString("0 %"));
-		lblSolver_Info->setText(QString(tr(dsSolver_Status_Stopped)) + ", "+ QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric));
+		lblSolver_Info->setText(QString(tr(dsSolver_Status_Stopped)) + ", "+ QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric[0]));
 		timestampLabelEnd->setText(QDateTime::currentDateTime().toLocalTime().toString());
 		barProgress->setValue(0);
 	}
