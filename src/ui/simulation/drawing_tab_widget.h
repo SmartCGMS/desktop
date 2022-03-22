@@ -44,7 +44,11 @@
 #include <QtWidgets/QGraphicsView>
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QComboBox>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#include <QtSvg/QGraphicsSvgItem>
+#else
 #include <QtSvgWidgets/QGraphicsSvgItem>
+#endif
 #include <QtSvg/QSvgRenderer>
 
 #include "../../../../common/iface/FilterIface.h"

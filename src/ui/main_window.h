@@ -44,7 +44,11 @@
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMdiArea>
 #include <QtGui/QCloseEvent>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#include <QtWidgets/QAction>
+#else
 #include <QtGui/QAction>
+#endif
 #include <QtWidgets/QMenu>
 #include <QtCore/QSignalMapper>
 #include <QtGui/QDragEnterEvent>
