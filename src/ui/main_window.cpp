@@ -214,7 +214,7 @@ void CMain_Window::Update_Recent_Files() {
 			}
 
 			auto act = mniRecent_Files->addAction(StdWStringToQString(menu_caption));
-			act->setData(i);
+			act->setData(static_cast<long long>(i));
 
 			connect(act, &QAction::triggered, std::bind(&CMain_Window::On_Open_Recent_Experimental_Setup, this, act));
 		}
@@ -235,7 +235,7 @@ void CMain_Window::Setup_Storage() {
 	const filesystem::path recent_files_path = mStorage_Path / dsRecent_Files_Filename;
 	if (std::filesystem::exists(recent_files_path))
 	{
-		std::wifstream ifs(recent_files_path.wstring());
+		std::wifstream ifs(recent_files_path);
 		
 		std::wstring path;
 		for (size_t i = 0; i < Max_Recent_File_Count; i++) {
@@ -250,7 +250,7 @@ void CMain_Window::Setup_Storage() {
 void CMain_Window::Save_Recent_Files()
 {
 	const filesystem::path recent_files_path = mStorage_Path / dsRecent_Files_Filename;
-	std::wofstream ifs(recent_files_path.wstring());
+	std::wofstream ifs(recent_files_path);
 
 	if (ifs.is_open())	{
 		for (size_t i = 0; i < mRecent_Files.size(); i++) {
