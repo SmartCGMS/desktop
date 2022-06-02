@@ -128,13 +128,13 @@ QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex
 			case sum_col:	return Format_Error_String(error.sum, is_relative);
 			case count_col: return Format_Error_String(error.count, false);	
 
-			case min_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(scgms::NECDF::min_value)], is_relative);
-			case p25_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(scgms::NECDF::p25)], is_relative);
-			case med_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(scgms::NECDF::median)], is_relative);
-			case p75_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(scgms::NECDF::p75)], is_relative);
-			case p95_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(scgms::NECDF::p95)], is_relative);
-			case p99_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(scgms::NECDF::p99)], is_relative);
-			case max_col:	return Format_Error_String(error.ecdf[static_cast<size_t>(scgms::NECDF::max_value)], is_relative);
+			case min_col:	return Format_Error_String(error.ecdf[scgms::NECDF::min_value], is_relative);
+			case p25_col:	return Format_Error_String(error.ecdf[scgms::NECDF::p25], is_relative);
+			case med_col:	return Format_Error_String(error.ecdf[scgms::NECDF::median], is_relative);
+			case p75_col:	return Format_Error_String(error.ecdf[scgms::NECDF::p75], is_relative);
+			case p95_col:	return Format_Error_String(error.ecdf[scgms::NECDF::p95], is_relative);
+			case p99_col:	return Format_Error_String(error.ecdf[scgms::NECDF::p99], is_relative);
+			case max_col:	return Format_Error_String(error.ecdf[scgms::NECDF::max_value], is_relative);
 			default:		return QString{};
 		}
 	};

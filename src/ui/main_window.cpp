@@ -214,7 +214,7 @@ void CMain_Window::Update_Recent_Files() {
 			}
 
 			auto act = mniRecent_Files->addAction(StdWStringToQString(menu_caption));
-			act->setData(static_cast<int>(i));
+			act->setData(static_cast<long long>(i));
 
 			connect(act, &QAction::triggered, std::bind(&CMain_Window::On_Open_Recent_Experimental_Setup, this, act));
 		}
