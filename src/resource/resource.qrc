@@ -1,5 +1,9 @@
  <!DOCTYPE RCC><RCC version="1.0">
  <qresource>
      <file>app/appicon.png</file>
+	 <file>app/simulation-start.png</file>
+	 <file>app/simulation-stop.png</file>
+	 <file>app/simulation-solve.png</file>
+	 <file>app/simulation-recalculate.png</file>
  </qresource>
  </RCC>

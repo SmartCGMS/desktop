@@ -180,14 +180,31 @@ void CSimulation_Window::Setup_UI() {
 	for (int i = 0; i < 10; i++)
 		layout->setColumnStretch(i, 1);
 
-	mStartButton = new QPushButton{ tr(dsStart) };
+	constexpr int IconSize = 16;
+	constexpr int SimButtonHeight = 32;
+
+	mStartButton = new QPushButton{ " " + tr(dsStart) };
+	mStartButton->setMinimumHeight(SimButtonHeight);
+	mStartButton->setIcon(QIcon(":/app/simulation-start.png"));
+	mStartButton->setIconSize(QSize(IconSize, IconSize));
 	layout->addWidget(mStartButton, 0, 0);
-	mStopButton = new QPushButton{ tr(dsStop) };
+
+	mStopButton = new QPushButton{ " " + tr(dsStop)};
+	mStopButton->setMinimumHeight(SimButtonHeight);
+	mStopButton->setIcon(QIcon(":/app/simulation-stop.png"));
+	mStopButton->setIconSize(QSize(IconSize, IconSize));
 	layout->addWidget(mStopButton, 0, 1);
 
-	mSolveParamsButton = new QPushButton{ tr(dsSolve) };
+	mSolveParamsButton = new QPushButton{ " " + tr(dsSolve) };
+	mSolveParamsButton->setMinimumHeight(SimButtonHeight);
+	mSolveParamsButton->setIcon(QIcon(":/app/simulation-solve.png"));
+	mSolveParamsButton->setIconSize(QSize(IconSize, IconSize));
 	layout->addWidget(mSolveParamsButton, 0, 2);
-	mSolveAndResetParamsButton = new QPushButton{ tr(dsSolve_Reset) };
+
+	mSolveAndResetParamsButton = new QPushButton{ " " + tr(dsSolve_Reset) };
+	mSolveAndResetParamsButton->setMinimumHeight(SimButtonHeight);
+	mSolveAndResetParamsButton->setIcon(QIcon(":/app/simulation-recalculate.png"));
+	mSolveAndResetParamsButton->setIconSize(QSize(IconSize, IconSize));
 	layout->addWidget(mSolveAndResetParamsButton, 0, 3);
 
 	Setup_Solve_Button_Menu();
