@@ -65,6 +65,7 @@ protected slots:
 	void On_Commit_Filters();
 	void On_Applied_Filter_Dbl_Click(QListWidgetItem* item);
 	void On_Filter_Configure_Complete();
+	void On_Filter_Drag_Drop(QModelIndex idx, int start, int end, QModelIndex mdlIdx, int dst);
 public:
 	static CFilters_Window* Show_Instance(scgms::SPersistent_Filter_Chain_Configuration &filter_chain_configuration, QWidget *owner);
 	CFilters_Window(scgms::SPersistent_Filter_Chain_Configuration &filter_chain_configuration, QWidget *owner);

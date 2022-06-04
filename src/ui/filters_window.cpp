@@ -96,7 +96,13 @@ void CFilters_Window::Setup_UI() {
 	lotApplied_Filters->addWidget(new QLabel{ tr(dsApplied_Filters), this });
 
 	lbxApplied_Filters = new QListWidget{ this };
+	lbxApplied_Filters->setAcceptDrops(true);
+	lbxApplied_Filters->setDragEnabled(true);
+	lbxApplied_Filters->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
+	lbxApplied_Filters->setDragDropMode(QAbstractItemView::InternalMove);
 	lotApplied_Filters->addWidget(lbxApplied_Filters);
+
+	connect(lbxApplied_Filters->model(), SIGNAL(rowsMoved(QModelIndex, int, int, QModelIndex, int)), this, SLOT(On_Filter_Drag_Drop(QModelIndex, int, int, QModelIndex, int)));
 
 	QPushButton *btnUp_Filter = new QPushButton{tr(dsMove_Up)};
 	QPushButton *btnDown_Filter = new QPushButton{tr(dsMove_Down)};
@@ -263,4 +269,11 @@ void CFilters_Window::On_Filter_Configure_Complete()
 
 		item->Refresh();
 	}
+}
+
+void CFilters_Window::On_Filter_Drag_Drop(QModelIndex idx, int start, int end, QModelIndex mdlIdx, int dst)
+{
+	const int realDst = start < dst ? dst - 1 : dst; // moving down needs to consider that the current element is still in place
+
+	mFilter_Chain_Configuration->move(static_cast<size_t>(start), static_cast<size_t>(realDst));
 }
