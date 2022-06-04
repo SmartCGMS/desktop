@@ -412,6 +412,8 @@ void CSimulation_Window::resizeEvent(QResizeEvent* evt)
 void CSimulation_Window::On_Start() {
 	On_Stop();
 
+	mErrorsWidget->Clear_Filters(true);
+
 	// clean progress bars and progress bar group box
 	QLayoutItem *wItem;
 	while ((wItem = mProgressGroup->layout()->takeAt(0)) != nullptr)
@@ -458,7 +460,7 @@ void CSimulation_Window::On_Start() {
 	mLogWidget->Log_Config_Errors(error_description);
 	if (!mFilter_Executor)	{
 		mGUI_Filter_Subchain.Relase_Filter_Bindings();
-		mErrorsWidget->Clear_Filters();
+		mErrorsWidget->Clear_Filters(true);
 		mSolver_Filters.clear();
 		mTerminal_Filter.reset();
 		QMessageBox::information(this, tr(dsInformation), tr(dsFilter_Executor_Failed_Review_Config_Errors));
@@ -540,7 +542,7 @@ void CSimulation_Window::On_Stop() {
 	mSimulationInProgress = false;
 	mGUI_Filter_Subchain.Stop(true);
 
-	mErrorsWidget->Clear_Filters();
+	mErrorsWidget->Clear_Filters(false);
 	
 	for (const auto& solvers : mSolver_Filters)
 		solvers->Cancel_Solver();
@@ -778,11 +780,6 @@ void CSimulation_Window::On_Solve_Signal(QString str) {
 	Inject_Event(scgms::NDevice_Event_Code::Solve_Parameters, signalId, nullptr, scgms::All_Segments_Id);
 }
 
-
-void CSimulation_Window::Update_Error_Metrics(const GUID& signal_id, scgms::TError_Markers& container, scgms::NError_Type type) {
-//	if (mSimulationInProgress) mErrorsWidget->Update_Error_Metrics(signal_id, container, type);
-}
-
 void CSimulation_Window::Update_Solver_Progress()
 {
 	for (const auto& solvers : mSolver_Filters)
@@ -817,7 +814,8 @@ void CSimulation_Window::Inject_Event(const scgms::NDevice_Event_Code &code, con
 }
 
 void CSimulation_Window::Update_Errors() {
-	if (mErrorsWidget) mErrorsWidget->Refresh();
+	if (mErrorsWidget)
+		mErrorsWidget->Refresh();
 }
 
 void CSimulation_Window::Stop_Simulation() {

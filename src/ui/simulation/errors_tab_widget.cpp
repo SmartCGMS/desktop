@@ -63,7 +63,7 @@ constexpr int Error_Column_Count = 16;
 const std::array<const wchar_t*, Error_Column_Count>  gError_Column_Names = {
 	dsDescription,	
 	dsError_Column_Average,
-	dsError_Column_StdDev,	
+	dsError_Column_StdDev,
 	dsError_Column_Sum,
 	dsError_Column_Count,
 	dsError_Column_Minimum,
@@ -120,13 +120,13 @@ QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex
 		constexpr int p75_col = 8;
 		constexpr int p95_col = 9;
 		constexpr int p99_col = 10;
-		constexpr int max_col = 11;		
+		constexpr int max_col = 11;
 
 		switch (col) {
 			case avg_col:	return Format_Error_String(error.avg, is_relative);
 			case stdev_col: return Format_Error_String(error.stddev, is_relative);
 			case sum_col:	return Format_Error_String(error.sum, is_relative);
-			case count_col: return Format_Error_String(error.count, false);	
+			case count_col: return Format_Error_String(error.count, false);
 
 			case min_col:	return Format_Error_String(error.ecdf[scgms::NECDF::min_value], is_relative);
 			case p25_col:	return Format_Error_String(error.ecdf[scgms::NECDF::p25], is_relative);
@@ -165,11 +165,11 @@ QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex
 			switch (row_role) {
 				case absolute_role: return display_signal(col, mSignal_Errors[error_index].recent_abs_error, false); break;
 				case relative_role:	return display_signal(col, mSignal_Errors[error_index].recent_rel_error, true); break;
-				default: return QVariant();	//spacing role				
+				default: return QVariant();	//spacing role
 			}
 		}
 		else if ((col>= rel5_col) && (row_role == relative_role)) {
-			//relative errors			
+			//relative errors
 				switch (col) {
 					case rel5_col: return Format_Error_String(mSignal_Errors[error_index].r5, true); break;
 					case rel10_col: return Format_Error_String(mSignal_Errors[error_index].r10, true); break;
@@ -178,7 +178,7 @@ QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex
 					default: return display_signal(col, mSignal_Errors[error_index].recent_rel_error, true); break;
 				}						
 		} else
-			return QVariant{};	//default value							
+			return QVariant{};	//default value
 	}	//end of Qt display role
 	
 	return QVariant();
@@ -219,7 +219,7 @@ void CErrors_Tab_Widget_internal::CError_Table_Model::On_Filter_Configured(scgms
 	inspection.signal_error = scgms::SSignal_Error_Inspection{ scgms::SFilter{filter} };
 	if (inspection.signal_error) {
 		wchar_t *tmp_desc;
-		inspection.description = inspection.signal_error->Get_Description(&tmp_desc) == S_OK ? tmp_desc : dsSignal_Unknown;		
+		inspection.description = inspection.signal_error->Get_Description(&tmp_desc) == S_OK ? tmp_desc : dsSignal_Unknown;
 		inspection.signal_error->Calculate_Signal_Error(scgms::All_Segments_Id, &inspection.recent_abs_error, &inspection.recent_rel_error);
 		inspection.r5 = inspection.r10 = inspection.r25 = inspection.r50 = std::numeric_limits<double>::quiet_NaN();
 		mSignal_Errors.push_back(inspection);
@@ -230,7 +230,7 @@ void CErrors_Tab_Widget_internal::CError_Table_Model::Update_Errors() {
 
 	bool called_begin_reset = false;
 
-	for (auto &signal_error : mSignal_Errors) {		
+	for (auto &signal_error : mSignal_Errors) {
 		if (signal_error.signal_error->Logical_Clock(&mErrors_Logical_Clock) == S_OK) {
 
 			if (!called_begin_reset) {
@@ -238,7 +238,7 @@ void CErrors_Tab_Widget_internal::CError_Table_Model::Update_Errors() {
 				called_begin_reset = true;
 			}
 
-			if (signal_error.signal_error->Calculate_Signal_Error(scgms::All_Segments_Id, &signal_error.recent_abs_error, &signal_error.recent_rel_error) == S_OK) {
+			if (signal_error.signal_error && signal_error.signal_error->Calculate_Signal_Error(scgms::All_Segments_Id, &signal_error.recent_abs_error, &signal_error.recent_rel_error) == S_OK) {
 				if (signal_error.recent_rel_error.count > 0) {
 
 					auto inv_ecdf = [&signal_error](const double threshold)->double {
@@ -259,14 +259,22 @@ void CErrors_Tab_Widget_internal::CError_Table_Model::Update_Errors() {
 		}
 	}
 
-	emit dataChanged(createIndex(0, 0), createIndex(rowCount() - 1, Error_Column_Count-1));	
+	if (called_begin_reset)
+		endResetModel();
 
-	if (called_begin_reset) endResetModel();
+	emit dataChanged(createIndex(0, 0), createIndex(rowCount() - 1, Error_Column_Count - 1));
 }
 
 
-void CErrors_Tab_Widget_internal::CError_Table_Model::Clear_Filters() {
-	mSignal_Errors.clear();
+void CErrors_Tab_Widget_internal::CError_Table_Model::Clear_Filters(bool wipeTable) {
+	if (wipeTable)
+		mSignal_Errors.clear();
+	else
+	{
+		for (auto& signal_error : mSignal_Errors) {
+			signal_error.signal_error.reset();
+		}
+	}
 }
 
 
@@ -372,9 +380,11 @@ void CErrors_Tab_Widget::On_Filter_Configured(scgms::IFilter *filter) {
 }
 
 void CErrors_Tab_Widget::Refresh() {
-	if (mModel) mModel->Update_Errors();	
+	if (mModel)
+		mModel->Update_Errors();
 }
 
-void CErrors_Tab_Widget::Clear_Filters() {
-	if (mModel) mModel->Clear_Filters();
+void CErrors_Tab_Widget::Clear_Filters(bool wipeTable) {
+	if (mModel)
+		mModel->Clear_Filters(wipeTable);
 }

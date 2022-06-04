@@ -186,7 +186,6 @@ class CSimulation_Window : public QMdiSubWindow {
 
 		void Log_Callback(std::shared_ptr<refcnt::wstr_list> messages);
 		void Update_Solver_Progress(const GUID& solver, size_t progress, double bestMetric, scgms::TSolver_Status status);
-		void Update_Error_Metrics(const GUID& signal_id, scgms::TError_Markers& container, scgms::NError_Type type);	//remove
 		void Update_Errors();
 		void Update_Solver_Progress();
 

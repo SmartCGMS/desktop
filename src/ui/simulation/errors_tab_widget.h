@@ -84,7 +84,7 @@ namespace CErrors_Tab_Widget_internal {
 		
 		void On_Filter_Configured(scgms::IFilter *filter);
 		void Update_Errors();
-		void Clear_Filters();
+		void Clear_Filters(bool wipeTable = true);
 	};
 
 }
@@ -109,5 +109,5 @@ public:
 	virtual CAbstract_Simulation_Tab_Widget* Clone() override; 		
 	void Refresh();	
 	void On_Filter_Configured(scgms::IFilter *filter);
-	void Clear_Filters();
+	void Clear_Filters(bool wipeTable);
 };
