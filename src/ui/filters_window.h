@@ -40,6 +40,7 @@
 
 
 #include "../../../common/rtl/FilterLib.h"
+#include "helpers/FilterListItem.h"
 #include <atomic>
 
 #include <QtWidgets/QMdiSubWindow>
@@ -56,6 +57,7 @@ protected:
 	QListWidget *lbxAvailable_Filters = nullptr;
 	void Setup_UI();
 	void Configure_Filter(QListWidgetItem *item);
+	bool eventFilter(QObject* object, QEvent* event);
 protected slots:
 	void On_Add_Filter();
 	void On_Move_Filter_Up();
@@ -64,6 +66,8 @@ protected slots:
 	void On_Configure_Filter();
 	void On_Commit_Filters();
 	void On_Applied_Filter_Dbl_Click(QListWidgetItem* item);
+	void On_Available_Filter_Dbl_Click(QListWidgetItem* item);
+	void On_Applied_Filter_Key_Press(QKeyEvent* keyevent);
 	void On_Filter_Configure_Complete();
 	void On_Filter_Drag_Drop(QModelIndex idx, int start, int end, QModelIndex mdlIdx, int dst);
 public:

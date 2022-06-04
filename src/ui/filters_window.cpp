@@ -55,6 +55,7 @@
 
 #include <QtCore/QEventLoop>
 #include <QtWidgets/QApplication>
+#include <QKeyEvent>
 
 #ifndef MOC_DIR
 	#include "moc_filters_window.cpp"
@@ -96,6 +97,7 @@ void CFilters_Window::Setup_UI() {
 	lotApplied_Filters->addWidget(new QLabel{ tr(dsApplied_Filters), this });
 
 	lbxApplied_Filters = new QListWidget{ this };
+	lbxApplied_Filters->installEventFilter(this);
 	lbxApplied_Filters->setAcceptDrops(true);
 	lbxApplied_Filters->setDragEnabled(true);
 	lbxApplied_Filters->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
@@ -178,6 +180,17 @@ void CFilters_Window::Setup_UI() {
 	connect(btnConfigure_Filter, SIGNAL(clicked()), this, SLOT(On_Configure_Filter()));
 	//connect(btnCommit_Filters, SIGNAL(clicked()), this, SLOT(On_Commit_Filters()));
 	connect(lbxApplied_Filters, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(On_Applied_Filter_Dbl_Click(QListWidgetItem*)));
+	connect(lbxAvailable_Filters, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(On_Available_Filter_Dbl_Click(QListWidgetItem*)));
+}
+
+bool CFilters_Window::eventFilter(QObject* object, QEvent* event) {
+	if (object == lbxApplied_Filters && event->type() == QEvent::KeyPress) {
+		QKeyEvent* ke = static_cast<QKeyEvent*>(event);
+		On_Applied_Filter_Key_Press(ke);
+		return true;
+	}
+	else
+		return false;
 }
 
 void CFilters_Window::On_Add_Filter() {
@@ -236,6 +249,18 @@ void CFilters_Window::On_Applied_Filter_Dbl_Click(QListWidgetItem* item) {
 	Configure_Filter(item);
 }
 
+void CFilters_Window::On_Available_Filter_Dbl_Click(QListWidgetItem* item) {
+	const auto& desc = reinterpret_cast<CFilter_List_Item*>(item)->description();
+	CFilter_List_Item* tmp = new CFilter_List_Item{ mFilter_Chain_Configuration.Add_Link(desc.id) };
+	lbxApplied_Filters->addItem(tmp);
+}
+
+void CFilters_Window::On_Applied_Filter_Key_Press(QKeyEvent* keyevent) {
+	if (keyevent->key() == Qt::Key_Delete) {
+		On_Remove_Filter();
+	}
+}
+
 void CFilters_Window::On_Configure_Filter() {
 	const auto selection = lbxApplied_Filters->selectedItems();
 	bool success = (selection.size() == 1);
@@ -261,8 +286,7 @@ void CFilters_Window::On_Commit_Filters() {
 	
 }
 
-void CFilters_Window::On_Filter_Configure_Complete()
-{
+void CFilters_Window::On_Filter_Configure_Complete() {
 	for (int i = 0; i < lbxApplied_Filters->count(); i++)
 	{
 		auto item = reinterpret_cast<CFilter_List_Item*>(lbxApplied_Filters->item(i));
@@ -271,8 +295,7 @@ void CFilters_Window::On_Filter_Configure_Complete()
 	}
 }
 
-void CFilters_Window::On_Filter_Drag_Drop(QModelIndex idx, int start, int end, QModelIndex mdlIdx, int dst)
-{
+void CFilters_Window::On_Filter_Drag_Drop(QModelIndex idx, int start, int end, QModelIndex mdlIdx, int dst) {
 	const int realDst = start < dst ? dst - 1 : dst; // moving down needs to consider that the current element is still in place
 
 	mFilter_Chain_Configuration->move(static_cast<size_t>(start), static_cast<size_t>(realDst));
