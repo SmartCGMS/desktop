@@ -108,7 +108,7 @@ void CFilters_Window::Setup_UI() {
 	QPushButton *btnDown_Filter = new QPushButton{tr(dsMove_Down)};
 	QPushButton *btnRemove_Filter = new QPushButton{tr(dsRemove)};
 	QPushButton *btnConfigure_Filter = new QPushButton{ tr(dsConfigure) };
-	QPushButton *btnCommit_Filters = new QPushButton{ tr(dsCommit) };
+	//QPushButton *btnCommit_Filters = new QPushButton{ tr(dsCommit) };
 
 	QHBoxLayout *lotApplied_Buttons = new QHBoxLayout{  };
 	QWidget *wgtApplied_Buttons = new QWidget{this};
@@ -116,7 +116,7 @@ void CFilters_Window::Setup_UI() {
 	lotApplied_Buttons->addWidget(btnDown_Filter);
 	lotApplied_Buttons->addWidget(btnRemove_Filter);
 	lotApplied_Buttons->addWidget(btnConfigure_Filter);
-	lotApplied_Buttons->addWidget(btnCommit_Filters);
+	//lotApplied_Buttons->addWidget(btnCommit_Filters);
 	wgtApplied_Buttons->setLayout(lotApplied_Buttons);
 	lotApplied_Filters->addWidget(wgtApplied_Buttons);
 	
@@ -143,7 +143,7 @@ void CFilters_Window::Setup_UI() {
 	mFilter_Chain_Configuration.for_each([this](scgms::SFilter_Configuration_Link link) {
 		CFilter_List_Item *tmp = new CFilter_List_Item(link);
 		tmp->Refresh();
-		lbxApplied_Filters->addItem(tmp);			
+		lbxApplied_Filters->addItem(tmp);
 	});
 
 
@@ -176,7 +176,7 @@ void CFilters_Window::Setup_UI() {
 	connect(btnDown_Filter, SIGNAL(clicked()), this, SLOT(On_Move_Filter_Down()));
 	connect(btnRemove_Filter, SIGNAL(clicked()), this, SLOT(On_Remove_Filter()));
 	connect(btnConfigure_Filter, SIGNAL(clicked()), this, SLOT(On_Configure_Filter()));
-	connect(btnCommit_Filters, SIGNAL(clicked()), this, SLOT(On_Commit_Filters()));
+	//connect(btnCommit_Filters, SIGNAL(clicked()), this, SLOT(On_Commit_Filters()));
 	connect(lbxApplied_Filters, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(On_Applied_Filter_Dbl_Click(QListWidgetItem*)));
 }
 
