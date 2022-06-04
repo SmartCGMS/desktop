@@ -47,6 +47,7 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QListView>
+#include <QtWidgets/QTableWidget>
 #include <QtGui/QStandardItem>
 #include <QtCore/QDateTime>
 
@@ -68,17 +69,16 @@ protected:
 	void Populate_Parameters_Info(scgms::SFilter_Chain_Configuration configuration);
 protected:
 	QListView* cmbParameters = nullptr;
-	QListView* lstMetricHistory = nullptr;
+	QTableWidget* lstMetricHistory = nullptr;
 	QComboBox* cmbSolver = nullptr;
 	QLineEdit *edtMax_Generations, *edtPopulation_Size;
 	QLabel *lblSolver_Info;
 	QProgressBar *barProgress;
 	QLabel* progressLabel1, *progressLabel2;
 	QPushButton *btnSolve, *btnStop, *btnClose;
-	QStandardItemModel* mdlMetricHistoryModel;
 	QLabel* timestampLabelStart, *timestampLabelEnd;
 	QDateTime startDateTime;
-	double lastMetric = 0;
+	solver::TFitness lastMetric = solver::Nan_Fitness;
 	size_t lastProgress = 0;
 	void Setup_UI();
 
@@ -91,12 +91,15 @@ protected:
 	bool mIs_Solving = false;
 
 	void Stop_Threads();
+	void Stop_Async();
 signals:
 	void Update_Progress_Signal();
 protected slots:
 	void On_Solve();
 	void On_Stop();	
 	void On_Update_Progress();
+
+	void reject();
 public:
 	CParameters_Optimization_Dialog(scgms::SFilter_Chain_Configuration configuration, QWidget *parent);
 	~CParameters_Optimization_Dialog();

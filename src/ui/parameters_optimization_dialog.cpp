@@ -45,14 +45,20 @@
 #include "../../../common/utils/QtUtils.h"
 #include "../../../common/utils/string_utils.h"
 #include "../../../common/iface/SolverIface.h"
+#include "../../../common/utils/math_utils.h"
 
+#include <QApplication>
 #include <QtCore/QDateTime>
 #include <QtWidgets/QBoxLayout>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QProgressDialog>
 
 #include <thread>
 #include <chrono>
 #include <cmath>
+#include <future>
 
 #include "moc_parameters_optimization_dialog.cpp"
 
@@ -254,11 +260,23 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 
 		QWidget* history = new QWidget();
 
-		mdlMetricHistoryModel = new QStandardItemModel{ 0, static_cast<int>(1), history };
+		lstMetricHistory = new QTableWidget{ history };
+		lstMetricHistory->setColumnCount(solver::Maximum_Objectives_Count + 2); // 2 for current and maximum generation count
 
-		lstMetricHistory = new QListView{ history };
-		lstMetricHistory->setModel(mdlMetricHistoryModel);
-		lstMetricHistory->setMinimumWidth(250);
+		QStringList headers;
+		headers << "Gen." << "Max.";
+		for (size_t i = 0; i < solver::Maximum_Objectives_Count; i++)
+			headers << QString::number(i + 1);
+
+		lstMetricHistory->setShowGrid(true);
+		lstMetricHistory->setSelectionMode(QAbstractItemView::SingleSelection);
+		lstMetricHistory->setSelectionBehavior(QAbstractItemView::SelectRows);
+		lstMetricHistory->setHorizontalHeaderLabels(headers);
+		lstMetricHistory->resizeColumnsToContents();
+		lstMetricHistory->verticalHeader()->hide();
+
+		for (size_t i = 0; i < solver::Maximum_Objectives_Count; i++)
+			lstMetricHistory->hideColumn(static_cast<int>(i + 2));
 
 		QWidget* startLbl = new QWidget();
 		{
@@ -317,7 +335,8 @@ void CParameters_Optimization_Dialog::On_Solve() {
 			mSolve_filter_parameter_names.push_back(mParameters_Info[filter_info_index].parameters_name.c_str());
 		}
 
-		mdlMetricHistoryModel->clear();
+		lstMetricHistory->clearContents();
+		lstMetricHistory->setRowCount(0);
 
 		timestampLabelStart->setText("N/A");
 		timestampLabelEnd->setText("N/A");
@@ -330,7 +349,7 @@ void CParameters_Optimization_Dialog::On_Solve() {
 			const int popSize = edtPopulation_Size->text().toInt();
 			const int maxGens = edtMax_Generations->text().toInt();
 
-			lastMetric = std::numeric_limits<double>::max();
+			lastMetric = solver::Nan_Fitness;
 			lastProgress = 0;
 			startDateTime = QDateTime::currentDateTime();
 			timestampLabelStart->setText(startDateTime.toLocalTime().toString());
@@ -395,11 +414,33 @@ void CParameters_Optimization_Dialog::On_Update_Progress() {
 					timestampLabelEnd->setText("N/A");
 			}
 
-			if (mProgress.best_metric[0] != lastMetric) {
-				lastMetric = mProgress.best_metric[0];
+			bool changed = false;
+			for (size_t i = 0; i < solver::Maximum_Objectives_Count; i++) {
+				if (Is_Any_NaN(mProgress.best_metric[i]))
+					continue;
+				if (Is_Any_NaN(lastMetric[i]) || lastMetric[i] != mProgress.best_metric[i]) {
+					changed = true;
+					break;
+				}
+			}
 
-				QStandardItem* item = new QStandardItem{ QString("%1 (%2/%3)").arg(lastMetric).arg(mProgress.current_progress).arg(mProgress.max_progress) };
-				mdlMetricHistoryModel->appendRow(item);
+			if (changed) {
+				for (size_t i = 0; i < solver::Maximum_Objectives_Count; i++) {
+					lastMetric[i] = mProgress.best_metric[i];
+				}
+
+				int i = lstMetricHistory->rowCount();
+
+				lstMetricHistory->insertRow(i);
+				lstMetricHistory->setItem(i, 0, new QTableWidgetItem(QString::number(mProgress.current_progress)));
+				lstMetricHistory->setItem(i, 1, new QTableWidgetItem(QString::number(mProgress.max_progress)));
+				for (size_t j = 0; j < solver::Maximum_Objectives_Count; j++) {
+					lstMetricHistory->setItem(i, static_cast<int>(2 + j), new QTableWidgetItem(QString::number(mProgress.best_metric[j])));
+					if (!Is_Any_NaN(mProgress.best_metric[j]))
+						lstMetricHistory->showColumn(static_cast<int>(j + 2));
+				}
+
+				lstMetricHistory->resizeColumnsToContents();
 				lstMetricHistory->scrollToBottom();
 			}
 		} else
@@ -414,11 +455,23 @@ void CParameters_Optimization_Dialog::On_Update_Progress() {
 }
 
 void CParameters_Optimization_Dialog::On_Stop() {
-	if (mIs_Solving) {
-		mIs_Solving = false;
-		Stop_Threads();
-	}
+	Stop_Async();
 	On_Update_Progress();
+}
+
+void CParameters_Optimization_Dialog::reject()
+{
+	if (mIs_Solving) {
+		QMessageBox::StandardButton resBtn = QMessageBox::Yes;
+		resBtn = QMessageBox::question(this, tr("Solver still running"), tr("The solver is still running. Do you want to stop the solver and reject results?\n"), QMessageBox::Cancel | QMessageBox::Yes, QMessageBox::Yes);
+
+		if (resBtn == QMessageBox::Yes) {
+			Stop_Async();
+			QDialog::reject();
+		}
+	}
+	else
+		QDialog::reject();
 }
 
 
@@ -435,4 +488,34 @@ void CParameters_Optimization_Dialog::Stop_Threads() {
 	wait_for_thread(mSolver_Thread);
 	wait_for_thread(mProgress_Update_Thread);
 	mProgress.cancelled = FALSE;
+}
+
+void CParameters_Optimization_Dialog::Stop_Async() {
+	QProgressDialog progress("Stopping the solver...", "Cancel", 0, 0, this);
+	progress.setWindowTitle("Working...");
+	progress.setWindowModality(Qt::ApplicationModal);
+	progress.setAutoClose(false);
+	progress.setBar(nullptr);
+	progress.setWindowFlags(progress.windowFlags() & ~(Qt::WindowCloseButtonHint | Qt::WindowContextHelpButtonHint));
+
+	progress.show();
+
+	QList<QPushButton*> L = progress.findChildren<QPushButton*>();
+	if (L.size() > 0)
+		L[0]->setDisabled(true);
+
+	auto r = std::async(std::launch::async, [this]() {
+		mProgress.cancelled = TRUE;
+		mIs_Solving = false;
+		Stop_Threads();
+		});
+
+	while (r.wait_for(std::chrono::milliseconds(10)) == std::future_status::timeout) {
+		mProgress.cancelled = TRUE;
+		mIs_Solving = false;
+		QApplication::processEvents();
+	}
+	mProgress.cancelled = FALSE;
+
+	progress.close();
 }
