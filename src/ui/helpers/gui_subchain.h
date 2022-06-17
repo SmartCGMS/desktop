@@ -54,6 +54,14 @@
 // default time in [ms] to update drawing
 constexpr size_t GUI_Subchain_Default_Drawing_Update = 500;
 
+enum class NRedraw_Mode
+{
+	Periodic,		// default - refresh once every GUI_Subchain_Default_Drawing_Update ms
+	Shut_Down_Only,	// only redraw on shut_down
+
+	count
+};
+
 // this is exception from filter decomposition model: this filter is special, in this context it means, it "knows" about several filters
 // typically used by GUI - drawing filter, error metrics filter, log filter
 
@@ -114,6 +122,8 @@ class CGUI_Filter_Subchain {
 		void Update_Error_Metrics();
 		void Hint_Update_Solver_Progress();
 
+		NRedraw_Mode mRedraw_Mode = NRedraw_Mode::Periodic;
+
 	public:
 		CGUI_Filter_Subchain();
 		virtual ~CGUI_Filter_Subchain();
@@ -128,6 +138,7 @@ class CGUI_Filter_Subchain {
 		void Relase_Filter_Bindings();
 
 		void Set_Preferred_Drawing_Dimensions(const int width, const int height);
+		void Set_Redraw_Mode(NRedraw_Mode mode);
 
 		std::vector<std::vector<std::wstring>> Get_Drawing_v2_Drawings() const;
 };

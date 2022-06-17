@@ -108,6 +108,7 @@ void CGUI_Filter_Subchain::Run_Updater()
 
 		// update if there was a change
 		//if (mChange_Available.exchange(false)) {
+		if (mRedraw_Mode == NRedraw_Mode::Periodic)
 			Update_GUI();
 		//}
 
@@ -251,6 +252,11 @@ void CGUI_Filter_Subchain::Set_Preferred_Drawing_Dimensions(const int width, con
 {
 	mDrawing_v2_Width = width;
 	mDrawing_v2_Height = height;
+}
+
+void CGUI_Filter_Subchain::Set_Redraw_Mode(NRedraw_Mode mode)
+{
+	mRedraw_Mode = mode;
 }
 
 std::vector<std::vector<std::wstring>> CGUI_Filter_Subchain::Get_Drawing_v2_Drawings() const

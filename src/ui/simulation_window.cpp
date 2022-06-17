@@ -209,12 +209,30 @@ void CSimulation_Window::Setup_UI() {
 
 	Setup_Solve_Button_Menu();
 
-	mProgressGroup = new QGroupBox();
-	QVBoxLayout *progLayout = new QVBoxLayout();
-	mProgressGroup->setLayout(progLayout);
-	mProgressGroup->setTitle(StdWStringToQString(dsSolver_Progress_Box_Title));
+	QWidget* leftPanel = new QWidget();
+	QVBoxLayout* leftPanelLayout = new QVBoxLayout();
+	{
+		leftPanel->setLayout(leftPanelLayout);
 
-	layout->addWidget(mProgressGroup, 1, 0);
+		mProgressGroup = new QGroupBox();
+		QVBoxLayout* progLayout = new QVBoxLayout();
+		mProgressGroup->setLayout(progLayout);
+		mProgressGroup->setTitle(StdWStringToQString(dsSolver_Progress_Box_Title));
+
+		leftPanelLayout->addWidget(mProgressGroup, 1);
+
+		QGroupBox* miscSettings = new QGroupBox();
+		QVBoxLayout* miscLayout = new QVBoxLayout();
+		miscSettings->setLayout(miscLayout);
+		miscSettings->setTitle(StdWStringToQString(L"Miscellanous settings"));
+
+		mDrawAtShutdownCheckBox = new QCheckBox(tr("Draw on shut-down only"));
+		miscLayout->addWidget(mDrawAtShutdownCheckBox);
+
+		leftPanelLayout->addWidget(miscSettings, 0);
+	}
+
+	layout->addWidget(leftPanel, 1, 0);
 
 	QWidget* segmentsParentBox = new QWidget();
 	{
@@ -351,6 +369,7 @@ void CSimulation_Window::Setup_UI() {
 	connect(mStopButton, SIGNAL(clicked()), this, SLOT(On_Stop()));
 	connect(mSolveAndResetParamsButton, SIGNAL(clicked()), this, SLOT(On_Reset_And_Solve_Params()));
 	connect(mTabWidget, SIGNAL(currentChanged(int)), this, SLOT(On_Tab_Change(int)));
+	connect(mDrawAtShutdownCheckBox, SIGNAL(stateChanged(int)), this, SLOT(On_Draw_Shut_Down_State_Change(int)));
 
 	mTabWidget->tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(mTabWidget->tabBar(), SIGNAL(customContextMenuRequested(const QPoint &)), SLOT(Show_Tab_Context_Menu(const QPoint &)));
@@ -417,6 +436,14 @@ void CSimulation_Window::Update_Tab_View()
 void CSimulation_Window::On_Tab_Change(int index)
 {
 	Update_Tab_View();
+}
+
+void CSimulation_Window::On_Draw_Shut_Down_State_Change(int state)
+{
+	if (state == Qt::Unchecked)
+		mGUI_Filter_Subchain.Set_Redraw_Mode(NRedraw_Mode::Periodic);
+	else
+		mGUI_Filter_Subchain.Set_Redraw_Mode(NRedraw_Mode::Shut_Down_Only);
 }
 
 void CSimulation_Window::resizeEvent(QResizeEvent* evt)

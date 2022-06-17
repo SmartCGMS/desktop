@@ -49,6 +49,7 @@
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSpinBox>
+#include <QtWidgets/QCheckBox>
 
 #include "../../../common/rtl/FilterLib.h"
 #include "../../../common/rtl/UILib.h"
@@ -114,6 +115,9 @@ class CSimulation_Window : public QMdiSubWindow {
 		// signal mapper for solve dropdown menu
 		QSignalMapper* mSolveSignalMapper;
 
+		// checkbox for drawing at the end of simulation
+		QCheckBox* mDrawAtShutdownCheckBox;
+
 		typedef struct {
 			size_t progress;
 			double bestMetric;
@@ -165,6 +169,8 @@ class CSimulation_Window : public QMdiSubWindow {
 		void Slot_Start_Time_Segment(quint64 id);
 		void Slot_Add_Signal(QUuid id);
 		void Slot_Update_Solver_Progress(QUuid solver);
+
+		void On_Draw_Shut_Down_State_Change(int state);
 
 	protected:
 		void Inject_Event(const scgms::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info, const uint64_t segment_id = scgms::Invalid_Segment_Id);
