@@ -51,6 +51,7 @@ class CSignal_Group_Widget : public QGroupBox
 	private:
 		QCheckBox *mCheckBox;
 		GUID mSignal_Id;
+		GUID mReference_Signal_Id = Invalid_GUID;
 
 	public:
 		explicit CSignal_Group_Widget(const GUID& signalId, QWidget* parent = nullptr);
@@ -58,4 +59,5 @@ class CSignal_Group_Widget : public QGroupBox
 
 		bool Is_Checked() const;
 		const GUID& Get_Signal_Id() const;
+		const GUID& Get_Reference_Signal_Id() const;
 };

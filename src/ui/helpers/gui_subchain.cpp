@@ -141,13 +141,14 @@ void CGUI_Filter_Subchain::On_Filter_Configured(scgms::IFilter *filter) {
 
 
 
-void CGUI_Filter_Subchain::Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds)
+void CGUI_Filter_Subchain::Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds, std::vector<GUID>& referenceSignalIds)
 {
 	std::unique_lock<std::mutex> lck(mUpdater_Mtx);
 
 	// store requested containers and request redraw
 	mDraw_Segment_Ids = refcnt::Create_Container_shared<uint64_t>(segmentIds.data(), segmentIds.data() + segmentIds.size());
 	mDraw_Signal_Ids = refcnt::Create_Container_shared<GUID>(signalIds.data(), signalIds.data() + signalIds.size());
+	mDraw_Reference_Signal_Ids = refcnt::Create_Container_shared<GUID>(referenceSignalIds.data(), referenceSignalIds.data() + referenceSignalIds.size());
 
 	mForceUpdate = true;
 
@@ -185,16 +186,33 @@ void CGUI_Filter_Subchain::Update_Drawing() {
 
 	if (!mDrawing_Filter_Inspection_v2.empty()) {
 
+		uint64_t *seg_begin, *seg_end;
+		if (!mDraw_Segment_Ids || mDraw_Segment_Ids->get(&seg_begin, &seg_end) != S_OK) {
+			seg_begin = seg_end = nullptr;
+		}
+
+		GUID *sig_begin, *sig_end;
+		if (!mDraw_Signal_Ids || mDraw_Signal_Ids->get(&sig_begin, &sig_end) != S_OK) {
+			sig_begin = sig_end = nullptr;
+		}
+
+		GUID *ref_begin, *ref_end;
+		if (!mDraw_Reference_Signal_Ids || mDraw_Reference_Signal_Ids->get(&ref_begin, &ref_end) != S_OK) {
+			// either both valid, or both nullptr
+			ref_begin = sig_begin;
+			ref_end = sig_end;
+		}
+
+		assert(std::distance(ref_begin, ref_end) == std::distance(sig_begin, sig_end) && "Reference signal count must be equal to signal count!");
+
 		scgms::TDraw_Options opts;
 		opts.width = mDrawing_v2_Width;
 		opts.height = mDrawing_v2_Height;
-		// TODO: following is not yet implemented; reference signals should also be implemented in simulation window and the rest of the GUI
-		// for now, just draw everything
-		opts.in_signals = nullptr;
-		opts.reference_signals = nullptr;
-		opts.signal_count = 0;
-		opts.segments = nullptr;
-		opts.segment_count = 0;
+		opts.in_signals = sig_begin;
+		opts.reference_signals = ref_begin;
+		opts.signal_count = std::distance(sig_begin, sig_end);
+		opts.segments = seg_begin;
+		opts.segment_count = std::distance(seg_begin, seg_end);
 		
 		for (size_t i = 0; i < mDrawing_Filter_Inspection_v2.size(); i++)
 		{

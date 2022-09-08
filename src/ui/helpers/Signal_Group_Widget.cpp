@@ -54,6 +54,7 @@ CSignal_Group_Widget::CSignal_Group_Widget(const GUID& signalId, QWidget* parent
 	if (simwin) {
 		scgms::CSignal_Description names;
 		signalName = names.Get_Name(mSignal_Id);
+		names.Get_Reference_Signal_Id(mSignal_Id, mReference_Signal_Id);
 	}
 
 	mCheckBox = new QCheckBox(StdWStringToQString(signalName));
@@ -74,4 +75,9 @@ bool CSignal_Group_Widget::Is_Checked() const
 const GUID& CSignal_Group_Widget::Get_Signal_Id() const
 {
 	return mSignal_Id;
+}
+
+const GUID& CSignal_Group_Widget::Get_Reference_Signal_Id() const
+{
+	return mReference_Signal_Id;
 }

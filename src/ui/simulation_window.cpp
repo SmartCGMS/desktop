@@ -66,6 +66,8 @@
 
 constexpr size_t Invalid_Value = static_cast<size_t>(-1);
 
+constexpr bool Is_Visibility_Panel_Enabled = true;
+
 std::atomic<CSimulation_Window*> CSimulation_Window::mInstance = nullptr;
 
 HRESULT IfaceCalling CGUI_Terminal_Filter::Configure(scgms::IFilter_Configuration* configuration, refcnt::wstr_list* error_description)
@@ -292,11 +294,19 @@ void CSimulation_Window::Setup_UI() {
 	}
 
 	layout->addWidget(segmentsParentBox, 1, 9);
-	segmentsParentBox->hide();		//TODO: remove this hide once new drawing is implemented
 
 	// main tab widget, span to 11 columns for now
 	mTabWidget = new QTabWidget();
-	layout->addWidget(mTabWidget, 1, 1, 1, 10);	//TODO: set 10 to 8 once new drawing is implemented
+
+	if constexpr (Is_Visibility_Panel_Enabled)
+	{
+		layout->addWidget(mTabWidget, 1, 1, 1, 8);
+	}
+	else
+	{
+		segmentsParentBox->hide();
+		layout->addWidget(mTabWidget, 1, 1, 1, 10);
+	}
 
 	// TODO: verify if GUI filter is actually present in filter chain
 	{
@@ -733,6 +743,7 @@ void CSimulation_Window::On_Segments_Draw_Request()
 {
 	std::vector<uint64_t> segmentsToDraw;
 	std::vector<GUID> signalsToDraw;
+	std::vector<GUID> signalsReferenceIdsToDraw;
 
 	for (const auto& ctrl : mSegmentWidgets)
 	{
@@ -743,10 +754,13 @@ void CSimulation_Window::On_Segments_Draw_Request()
 	for (const auto &ctrl : mSignalWidgets)
 	{
 		if (ctrl.second->Is_Checked())
+		{
 			signalsToDraw.push_back(ctrl.second->Get_Signal_Id());
+			signalsReferenceIdsToDraw.push_back(ctrl.second->Get_Reference_Signal_Id());
+		}
 	}
 	
-	mGUI_Filter_Subchain.Request_Redraw(segmentsToDraw, signalsToDraw);
+	mGUI_Filter_Subchain.Request_Redraw(segmentsToDraw, signalsToDraw, signalsReferenceIdsToDraw);
 }
 
 void CSimulation_Window::On_Select_Segments_All()
@@ -794,6 +808,10 @@ void CSimulation_Window::Add_Signal(const GUID& signalId)
 void CSimulation_Window::Slot_Add_Signal(QUuid id)
 {
 	const GUID signal_id = QUuid_To_GUID(id);
+
+	// do not add special signal markers
+	if (signal_id == scgms::signal_All || signal_id == scgms::signal_Null)
+		return;
 
 	auto itr = mSignalWidgets.find(signal_id);
 

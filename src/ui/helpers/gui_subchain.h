@@ -114,6 +114,7 @@ class CGUI_Filter_Subchain {
 
 		std::shared_ptr<refcnt::IVector_Container<uint64_t>> mDraw_Segment_Ids;
 		std::shared_ptr<refcnt::IVector_Container<GUID>> mDraw_Signal_Ids;
+		std::shared_ptr<refcnt::IVector_Container<GUID>> mDraw_Reference_Signal_Ids;
 
 		void Update_GUI();
 
@@ -131,7 +132,7 @@ class CGUI_Filter_Subchain {
 		void On_Filter_Configured(scgms::IFilter *filter);
 			
 
-		void Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds);
+		void Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds, std::vector<GUID>& referenceSignalIds);
 
 		void Start();
 		void Stop(bool update_gui = false);
