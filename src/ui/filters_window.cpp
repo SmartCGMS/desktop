@@ -55,7 +55,7 @@
 
 #include <QtCore/QEventLoop>
 #include <QtWidgets/QApplication>
-#include <QKeyEvent>
+#include <QtGui/QKeyEvent>
 
 #ifndef MOC_DIR
 	#include "moc_filters_window.cpp"
