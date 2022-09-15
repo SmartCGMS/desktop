@@ -173,11 +173,11 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 			int default_solver_pos = -1;
 			constexpr GUID default_solver_id = { 0x1b21b62f, 0x7c6c, 0x4027,{ 0x89, 0xbc, 0x68, 0x7d, 0x8b, 0xd3, 0x2b, 0x3c } };	// let mt metade be a default solver
 			for (const auto& item : scgms::get_solver_descriptors()) {
-				if (item.id == default_solver_id)
-					default_solver_pos = cmbSolver->count() - 1;
 				cmbSolver->addItem(QString::fromStdWString(item.description), QVariant(GUID_To_QUuid(item.id)));
 			}
 			cmbSolver->model()->sort(0, Qt::AscendingOrder); 
+
+			default_solver_pos = cmbSolver->findData(GUID_To_QUuid(default_solver_id));
 
 			if (default_solver_pos != -1)
 				cmbSolver->setCurrentIndex(default_solver_pos);
