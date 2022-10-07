@@ -92,7 +92,7 @@ void CGUI_Filter_Subchain::Stop(bool update_gui) {
 }
 
 void CGUI_Filter_Subchain::Relase_Filter_Bindings() {
-	mDrawing_Filter_Inspection = scgms::SDrawing_Filter_Inspection{ };
+	mDrawing_Filter_Inspection.reset();// = scgms::SDrawing_Filter_Inspection{ }; - causes crash
 	mDrawing_Filter_Inspection_v2.clear();
 	mAvailable_Plot_Views.clear();
 	mDrawing_Clock = 0;
