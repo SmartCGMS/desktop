@@ -464,12 +464,13 @@ void CMain_Window::On_Open_Experimental_Setup() {
 }
 
 void CMain_Window::On_Open_Recent_Experimental_Setup(QAction* action) {
-	if (!action || !action->data().isValid())
+	const auto action_data = action->data();
+	if ((!action) || (!action_data.isValid()))
 		return;
 
 	bool ok = false;
 
-	size_t index = static_cast<size_t>(action->data().toInt(&ok));
+	size_t index = static_cast<size_t>(action_data.toInt(&ok));
 
 	if (index >= mRecent_Files.size())
 		return;
