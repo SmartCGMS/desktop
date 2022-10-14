@@ -369,7 +369,7 @@ void CParameters_Optimization_Dialog::On_Solve() {
 			mSolver_Thread = std::make_unique<std::thread>(
 				[this, popSize, maxGens]() {
 					refcnt::Swstr_list error_description;
-					HRESULT res = scgms::Optimize_Multiple_Parameters(mConfiguration, mSolve_filter_info_indices.data(), const_cast<const wchar_t**>(mSolve_filter_parameter_names.data()), mSolve_filter_info_indices.size(),
+					HRESULT res = scgms::Optimize_Parameters(mConfiguration, mSolve_filter_info_indices.data(), const_cast<const wchar_t**>(mSolve_filter_parameter_names.data()), mSolve_filter_info_indices.size(),
 						Setup_Filter_DB_Access, nullptr,
 						mChosen_Solver_Id,
 						popSize,
