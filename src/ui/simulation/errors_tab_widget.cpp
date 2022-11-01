@@ -57,13 +57,15 @@
 
 #include "moc_errors_tab_widget.cpp"
 
-constexpr int Error_Column_Count = 16;
+constexpr int Error_Column_Count = 18;
 
 // names of columns in table
 const std::array<const wchar_t*, Error_Column_Count>  gError_Column_Names = {
 	dsDescription,	
 	dsError_Column_Average,
 	dsError_Column_StdDev,
+	dsError_Column_ExcKurtosis,
+	dsError_Column_Skewness,
 	dsError_Column_Sum,
 	dsError_Column_Count,
 	dsError_Column_Minimum,
@@ -111,20 +113,24 @@ QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex
 	auto display_signal = [](const int col, const scgms::TSignal_Stats &error, bool is_relative) {
 		constexpr int avg_col = 1;
 		constexpr int stdev_col = 2;
-		constexpr int sum_col = 3;
-		constexpr int count_col = 4;
+		constexpr int exckurt_col = 3;
+		constexpr int skew_col = 4;
+		constexpr int sum_col = 5;
+		constexpr int count_col = 6;
 		
-		constexpr int min_col = 5;
-		constexpr int p25_col = 6;
-		constexpr int med_col = 7;
-		constexpr int p75_col = 8;
-		constexpr int p95_col = 9;
-		constexpr int p99_col = 10;
-		constexpr int max_col = 11;
+		constexpr int min_col = 7;
+		constexpr int p25_col = 8;
+		constexpr int med_col = 9;
+		constexpr int p75_col = 10;
+		constexpr int p95_col = 11;
+		constexpr int p99_col = 12;
+		constexpr int max_col = 13;
 
 		switch (col) {
 			case avg_col:	return Format_Error_String(error.avg, is_relative);
 			case stdev_col: return Format_Error_String(error.stddev, is_relative);
+			case exckurt_col: return Format_Error_String(error.exc_kurtosis, is_relative);
+			case skew_col: return Format_Error_String(error.skewness, is_relative);
 			case sum_col:	return Format_Error_String(error.sum, is_relative);
 			case count_col: return Format_Error_String(error.count, false);
 
