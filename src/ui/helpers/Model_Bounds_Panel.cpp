@@ -355,7 +355,7 @@ CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QCo
 		});
 	}
 
-	fetch_parameter();
+//	fetch_parameter(); - avoid possibly virtual call from ctor
 }
 
 void CModel_Bounds_Panel::store_parameter() {

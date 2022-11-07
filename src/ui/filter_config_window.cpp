@@ -108,8 +108,6 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 			auto add_edit_control = [&]() {
 				filter_config_window::CContainer_Edit *container = nullptr;
 
-				GUID fixed_model = Invalid_GUID;
-
 				switch (mDescription.parameter_type[i])
 				{
 					case scgms::NParameter_Type::ptNull:
@@ -192,7 +190,12 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 					case scgms::NParameter_Type::ptSubject_Id:
 						container = new CSelect_Subject_Panel{ mConfiguration, parameter, this };
 						break;
+
+					default:
+						break;
 				}
+				if (container)
+					container->fetch_parameter();
 
 				if (mDescription.parameter_type[i] != scgms::NParameter_Type::ptNull) mContainer_Edits.push_back(container);
 				switch (mDescription.parameter_type[i])
