@@ -541,7 +541,7 @@ void CSimulation_Window::On_Start() {
 		mDrawing_v2_Widgets.clear();
 
 		// counter - so we could add them directly after the base tab set (before "saved" tabs)
-		int tabOffset = mBase_Tab_Count;
+		int tabOffset = 0; // mBase_Tab_Count; let's insert it at the begining as the preferred views
 
 		// create tabs/widgets
 		auto drawings = mGUI_Filter_Subchain.Get_Drawing_v2_Drawings();
