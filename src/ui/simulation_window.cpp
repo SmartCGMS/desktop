@@ -551,7 +551,7 @@ void CSimulation_Window::On_Start() {
 		mDrawing_v2_Widgets.clear();
 
 		// counter - so we could add them directly after the base tab set (before "saved" tabs)
-		int tabOffset = mBase_Tab_Count;
+		int tabOffset = 0; // mBase_Tab_Count; let's insert it at the begining as the preferred views
 
 		// create tabs/widgets
 		auto drawings = mGUI_Filter_Subchain.Get_Drawing_v2_Drawings();
@@ -691,31 +691,33 @@ void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
 		case scgms::TSolver_Status::Disabled:					statusStr = dsSolver_Status_Disabled; break;
 		case scgms::TSolver_Status::Idle:						statusStr = dsSolver_Status_Idle; break;
 		case scgms::TSolver_Status::In_Progress:				statusStr = dsSolver_Status_In_Progress; break;
-		case scgms::TSolver_Status::Completed_Improved:		statusStr = dsSolver_Status_Completed_Improved; break;
-		case scgms::TSolver_Status::Completed_Not_Improved:   statusStr = dsSolver_Status_Completed_Not_Improved; break;
-		case scgms::TSolver_Status::Failed:					statusStr = dsSolver_Status_Failed; break;
+		case scgms::TSolver_Status::Completed_Improved:			statusStr = dsSolver_Status_Completed_Improved; break;
+		case scgms::TSolver_Status::Completed_Not_Improved:		statusStr = dsSolver_Status_Completed_Not_Improved; break;
+		case scgms::TSolver_Status::Failed:						statusStr = dsSolver_Status_Failed; break;
 	}
 
 	if (itr == mProgressBars.end())
 	{
-		QProgressBar* pbar = new QProgressBar();
-		mProgressBars[solver_id] = pbar;
-
-		QLabel* plabel = new QLabel(StdWStringToQString(mSignal_Descriptors.Get_Name(solver_id)));
-		QLabel* metriclabel = new QLabel(metricString);
-		mBestMetricLabels[solver_id] = metriclabel;
-		QLabel* statusLabel = new QLabel(tr(statusStr.c_str()));
-		mSolverStatusLabels[solver_id] = statusLabel;
-
-		pbar->setValue((int)progress);
-
 		QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mProgressGroup->layout());
 		if (lay)
 		{
-			lay->insertWidget(0, metriclabel);
-			lay->insertWidget(0, pbar);
-			lay->insertWidget(0, statusLabel);
-			lay->insertWidget(0, plabel);
+
+			QLabel* plabel = new QLabel{ StdWStringToQString(mSignal_Descriptors.Get_Name(solver_id)) };
+			QLabel* metriclabel = new QLabel(metricString);
+			mBestMetricLabels[solver_id] = metriclabel;
+			QLabel* statusLabel = new QLabel(tr(statusStr.c_str()));
+			mSolverStatusLabels[solver_id] = statusLabel;
+
+			QProgressBar* pbar = new QProgressBar();
+			if (pbar) {
+				mProgressBars[solver_id] = pbar;
+
+				pbar->setValue((int)progress);
+				lay->insertWidget(0, metriclabel);
+				lay->insertWidget(0, pbar);
+				lay->insertWidget(0, statusLabel);
+				lay->insertWidget(0, plabel);
+			}
 		}
 	}
 	else

@@ -56,7 +56,7 @@ namespace filter_config_window {
 	
 
 	CContainer_Edit::CContainer_Edit(scgms::SFilter_Parameter parameter) : mParameter(parameter) {
-		fetch_parameter();
+		//fetch_parameter(); - avoid possibly virtual call from ctor
 	}
 
 	bool CContainer_Edit::check_rc(const HRESULT rc) {
