@@ -60,9 +60,9 @@ namespace CModel_Bounds_Panel_internal {
 		Q_OBJECT
 	protected:		
 		std::vector<QString> mNames;
-		size_t mSegment_Agnostic_Parameter_Count;
-		size_t mIndividualized_Segment_Count;
-		size_t mSegment_Specific_Parameter_Count;		
+		size_t mSegment_Agnostic_Parameter_Count = 0;
+		size_t mIndividualized_Segment_Count = 0;
+		size_t mSegment_Specific_Parameter_Count = 0;		
 	public:
 		std::vector<scgms::NModel_Parameter_Value> mTypes;
 		std::vector<double> mLower_Bounds, mDefault_Values, mUpper_Bounds;

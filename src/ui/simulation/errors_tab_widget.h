@@ -64,7 +64,7 @@ namespace CErrors_Tab_Widget_internal {
 		scgms::SSignal_Error_Inspection signal_error;
 		scgms::TSignal_Stats recent_abs_error;
 		scgms::TSignal_Stats recent_rel_error;
-		double r5, r10, r25, r50;	//inverse ECDF for relative errors
+		double r5 = 0.0, r10 = 0.0, r25 = 0.0, r50 = 0.0;	//inverse ECDF for relative errors
 	};
 
 	class CError_Table_Model : public QAbstractTableModel {
