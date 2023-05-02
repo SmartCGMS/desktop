@@ -131,7 +131,7 @@ void CFilters_Window::Setup_UI() {
 
 	//add the available filters
 	{
-		const auto &filters = scgms::get_filter_descriptors();
+		const auto &filters = scgms::get_filter_descriptor_list();
 		for (const auto &filter : filters) {
 			CFilter_List_Item *tmp = new CFilter_List_Item(filter);
 			lbxAvailable_Filters->addItem(tmp);

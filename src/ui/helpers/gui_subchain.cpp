@@ -48,7 +48,7 @@
 CGUI_Filter_Subchain::CGUI_Filter_Subchain() : mChange_Available(false), mRunning(false) {
 
 	// take all model-calculated signals and put them into calculated signal guids set
-	const auto models = scgms::get_model_descriptors();
+	const auto models = scgms::get_model_descriptor_list();
 	for (const auto& model : models) {
 		for (size_t i = 0; i < model.number_of_calculated_signals; i++)
 			mCalculatedSignalGUIDs.insert(model.calculated_signal_ids[i]);

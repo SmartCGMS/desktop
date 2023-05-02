@@ -153,11 +153,11 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 						break;
 
 					case scgms::NParameter_Type::ptMetric_Id:
-						container = new CGUID_Entity_ComboBox<scgms::TMetric_Descriptor, scgms::get_metric_descriptors>(parameter, this);
+						container = new CGUID_Entity_ComboBox<scgms::TMetric_Descriptor, scgms::get_metric_descriptor_list>(parameter, this);
 						break;
 
 					case scgms::NParameter_Type::ptSolver_Id:
-						container = new CGUID_Entity_ComboBox<scgms::TSolver_Descriptor, scgms::get_solver_descriptors>(parameter, this);
+						container = new CGUID_Entity_ComboBox<scgms::TSolver_Descriptor, scgms::get_solver_descriptor_list>(parameter, this);
 						break;
 
 					case scgms::NParameter_Type::ptModel_Produced_Signal_Id:

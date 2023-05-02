@@ -63,7 +63,7 @@ void CFilter_List_Item::Refresh()
 {
 	QString text = QString::fromWCharArray(mDescriptor.description);
 
-	auto models = scgms::get_model_descriptors();
+	auto models = scgms::get_model_descriptor_list();
 
 	// splitter appending logic - at first, apply " - " to split name from description, then apply ", " to split description items
 	bool splitterAppended = false;

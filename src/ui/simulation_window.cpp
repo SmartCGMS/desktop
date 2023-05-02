@@ -156,7 +156,7 @@ void CSimulation_Window::Setup_Solve_Button_Menu()
 
 	menu->addSeparator();
 
-	auto models = scgms::get_model_descriptors();
+	auto models = scgms::get_model_descriptor_list();
 	for (const auto& model : models)
 	{
 		for (size_t i = 0; i < model.number_of_calculated_signals; i++)

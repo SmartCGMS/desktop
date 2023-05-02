@@ -75,7 +75,7 @@ CParameters_Optimization_Dialog::~CParameters_Optimization_Dialog() {
 }
 
 void CParameters_Optimization_Dialog::Populate_Parameters_Info(scgms::SFilter_Chain_Configuration configuration) {
-	auto models = scgms::get_model_descriptors();
+	auto models = scgms::get_model_descriptor_list();
 	const scgms::CSignal_Description signal_descriptors;
 
 	auto complete_description = [&models, &signal_descriptors](std::wstring &description, scgms::SFilter_Configuration_Link link) {
@@ -172,7 +172,7 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 		{
 			int default_solver_pos = -1;
 			constexpr GUID default_solver_id = { 0x1b21b62f, 0x7c6c, 0x4027,{ 0x89, 0xbc, 0x68, 0x7d, 0x8b, 0xd3, 0x2b, 0x3c } };	// let mt metade be a default solver
-			for (const auto& item : scgms::get_solver_descriptors()) {
+			for (const auto& item : scgms::get_solver_descriptor_list()) {
 				cmbSolver->addItem(QString::fromStdWString(item.description), QVariant(GUID_To_QUuid(item.id)));
 			}
 			cmbSolver->model()->sort(0, Qt::AscendingOrder); 

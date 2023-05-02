@@ -78,7 +78,7 @@ public:
 /*
  * Class for discrete/signal model selection; it specializes generic GUID combobox with a filter
  */
-class CModel_Select_ComboBox : public CGUID_Entity_ComboBox<scgms::TModel_Descriptor, scgms::get_model_descriptors, bool(*)(const scgms::TModel_Descriptor&)> {
+class CModel_Select_ComboBox : public CGUID_Entity_ComboBox<scgms::TModel_Descriptor, scgms::get_model_descriptor_list, bool(*)(const scgms::TModel_Descriptor&)> {
 public:
     CModel_Select_ComboBox(scgms::SFilter_Parameter parameter, QWidget* parent, bool discrete)
         : CGUID_Entity_ComboBox(parameter, parent, discrete ? &CModel_Select_ComboBox::Model_Filter_Discrete : &CModel_Select_ComboBox::Model_Filter_Signal) {
