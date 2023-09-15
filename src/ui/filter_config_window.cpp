@@ -36,12 +36,12 @@
 
 #include "filter_config_window.h"
 
-#include "../../../common/lang/dstrings.h"
-#include "../../../common/rtl/manufactory.h"
-#include "../../../common/rtl/referencedImpl.h"
-#include "../../../common/rtl/FilterLib.h"
-#include "../../../common/rtl/UILib.h"
-#include "../../../common/utils/QtUtils.h"
+#include <scgms/lang/dstrings.h>
+#include <scgms/rtl/manufactory.h>
+#include <scgms/rtl/referencedImpl.h>
+#include <scgms/rtl/FilterLib.h>
+#include <scgms/rtl/UILib.h>
+#include <scgms/utils/QtUtils.h>
 
 #include "helpers/Select_Time_Segment_Id_Panel.h"
 #include "helpers/Model_Bounds_Panel.h"
@@ -58,8 +58,6 @@
 #include "moc_filter_config_window.cpp"
 
 #include "helpers/filter_config_widgets.h"
-	
-
 
 
 CFilter_Config_Window::CFilter_Config_Window(scgms::SFilter_Configuration_Link configuration, QWidget *parent) :

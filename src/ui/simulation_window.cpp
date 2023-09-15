@@ -36,14 +36,14 @@
 
 #include "simulation_window.h"
 
-#include "../../../common/lang/dstrings.h"
-#include "../../../common/rtl/FilterLib.h"
-#include "../../../common/rtl/UILib.h"
-#include "../../../common/rtl/qdb_connector.h"
-#include "../../../common/rtl/referencedImpl.h"
-#include "../../../common/rtl/rattime.h"
-#include "../../../common/utils/QtUtils.h"
-#include "../../../common/utils/string_utils.h"
+#include <scgms/lang/dstrings.h>
+#include <scgms/rtl/FilterLib.h>
+#include <scgms/rtl/UILib.h>
+#include <scgms/rtl/qdb_connector.h>
+#include <scgms/rtl/referencedImpl.h>
+#include <scgms/rtl/rattime.h>
+#include <scgms/utils/QtUtils.h>
+#include <scgms/utils/string_utils.h>
 
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QMessageBox>

@@ -36,11 +36,11 @@
 
 #include "general_container_edit.h"
 
-#include "../../../../common/rtl/referencedImpl.h"
-#include "../../../../common/rtl/UILib.h"
-#include "../../../../common/utils/string_utils.h"
-#include "../../../../common/rtl/rattime.h"
-#include "../../../../common/lang/dstrings.h"
+#include <scgms/rtl/referencedImpl.h>
+#include <scgms/rtl/UILib.h>
+#include <scgms/utils/string_utils.h>
+#include <scgms/rtl/rattime.h>
+#include <scgms/lang/dstrings.h>
 
 #include <QtGui/QValidator>
 #include <QtWidgets/QMessageBox>

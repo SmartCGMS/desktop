@@ -42,7 +42,7 @@
 #include <QtWidgets/QCheckBox>
 #include <QtWidgets/QLabel>
 
-#include "../../../../common/rtl/guid.h"
+#include <scgms/rtl/guid.h>
 
 class CSignal_Group_Widget : public QGroupBox
 {

@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include "../../../common/rtl/FilterLib.h"
+#include <scgms/rtl/FilterLib.h>
 #include "helpers/general_container_edit.h"
 
 #include <vector>

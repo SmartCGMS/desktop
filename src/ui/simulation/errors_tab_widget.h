@@ -39,11 +39,10 @@
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QTextEdit>
 
-#include "../../../../common/iface/UIIface.h"
-#include "../../../../common/iface/FilterIface.h"
-
-#include "../../../../common/rtl/FilterLib.h"
-#include "../../../../common/rtl/UILib.h"
+#include <scgms/iface/UIIface.h>
+#include <scgms/iface/FilterIface.h>
+#include <scgms/rtl/FilterLib.h>
+#include <scgms/rtl/UILib.h>
 
 #include "abstract_simulation_tab.h"
 

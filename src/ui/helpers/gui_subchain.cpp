@@ -36,12 +36,12 @@
 
 #include "gui_subchain.h"
 
-#include "../../../../common/lang/dstrings.h"
-#include "../../../../common/rtl/FilesystemLib.h"
-#include "../../../../common/rtl/rattime.h"
-#include "../../ui/simulation_window.h"
+#include <scgms/lang/dstrings.h>
+#include <scgms/rtl/FilesystemLib.h>
+#include <scgms/rtl/rattime.h>
+#include <scgms/utils/DebugHelper.h>
 
-#include "../../../../common/utils/DebugHelper.h"
+#include "../../ui/simulation_window.h"
 
 CGUI_Filter_Subchain::CGUI_Filter_Subchain() : mChange_Available(false), mRunning(false) {
 

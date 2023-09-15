@@ -35,8 +35,8 @@
  */
 
 #include "Time_Segment_Group_Widget.h"
-#include "../../../../common/utils/QtUtils.h"
-#include "../../../../common/lang/dstrings.h"
+#include <scgms/utils/QtUtils.h>
+#include <scgms/lang/dstrings.h>
 
 #include <QtWidgets/QGridLayout>
 

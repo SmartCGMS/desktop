@@ -39,10 +39,10 @@
 #include "simulation_window.h"
 #include "parameters_optimization_dialog.h"
 
-#include "../../../common/lang/dstrings.h"
-#include "../../../common/utils/QtUtils.h"
-#include "../../../common/utils/string_utils.h"
-#include "../../../common/rtl/FilesystemLib.h"
+#include <scgms/lang/dstrings.h>
+#include <scgms/utils/QtUtils.h>
+#include <scgms/utils/string_utils.h>
+#include <scgms/rtl/FilesystemLib.h>
 
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QList>

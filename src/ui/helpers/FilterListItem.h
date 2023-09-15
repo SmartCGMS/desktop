@@ -39,8 +39,8 @@
 
 #include <QtWidgets/QListWidgetItem>
 
-#include "../../../../common/rtl/FilterLib.h"
-#include "../../../../common/rtl/UILib.h"
+#include <scgms/rtl/FilterLib.h>
+#include <scgms/rtl/UILib.h>
 
 class CFilter_List_Item : public QListWidgetItem {
 	protected:

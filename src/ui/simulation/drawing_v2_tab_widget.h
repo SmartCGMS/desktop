@@ -50,7 +50,7 @@
 #include <QtSvgWidgets/QGraphicsSvgItem>
 #endif
 
-#include "../../../../common/iface/FilterIface.h"
+#include <scgms/iface/FilterIface.h>
 #include "abstract_simulation_tab.h"
 
 #include <mutex>

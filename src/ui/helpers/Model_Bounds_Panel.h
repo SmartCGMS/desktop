@@ -38,7 +38,7 @@
 
 #include "general_container_edit.h"
 
-#include "../../../../common/rtl/FilterLib.h"
+#include <scgms/rtl/FilterLib.h>
 
 #include <tuple>
 

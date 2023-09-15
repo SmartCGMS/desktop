@@ -36,14 +36,14 @@
 
 #include "parameters_optimization_dialog.h"
 
-#include "../../../common/lang/dstrings.h"
-#include "../../../common/rtl/SolverLib.h"
-#include "../../../common/rtl/UILib.h"
-#include "../../../common/rtl/qdb_connector.h"
-#include "../../../common/utils/QtUtils.h"
-#include "../../../common/utils/string_utils.h"
-#include "../../../common/iface/SolverIface.h"
-#include "../../../common/utils/math_utils.h"
+#include <scgms/lang/dstrings.h>
+#include <scgms/rtl/SolverLib.h>
+#include <scgms/rtl/UILib.h>
+#include <scgms/rtl/qdb_connector.h>
+#include <scgms/utils/QtUtils.h>
+#include <scgms/utils/string_utils.h>
+#include <scgms/iface/SolverIface.h>
+#include <scgms/utils/math_utils.h>
 
 #include <QtWidgets/QApplication>
 #include <QtCore/QDateTime>

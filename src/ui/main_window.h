@@ -54,8 +54,8 @@
 #include <QtCore/QStandardPaths>
 #include <QtCore/QDir>
 
-#include "../../../common/rtl/FilterLib.h"
-#include "../../../common/rtl/FilesystemLib.h"
+#include <scgms/rtl/FilterLib.h>
+#include <scgms/rtl/FilesystemLib.h>
 
 class CMain_Window : public QMainWindow {
 	Q_OBJECT

@@ -36,9 +36,8 @@
 
 #include "filters_window.h"
 
-#include "../../../common/lang/dstrings.h"
-#include "../../../common/rtl/FilterLib.h"
-
+#include <scgms/lang/dstrings.h>
+#include <scgms/rtl/FilterLib.h>
 
 #include "filter_config_window.h"
 #include "helpers/FilterListItem.h"

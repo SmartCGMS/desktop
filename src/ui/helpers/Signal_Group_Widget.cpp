@@ -35,9 +35,11 @@
  */
 
 #include "Signal_Group_Widget.h"
-#include "../../../../common/utils/QtUtils.h"
+
+#include <scgms/utils/QtUtils.h>
+#include <scgms/rtl/UILib.h>
+
 #include "../simulation_window.h"
-#include "../../../../common/rtl/UILib.h"
 
 #include <QtWidgets/QGridLayout>
 

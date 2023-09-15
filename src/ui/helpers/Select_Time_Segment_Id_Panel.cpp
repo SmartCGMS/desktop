@@ -36,9 +36,9 @@
 
 #include "Select_Time_Segment_Id_Panel.h"
 
-#include "../../../../common/lang/dstrings.h"
-#include "../../../../common/rtl/FilterLib.h"
-#include "../../../../common/rtl/DbLib.h"
+#include <scgms/lang/dstrings.h>
+#include <scgms/rtl/FilterLib.h>
+#include <scgms/rtl/DbLib.h>
 
 #include "moc_Select_Time_Segment_Id_Panel.cpp"
 

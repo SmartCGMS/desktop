@@ -37,11 +37,11 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMessageBox>
 
-#include "../../common/rtl/scgmsLib.h"
-#include "../../common/utils/winapi_mapping.h"
-#include "../../common/utils/DebugHelper.h"
-#include "../../common/lang/dstrings.h"
-#include "../../common/utils/QtUtils.h"
+#include <scgms/rtl/scgmsLib.h>
+#include <scgms/utils/winapi_mapping.h>
+#include <scgms/utils/DebugHelper.h>
+#include <scgms/lang/dstrings.h>
+#include <scgms/utils/QtUtils.h>
 
 #include "ui/main_window.h"
 

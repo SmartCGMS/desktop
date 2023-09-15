@@ -37,9 +37,9 @@
 #include "Model_Bounds_Panel.h"
 #include "general_container_edit.h"
 
-#include "../../../../common/lang/dstrings.h"
-#include "../../../../common/rtl/UILib.h"
-#include "../../../../common/utils/string_utils.h"
+#include <scgms/lang/dstrings.h>
+#include <scgms/rtl/UILib.h>
+#include <scgms/utils/string_utils.h>
 
 #include <QtWidgets/QLabel>
 #include <QtGui/QDoubleValidator>

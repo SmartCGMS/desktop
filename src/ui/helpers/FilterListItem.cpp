@@ -35,7 +35,7 @@
  */
 
 #include "FilterListItem.h"
-#include "../../../../common/rtl/UILib.h"
+#include <scgms/rtl/UILib.h>
 
 #include <QtCore/QObject>
 

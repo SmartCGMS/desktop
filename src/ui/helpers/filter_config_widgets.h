@@ -38,12 +38,12 @@
 
 #include "../filter_config_window.h"
 
-#include "../../../../common/lang/dstrings.h"
-#include "../../../../common/rtl/manufactory.h"
-#include "../../../../common/rtl/referencedImpl.h"
-#include "../../../../common/rtl/FilterLib.h"
-#include "../../../../common/rtl/UILib.h"
-#include "../../../../common/utils/QtUtils.h"
+#include <scgms/lang/dstrings.h>
+#include <scgms/rtl/manufactory.h>
+#include <scgms/rtl/referencedImpl.h>
+#include <scgms/rtl/FilterLib.h>
+#include <scgms/rtl/UILib.h>
+#include <scgms/utils/QtUtils.h>
 
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QComboBox>

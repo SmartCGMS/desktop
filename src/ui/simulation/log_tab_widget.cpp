@@ -36,8 +36,8 @@
 
 #include "log_tab_widget.h"
 
-#include "../../../../common/lang/dstrings.h"
-#include "../../../../common/utils/QtUtils.h"
+#include <scgms/lang/dstrings.h>
+#include <scgms/utils/QtUtils.h>
 
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QGridLayout>

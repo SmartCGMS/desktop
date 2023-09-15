@@ -36,9 +36,9 @@
 
 #include "Select_Subject_Panel.h"
 
-#include "../../../../common/lang/dstrings.h"
-#include "../../../../common/rtl/FilterLib.h"
-#include "../../../../common/iface/DbIface.h"
+#include <scgms/lang/dstrings.h>
+#include <scgms/rtl/FilterLib.h>
+#include <scgms/iface/DbIface.h>
 
 #include "moc_Select_Subject_Panel.cpp"
 

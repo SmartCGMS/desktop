@@ -42,7 +42,7 @@
 #include <QtCore/QAbstractTableModel>
 
 #include "abstract_simulation_tab.h"
-#include "../../../../common/rtl/referencedImpl.h"
+#include <scgms/rtl/referencedImpl.h>
 
 /*
 * Log display subtab widget - raw view

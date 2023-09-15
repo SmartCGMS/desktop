@@ -49,8 +49,8 @@
 #include <QtWidgets/QSpinBox>
 #include <QtWidgets/QCheckBox>
 
-#include "../../../common/rtl/FilterLib.h"
-#include "../../../common/rtl/UILib.h"
+#include <scgms/rtl/FilterLib.h>
+#include <scgms/rtl/UILib.h>
 
 #include "simulation/log_tab_widget.h"
 #include "simulation/drawing_tab_widget.h"

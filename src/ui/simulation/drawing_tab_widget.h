@@ -49,7 +49,7 @@
 #endif
 #include <QtSvg/QSvgRenderer>
 
-#include "../../../../common/iface/FilterIface.h"
+#include <scgms/iface/FilterIface.h>
 #include "abstract_simulation_tab.h"
 
 #include <mutex>
