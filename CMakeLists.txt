@@ -40,7 +40,9 @@ PROJECT(${PROJ})
 
 MESSAGE(STATUS "Configuring desktop project")
 
-SET(SMARTCGMS_COMMON_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../common/" CACHE PATH "SmartCGMS 'common' directory location")
+IF (NOT DEFINED SMARTCGMS_COMMON_DIR)
+	SET(SMARTCGMS_COMMON_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../common/" CACHE PATH "SmartCGMS 'common' directory location")
+ENDIF()
 
 INCLUDE("${SMARTCGMS_COMMON_DIR}/cmake/Functions.cmake")
 
