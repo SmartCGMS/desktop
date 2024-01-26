@@ -73,6 +73,12 @@ ELSE()
 	SCGMS_ADD_EXECUTABLE(${PROJ} ${ALL_SRC_FILES})
 ENDIF()
 
-TARGET_LINK_LIBRARIES(${PROJ} Qt5::Core Qt5::Sql Qt5::Widgets Qt5::Svg Qt5::Gui scgms-common)
+CONFIGURE_TARGET_OUTPUT(${PROJ} "")
+
+TARGET_LINK_LIBRARIES(${PROJ} Qt::Core Qt::Sql Qt::Widgets Qt::Svg Qt::Gui scgms-common)
+# Qt6 additionally splits Svg implementation into SvgWidgets; Qt5 has it all together in Svg
+IF(Qt_MAJOR_VERSION EQUAL 6)
+	TARGET_LINK_LIBRARIES(${PROJ} Qt::SvgWidgets)
+ENDIF()
 
 APPLY_SCGMS_LIBRARY_BUILD_SETTINGS(${PROJ})
