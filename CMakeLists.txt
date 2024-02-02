@@ -34,7 +34,7 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
-SET(PROJ "desktop")
+SET(PROJ "scgms-desktop")
 
 PROJECT(${PROJ})
 
