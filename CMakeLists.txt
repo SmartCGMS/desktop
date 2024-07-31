@@ -32,7 +32,7 @@
 #    Control Challenge with (an FDA-Accepted) Diabetic Patient Simulation", Procedia Computer Science,  
 #    Volume 177, pp. 354-362, 2020
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
 
 SET(PROJ "scgms-desktop")
 
@@ -82,3 +82,4 @@ IF(Qt_MAJOR_VERSION EQUAL 6)
 ENDIF()
 
 APPLY_SCGMS_LIBRARY_BUILD_SETTINGS(${PROJ})
+CONFIGURE_ROOT_TARGET_OUTPUT(${PROJ})
