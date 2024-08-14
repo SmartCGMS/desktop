@@ -45,18 +45,20 @@
 
 class CFilter_Config_Window : public QDialog {
 	Q_OBJECT
-protected:
-	scgms::SFilter_Configuration_Link mConfiguration;
-	const scgms::TFilter_Descriptor mDescription;	
+	protected:
+		scgms::SFilter_Configuration_Link mConfiguration;
+		const scgms::TFilter_Descriptor mDescription;
 
-	std::vector<filter_config_window::CContainer_Edit*> mContainer_Edits;
+		std::vector<filter_config_window::CContainer_Edit*> mContainer_Edits;
 
-	void Setup_UI(scgms::SFilter_Configuration_Link configuration);
-	void Commit_Parameters();	//from controls to configuration
-protected slots:
-	void On_OK();
-	void On_Cancel();
-	void On_Apply();
-public:
-	CFilter_Config_Window(scgms::SFilter_Configuration_Link configuration, QWidget *parent);	
+		void Setup_UI(scgms::SFilter_Configuration_Link configuration);
+		void Commit_Parameters();	//from controls to configuration
+
+	protected slots:
+		void On_OK();
+		void On_Cancel();
+		void On_Apply();
+
+	public:
+		CFilter_Config_Window(scgms::SFilter_Configuration_Link configuration, QWidget *parent);
 };

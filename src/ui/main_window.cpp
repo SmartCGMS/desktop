@@ -66,8 +66,12 @@ CMain_Window::CMain_Window(const std::wstring &experimental_setup_filepath, QWid
 
 	Setup_UI();
 
-	if (experimental_setup_filepath.empty()) On_New_Experimental_Setup();
-		else Open_Experimental_Setup(experimental_setup_filepath); 
+	if (experimental_setup_filepath.empty()) {
+		On_New_Experimental_Setup();
+	}
+	else {
+		Open_Experimental_Setup(experimental_setup_filepath);
+	}
 
 	this->showMaximized();
 	setAcceptDrops(true);
@@ -197,8 +201,9 @@ void CMain_Window::Update_Recent_Files() {
 
 		// go through the recent files, add actions and connect it to handler	
 		for (size_t i = 0; (i < mRecent_Files.size()) && (i < Max_Recent_File_Count); i++) {
-			if (mRecent_Files[i].empty())
+			if (mRecent_Files[i].empty()) {
 				continue;
+			}
 
 			std::wstring menu_caption = i<9 ? L" &" + std::to_wstring(i + 1) : (i == 9 ? L"1&0" : L"");			
 			menu_caption += L" ";
@@ -221,36 +226,37 @@ void CMain_Window::Update_Recent_Files() {
 
 void CMain_Window::Setup_Storage() {
 	mStorage_Path = filesystem::path{ QStandardPaths::writableLocation(QStandardPaths::AppDataLocation).toStdWString() };
-	if (mStorage_Path.empty())
+	if (mStorage_Path.empty()) {
 		mStorage_Path = filesystem::temp_directory_path();
+	}
 
-	if (!std::filesystem::exists(mStorage_Path) || !std::filesystem::is_directory(mStorage_Path))
+	if (!std::filesystem::exists(mStorage_Path) || !std::filesystem::is_directory(mStorage_Path)) {
 		std::filesystem::create_directories(mStorage_Path);
-
+	}
 
 	mRecent_Files.clear();
 
 	const filesystem::path recent_files_path = mStorage_Path / dsRecent_Files_Filename;
-	if (std::filesystem::exists(recent_files_path))
-	{
+	if (std::filesystem::exists(recent_files_path)) {
 		std::wifstream ifs(recent_files_path.string());
 		
 		std::wstring path;
 		for (size_t i = 0; i < Max_Recent_File_Count; i++) {
 			if (std::getline(ifs, path)) {
-				if (!path.empty()) 
-					mRecent_Files.push_back(path);				
+				if (!path.empty()) {
+					mRecent_Files.push_back(path);
+				}
 			}
 		}
 	}
 }
 
-void CMain_Window::Save_Recent_Files()
-{
+void CMain_Window::Save_Recent_Files() {
+
 	const filesystem::path recent_files_path = mStorage_Path / dsRecent_Files_Filename;
 	std::wofstream ifs(recent_files_path.string());
 
-	if (ifs.is_open())	{
+	if (ifs.is_open()) {
 		for (size_t i = 0; i < mRecent_Files.size(); i++) {
 			ifs << filesystem::absolute(mRecent_Files[i]).wstring() << std::endl;
 		}
@@ -280,13 +286,14 @@ void CMain_Window::On_Update_Actions() {
 }
 
 void CMain_Window::On_Quit() {
-    QApplication::instance()->quit();
+	QApplication::instance()->quit();
 }
 
 void CMain_Window::On_Close_Window() {
 	const auto current = pnlMDI_Content->activeSubWindow();
-	if (current)
+	if (current) {
 		current->close();
+	}
 }
 
 void CMain_Window::On_Close_All() {
@@ -294,8 +301,9 @@ void CMain_Window::On_Close_All() {
 }
 
 void CMain_Window::Tile_Window(std::function<QRect()> rect_fnc) {
-	if (pnlMDI_Content->subWindowList().isEmpty())
+	if (pnlMDI_Content->subWindowList().isEmpty()) {
 		return;
+	}
 
 	QPoint position(0, 0);
 	
@@ -307,11 +315,15 @@ void CMain_Window::Tile_Window(std::function<QRect()> rect_fnc) {
 }
 
 void CMain_Window::On_Tile_Horizontally() {
-	Tile_Window([this]() {return QRect{ 0, 0, pnlMDI_Content->width(), pnlMDI_Content->height() / static_cast<int>(pnlMDI_Content->subWindowList().count()) }; });
+	Tile_Window([this]() {
+		return QRect{ 0, 0, pnlMDI_Content->width(), pnlMDI_Content->height() / static_cast<int>(pnlMDI_Content->subWindowList().count()) };
+	});
 }
 
 void CMain_Window::On_Tile_Vertically() {
-	Tile_Window([this]() {return QRect{ 0, 0, pnlMDI_Content->width() / static_cast<int>(pnlMDI_Content->subWindowList().count()), pnlMDI_Content->height() }; });
+	Tile_Window([this]() {
+		return QRect{ 0, 0, pnlMDI_Content->width() / static_cast<int>(pnlMDI_Content->subWindowList().count()), pnlMDI_Content->height() };
+	});
 }
 
 void CMain_Window::On_Update_Window_Menu() {
@@ -335,12 +347,11 @@ void CMain_Window::On_Update_Window_Menu() {
 
 		QString text;
 		if (i < 9) {
-			text = tr("&%1 %2").arg(i + 1)
-				.arg(child->windowTitle());
+			text = tr("&%1 %2").arg(i + 1).arg(child->windowTitle());
 		} else {
-			text = tr("%1 %2").arg(i + 1)
-				.arg(child->windowTitle());
+			text = tr("%1 %2").arg(i + 1).arg(child->windowTitle());
 		}
+
 		QAction *action = mniWindow->addAction(text);
 		action->setCheckable(true);
 		action->setChecked(child == pnlMDI_Content->activeSubWindow());
@@ -350,8 +361,9 @@ void CMain_Window::On_Update_Window_Menu() {
 }
 
 void CMain_Window::Set_Active_Sub_Window(QWidget *window) {
-	if (!window)
+	if (!window) {
 		return;
+	}
 	pnlMDI_Content->setActiveSubWindow(qobject_cast<QMdiSubWindow *>(window));
 }
 
@@ -370,13 +382,14 @@ void CMain_Window::On_Simulation_Window() {
 void CMain_Window::Check_And_Display_Error_Description(const HRESULT rc, refcnt::Swstr_list errors) {
 	QString error_string;
 
-	if (rc != S_OK)
-		error_string = tr(dsSave_Experimental_Setup_Failed) + "0x" + QString::number(rc, 16) + "\n ("
-		+ QString::fromWCharArray(Describe_Error(rc)) + ")";
+	if (rc != S_OK) {
+		error_string = tr(dsSave_Experimental_Setup_Failed) + "0x" + QString::number(rc, 16) + "\n (" + QString::fromWCharArray(Describe_Error(rc)) + ")";
+	}
 
-	
 	if (errors->empty() != S_OK) {
-		if (!error_string.isEmpty()) error_string += "\n";
+		if (!error_string.isEmpty()) {
+			error_string += "\n";
+		}
 
 		error_string += dsErrors_Warnings_Hints;
 		error_string += "\n";
@@ -387,15 +400,16 @@ void CMain_Window::Check_And_Display_Error_Description(const HRESULT rc, refcnt:
 		});
 	}
 
-		
-	if (!error_string.isEmpty())
+	if (!error_string.isEmpty()) {
 		QMessageBox::warning(this, tr(dsWarning), error_string);
+	}
 }
-
 
 void CMain_Window::Open_Experimental_Setup(const std::wstring &file_path) {
 	pnlMDI_Content->closeAllSubWindows();
-	if (pnlMDI_Content->activeSubWindow()) return;	//some window has not closed
+	if (pnlMDI_Content->activeSubWindow()) {
+		return; //some window has not closed
+	}
 
 	refcnt::Swstr_list errors;
 	mFilter_Configuration = scgms::SPersistent_Filter_Chain_Configuration{};	//reset the current configuration
@@ -411,48 +425,53 @@ void CMain_Window::Open_Experimental_Setup(const std::wstring &file_path) {
 		Update_Recent_Files();
 		Save_Recent_Files();
 
-	} else if (rc == ERROR_FILE_NOT_FOUND)
+	}
+	else if (rc == ERROR_FILE_NOT_FOUND) {
 		On_New_Experimental_Setup();
+	}
 }
 
 void CMain_Window::Push_Recent_File(const filesystem::path& path) {
 
-	for (auto itr = mRecent_Files.begin(); itr != mRecent_Files.end(); )
-	{
-		if (*itr == path)
+	for (auto itr = mRecent_Files.begin(); itr != mRecent_Files.end(); ) {
+		if (*itr == path) {
 			itr = mRecent_Files.erase(itr);
-		else
+		}
+		else {
 			++itr;
+		}
 	}
 
 	mRecent_Files.insert(mRecent_Files.begin(), path);
 
-	while (mRecent_Files.size() > Max_Recent_File_Count)
+	while (mRecent_Files.size() > Max_Recent_File_Count) {
 		mRecent_Files.pop_back();
+	}
 }
-
 
 void CMain_Window::On_New_Experimental_Setup() {
 	pnlMDI_Content->closeAllSubWindows();
-	if (pnlMDI_Content->activeSubWindow()) return;	//some window has not closed
+	if (pnlMDI_Content->activeSubWindow()) {
+		return; //some window has not closed
+	}
 
 	mFilter_Configuration = scgms::SPersistent_Filter_Chain_Configuration{};
 	if (mFilter_Configuration) {
 		setWindowTitle(tr(dsGlucose_Prediction).arg(dsUnsaved_Experimental_Setup));
 		On_Filters_Window();
-	} else 
+	}
+	else {
 		Check_And_Display_Error_Description(E_FAIL, refcnt::Swstr_list{});
+	}
 }
 
 void CMain_Window::On_Open_Experimental_Setup() {
 	QString selfilter;
 	QString filepath;
 	try {
-		filepath = QFileDialog::getOpenFileName(this, tr(dsOpen_Experimental_Setup),
-			QString::fromStdWString(Get_Application_Dir().wstring()), tr(dsExperimental_Setup_File_Mask), &selfilter);
+		filepath = QFileDialog::getOpenFileName(this, tr(dsOpen_Experimental_Setup), QString::fromStdWString(Get_Application_Dir().wstring()), tr(dsExperimental_Setup_File_Mask), &selfilter);
 	}
 	catch (...) {
-
 	}
 
 	if (filepath.isEmpty() || selfilter.isEmpty())
@@ -463,21 +482,24 @@ void CMain_Window::On_Open_Experimental_Setup() {
 
 void CMain_Window::On_Open_Recent_Experimental_Setup(QAction* action) {
 	const auto action_data = action->data();
-	if ((!action) || (!action_data.isValid()))
+	if ((!action) || (!action_data.isValid())) {
 		return;
+	}
 
 	bool ok = false;
 
 	size_t index = static_cast<size_t>(action_data.toInt(&ok));
 
-	if (index >= mRecent_Files.size())
+	if (index >= mRecent_Files.size()) {
 		return;
+	}
 
 	auto itr = mRecent_Files.begin();
 	std::advance(itr, index);
 	
-	if (itr->empty())
+	if (itr->empty()) {
 		return;
+	}
 
 	Open_Experimental_Setup(itr->wstring());
 }
@@ -486,29 +508,33 @@ void CMain_Window::On_Save_Experimental_Setup() {
 	refcnt::Swstr_list errors;
 	HRESULT rc = mFilter_Configuration->Save_To_File(nullptr, errors.get());
 
-	if (rc == E_ILLEGAL_METHOD_CALL) On_Save_Experimental_Setup_As();
-		else Check_And_Display_Error_Description(rc, errors);	
+	if (rc == E_ILLEGAL_METHOD_CALL) {
+		On_Save_Experimental_Setup_As();
+	}
+	else {
+		Check_And_Display_Error_Description(rc, errors);
+	}
 }
 
 void CMain_Window::On_Save_Experimental_Setup_As() {
 	QString selfilter;
 	QString filepath;
 	try {
-		filepath = QFileDialog::getSaveFileName(this, tr(dsSave_Experimental_Setup_As),
-			QString::fromStdWString(Get_Application_Dir().wstring()), tr(dsExperimental_Setup_File_Mask), &selfilter);
+		filepath = QFileDialog::getSaveFileName(this, tr(dsSave_Experimental_Setup_As), QString::fromStdWString(Get_Application_Dir().wstring()), tr(dsExperimental_Setup_File_Mask), &selfilter);
 	}
 	catch (...) {
-
 	}
 
-	if (filepath.isEmpty() || selfilter.isEmpty())
+	if (filepath.isEmpty() || selfilter.isEmpty()) {
 		return;
+	}
 
 	refcnt::Swstr_list errors;
 	const auto converted_path = filepath.toStdWString();
 	HRESULT rc = mFilter_Configuration->Save_To_File(converted_path.c_str(), errors.get());
-	if (rc == S_OK)
+	if (rc == S_OK) {
 		setWindowTitle(tr(dsGlucose_Prediction).arg(Native_Slash(filepath.toStdWString())));
+	}
 
 	Push_Recent_File(filesystem::absolute(filesystem::path{ Native_Slash(filepath.toStdWString()).toStdWString() }));
 
@@ -517,7 +543,6 @@ void CMain_Window::On_Save_Experimental_Setup_As() {
 
 	Check_And_Display_Error_Description(rc, errors);
 }
-
 
 void CMain_Window::On_Optimize_Parameters_Dialog() {
 	CParameters_Optimization_Dialog *dlg = new CParameters_Optimization_Dialog{ mFilter_Configuration, this };

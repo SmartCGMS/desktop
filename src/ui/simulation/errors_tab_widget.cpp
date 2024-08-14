@@ -79,13 +79,11 @@ const std::array<const wchar_t*, Error_Column_Count>  gError_Column_Names = {
 	dsError_Column_Range_50pct
 };
 
-
 CErrors_Tab_Widget_internal::CError_Table_Model::CError_Table_Model(QObject *parent) noexcept : QAbstractTableModel(parent) {
 	//
 }
 
-int CErrors_Tab_Widget_internal::CError_Table_Model::rowCount(const QModelIndex &idx) const
-{
+int CErrors_Tab_Widget_internal::CError_Table_Model::rowCount(const QModelIndex &idx) const {
 	//return mMaxSignalRow * static_cast<int>(scgms::NError_Type::count);
 	const size_t signal_errors_size = mSignal_Errors.size();
 	return signal_errors_size == 0 ?  0 : 3 * static_cast<int>(signal_errors_size)-1;
@@ -95,15 +93,19 @@ int CErrors_Tab_Widget_internal::CError_Table_Model::columnCount(const QModelInd
 	return Error_Column_Count;
 }
 
-QString Format_Error_String(double val, bool relative)
-{
+QString Format_Error_String(double val, bool relative) {
 	// infinite, NaN, or other values like that results in empty string
 	const auto cl = std::fpclassify(val);
-	if (cl != FP_NORMAL && cl != FP_ZERO)
+	if (cl != FP_NORMAL && cl != FP_ZERO) {
 		return QString();
+	}
 
-	if (relative)  return QString("%1%").arg(val*100.0, 0, 'g', 4);
-		else return QString("%1").arg(val, 0, 'g', 4);
+	if (relative) {
+		return QString("%1%").arg(val * 100.0, 0, 'g', 4);
+	}
+	else {
+		return QString("%1").arg(val, 0, 'g', 4);
+	}
 }
 
 QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex &index, int role) const {
@@ -125,24 +127,36 @@ QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex
 		constexpr int max_col = 13;
 
 		switch (col) {
-			case avg_col:	return Format_Error_String(error.avg, is_relative);
-			case stdev_col: return Format_Error_String(error.stddev, is_relative);
-			case exckurt_col: return Format_Error_String(error.exc_kurtosis, is_relative);
-			case skew_col: return Format_Error_String(error.skewness, is_relative);
-			case sum_col:	return Format_Error_String(error.sum, is_relative);
-			case count_col: return Format_Error_String(error.count, false);
-
-			case min_col:	return Format_Error_String(error.ecdf[scgms::NECDF::min_value], is_relative);
-			case p25_col:	return Format_Error_String(error.ecdf[scgms::NECDF::p25], is_relative);
-			case med_col:	return Format_Error_String(error.ecdf[scgms::NECDF::median], is_relative);
-			case p75_col:	return Format_Error_String(error.ecdf[scgms::NECDF::p75], is_relative);
-			case p95_col:	return Format_Error_String(error.ecdf[scgms::NECDF::p95], is_relative);
-			case p99_col:	return Format_Error_String(error.ecdf[scgms::NECDF::p99], is_relative);
-			case max_col:	return Format_Error_String(error.ecdf[scgms::NECDF::max_value], is_relative);
-			default:		return QString{};
+			case avg_col:
+				return Format_Error_String(error.avg, is_relative);
+			case stdev_col:
+				return Format_Error_String(error.stddev, is_relative);
+			case exckurt_col:
+				return Format_Error_String(error.exc_kurtosis, is_relative);
+			case skew_col:
+				return Format_Error_String(error.skewness, is_relative);
+			case sum_col:
+				return Format_Error_String(error.sum, is_relative);
+			case count_col:
+				return Format_Error_String(error.count, false);
+			case min_col:
+				return Format_Error_String(error.ecdf[scgms::NECDF::min_value], is_relative);
+			case p25_col:
+				return Format_Error_String(error.ecdf[scgms::NECDF::p25], is_relative);
+			case med_col:
+				return Format_Error_String(error.ecdf[scgms::NECDF::median], is_relative);
+			case p75_col:
+				return Format_Error_String(error.ecdf[scgms::NECDF::p75], is_relative);
+			case p95_col:
+				return Format_Error_String(error.ecdf[scgms::NECDF::p95], is_relative);
+			case p99_col:
+				return Format_Error_String(error.ecdf[scgms::NECDF::p99], is_relative);
+			case max_col:
+				return Format_Error_String(error.ecdf[scgms::NECDF::max_value], is_relative);
+			default:
+				return QString{};
 		}
 	};
-
 
 	if (role == Qt::DisplayRole || role == Qt::EditRole) {
 		const int row = index.row();
@@ -167,42 +181,53 @@ QVariant CErrors_Tab_Widget_internal::CError_Table_Model::data(const QModelIndex
 		else if (col < rel5_col) {
 
 			switch (row_role) {
-				case absolute_role: return display_signal(col, mSignal_Errors[error_index].recent_abs_error, false); break;
-				case relative_role:	return display_signal(col, mSignal_Errors[error_index].recent_rel_error, true); break;
-				default: return QVariant();	//spacing role
+				case absolute_role:
+					return display_signal(col, mSignal_Errors[error_index].recent_abs_error, false);
+				case relative_role:
+					return display_signal(col, mSignal_Errors[error_index].recent_rel_error, true);
+				default:
+					return QVariant();	//spacing role
 			}
 		}
 		else if ((col>= rel5_col) && (row_role == relative_role)) {
 			//relative errors
 				switch (col) {
-					case rel5_col: return Format_Error_String(mSignal_Errors[error_index].r5, true); break;
-					case rel10_col: return Format_Error_String(mSignal_Errors[error_index].r10, true); break;
-					case rel25_col: return Format_Error_String(mSignal_Errors[error_index].r25, true); break;
-					case rel50_col: return Format_Error_String(mSignal_Errors[error_index].r50, true); break;
-					default: return display_signal(col, mSignal_Errors[error_index].recent_rel_error, true); break;
-				}						
-		} else
+					case rel5_col:
+						return Format_Error_String(mSignal_Errors[error_index].r5, true);
+					case rel10_col:
+						return Format_Error_String(mSignal_Errors[error_index].r10, true);
+					case rel25_col:
+						return Format_Error_String(mSignal_Errors[error_index].r25, true);
+					case rel50_col:
+						return Format_Error_String(mSignal_Errors[error_index].r50, true);
+					default:
+						return display_signal(col, mSignal_Errors[error_index].recent_rel_error, true);
+				}
+		}
+		else {
 			return QVariant{};	//default value
+		}
 	}	//end of Qt display role
 	
 	return QVariant();
 }
 
-QVariant CErrors_Tab_Widget_internal::CError_Table_Model::headerData(int section, Qt::Orientation orientation, int role) const
-{
-	if (role == Qt::DisplayRole)
-	{
+QVariant CErrors_Tab_Widget_internal::CError_Table_Model::headerData(int section, Qt::Orientation orientation, int role) const {
+
+	if (role == Qt::DisplayRole) {
 		// horizontal - use column names (fixed)
-		if (orientation == Qt::Horizontal)
-		{
-			if (section >= 0 && section < Error_Column_Count)
+		if (orientation == Qt::Horizontal) {
+			if (section >= 0 && section < Error_Column_Count) {
 				return StdWStringToQString(gError_Column_Names[section]);
+			}
 		}
 		// vertical - use signal names and error type names
 		else if (orientation == Qt::Vertical) {
 			switch (section % 3) {
-				case 0:	return QString::fromWCharArray(dsAbsolute); break;
-				case 1: return QString::fromWCharArray(dsRelative); break;
+				case 0:
+					return QString::fromWCharArray(dsAbsolute);
+				case 1:
+					return QString::fromWCharArray(dsRelative);
 			}
 		}
 	}
@@ -215,7 +240,6 @@ CErrors_Tab_Widget_internal::CError_Table_Model* CErrors_Tab_Widget_internal::CE
 	result->mSignal_Errors.assign(this->mSignal_Errors.begin(), this->mSignal_Errors.end());
 	return result;
 }
-
 
 void CErrors_Tab_Widget_internal::CError_Table_Model::On_Filter_Configured(scgms::IFilter *filter) {
 	CErrors_Tab_Widget_internal::TSignal_Error_Inspection inspection;
@@ -250,8 +274,9 @@ void CErrors_Tab_Widget_internal::CError_Table_Model::Update_Errors() {
 						if (found != signal_error.recent_rel_error.ecdf.end()) {
 							return 0.01*static_cast<double>(std::distance(signal_error.recent_rel_error.ecdf.begin(), found));
 						}
-						else
+						else {
 							return 1.0;	//100% relative
+						}
 					};
 
 					signal_error.r5 = inv_ecdf(0.05);
@@ -263,24 +288,23 @@ void CErrors_Tab_Widget_internal::CError_Table_Model::Update_Errors() {
 		}
 	}
 
-	if (called_begin_reset)
+	if (called_begin_reset) {
 		endResetModel();
+	}
 
 	emit dataChanged(createIndex(0, 0), createIndex(rowCount() - 1, Error_Column_Count - 1));
 }
 
-
 void CErrors_Tab_Widget_internal::CError_Table_Model::Clear_Filters(bool wipeTable) {
-	if (wipeTable)
+	if (wipeTable) {
 		mSignal_Errors.clear();
-	else
-	{
+	}
+	else {
 		for (auto& signal_error : mSignal_Errors) {
 			signal_error.signal_error.reset();
 		}
 	}
 }
-
 
 CErrors_Tab_Widget::CErrors_Tab_Widget(QWidget *parent) noexcept: CAbstract_Simulation_Tab_Widget(parent) {
 	QGridLayout *mainLayout = new QGridLayout();
@@ -293,17 +317,16 @@ CErrors_Tab_Widget::CErrors_Tab_Widget(QWidget *parent) noexcept: CAbstract_Simu
 	QPushButton* exportBtn = new QPushButton(dsExport_To_CSV);
 	mainLayout->addWidget(exportBtn, 1, 0);
 
-
 	setLayout(mainLayout);
 
 	connect(exportBtn, SIGNAL(clicked()), this, SLOT(Export_CSV_Button_Clicked()));
 }
 
-void CErrors_Tab_Widget::Export_CSV_Button_Clicked()
-{
+void CErrors_Tab_Widget::Export_CSV_Button_Clicked() {
+
 	auto path = QFileDialog::getSaveFileName(this, tr(dsExport_CSV_Dialog_Title), dsExport_CSV_Default_File_Name, tr(dsExport_CSV_Ext_Spec));
-	if (path.length() != 0)
-	{
+
+	if (path.length() != 0) {
 		std::ofstream fs(path.toStdString());
 
 		int fromRow, fromCol, toRow, toCol;
@@ -313,52 +336,50 @@ void CErrors_Tab_Widget::Export_CSV_Button_Clicked()
 		toCol = mTableView->model()->columnCount() - 1;
 
 		auto* selModel = mTableView->selectionModel();
-		if (selModel->hasSelection())
-		{
+		if (selModel->hasSelection()) {
 			auto rowList = selModel->selectedRows();
-			if (!rowList.empty())
-			{
+			if (!rowList.empty()) {
 				fromRow = mTableView->model()->rowCount() - 1;
 				toRow = 0;
 
-				for (auto& val : rowList)
-				{
-					if (val.row() > toRow)
+				for (auto& val : rowList) {
+					if (val.row() > toRow) {
 						toRow = val.row();
-					if (val.row() < fromRow)
+					}
+					if (val.row() < fromRow) {
 						fromRow = val.row();
+					}
 				}
 			}
 
 			auto colList = selModel->selectedColumns();
-			if (!colList.empty())
-			{
+			if (!colList.empty()) {
 				fromCol = mTableView->model()->columnCount() - 1;
 				toCol = 0;
 
-				for (auto& val : colList)
-				{
-					if (val.column() > toCol)
+				for (auto& val : colList) {
+					if (val.column() > toCol) {
 						toCol = val.column();
-					if (val.column() < fromCol)
+					}
+					if (val.column() < fromCol) {
 						fromCol = val.column();
+					}
 				}
 			}
 		}
 
 		// skip one column
 		fs << ";";
-		for (int j = fromCol; j <= toCol; j++)
+		for (int j = fromCol; j <= toCol; j++) {
 			fs << mTableView->model()->headerData(j, Qt::Orientation::Horizontal).toString().toStdString() << ";";
+		}
 
 		fs << std::endl;
 
-		for (int i = fromRow; i <= toRow; i++)
-		{
+		for (int i = fromRow; i <= toRow; i++) {
 			fs << mTableView->model()->headerData(i, Qt::Orientation::Vertical).toString().toStdString() << ";";
 
-			for (int j = fromCol; j <= toCol; j++)
-			{
+			for (int j = fromCol; j <= toCol; j++) {
 				QModelIndex idx = mTableView->model()->index(i, j, QModelIndex());
 
 				fs << mTableView->model()->data(idx).toString().toStdString() << ";";
@@ -380,15 +401,19 @@ CAbstract_Simulation_Tab_Widget* CErrors_Tab_Widget::Clone() {
 }
 
 void CErrors_Tab_Widget::On_Filter_Configured(scgms::IFilter *filter) {
-	if (mModel) mModel->On_Filter_Configured(filter);
+	if (mModel) {
+		mModel->On_Filter_Configured(filter);
+	}
 }
 
 void CErrors_Tab_Widget::Refresh() {
-	if (mModel)
+	if (mModel) {
 		mModel->Update_Errors();
+	}
 }
 
 void CErrors_Tab_Widget::Clear_Filters(bool wipeTable) {
-	if (mModel)
+	if (mModel) {
 		mModel->Clear_Filters(wipeTable);
+	}
 }

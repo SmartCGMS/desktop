@@ -47,9 +47,8 @@
 /*
 * Log display subtab widget - raw view
 */
-class CLog_Subtab_Raw_Widget : public CAbstract_Simulation_Tab_Widget
-{
-		Q_OBJECT
+class CLog_Subtab_Raw_Widget : public CAbstract_Simulation_Tab_Widget {
+	Q_OBJECT
 
 	signals:
 		void On_Log_Message(QString msg);
@@ -72,13 +71,11 @@ class CLog_Subtab_Raw_Widget : public CAbstract_Simulation_Tab_Widget
 		void Set_Contents(const QString& contents);
 };
 
-
 /*
  * QTableView model for log lines
  */
-class CLog_Table_Model : public QAbstractTableModel
-{
-		Q_OBJECT
+class CLog_Table_Model : public QAbstractTableModel {
+	Q_OBJECT
 	protected:
 		std::vector<std::wstring> mHeaderTitles;
 		std::vector<std::vector<QString>> mLogRows;
@@ -99,9 +96,8 @@ class CLog_Table_Model : public QAbstractTableModel
 /*
 * Log display subtab widget - table view
 */
-class CLog_Subtab_Table_Widget : public CAbstract_Simulation_Tab_Widget
-{
-		Q_OBJECT
+class CLog_Subtab_Table_Widget : public CAbstract_Simulation_Tab_Widget {
+	Q_OBJECT
 
 	signals:
 		void On_Log_Message(QString msg);
@@ -129,9 +125,8 @@ class CLog_Subtab_Table_Widget : public CAbstract_Simulation_Tab_Widget
 /*
  * Log display widget
  */
-class CLog_Tab_Widget : public CAbstract_Simulation_Tab_Widget
-{
-		Q_OBJECT
+class CLog_Tab_Widget : public CAbstract_Simulation_Tab_Widget {
+	Q_OBJECT
 
 	protected:
 		QTabWidget *mTabWidget;

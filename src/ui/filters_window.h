@@ -46,30 +46,34 @@
 
 class CFilters_Window : public QMdiSubWindow {
 	Q_OBJECT
-protected:
-	scgms::SPersistent_Filter_Chain_Configuration& mFilter_Chain_Configuration;
-private:
-	static std::atomic<CFilters_Window*> mInstance;
-protected:
-	QListWidget *lbxApplied_Filters = nullptr;
-	QListWidget *lbxAvailable_Filters = nullptr;
-	void Setup_UI();
-	void Configure_Filter(QListWidgetItem *item);
-	bool eventFilter(QObject* object, QEvent* event);
-protected slots:
-	void On_Add_Filter();
-	void On_Move_Filter_Up();
-	void On_Move_Filter_Down();
-	void On_Remove_Filter();
-	void On_Configure_Filter();
-	void On_Commit_Filters();
-	void On_Applied_Filter_Dbl_Click(QListWidgetItem* item);
-	void On_Available_Filter_Dbl_Click(QListWidgetItem* item);
-	void On_Applied_Filter_Key_Press(QKeyEvent* keyevent);
-	void On_Filter_Configure_Complete();
-	void On_Filter_Drag_Drop(QModelIndex idx, int start, int end, QModelIndex mdlIdx, int dst);
-public:
-	static CFilters_Window* Show_Instance(scgms::SPersistent_Filter_Chain_Configuration &filter_chain_configuration, QWidget *owner);
-	CFilters_Window(scgms::SPersistent_Filter_Chain_Configuration &filter_chain_configuration, QWidget *owner);
-	virtual ~CFilters_Window();
+	protected:
+		scgms::SPersistent_Filter_Chain_Configuration& mFilter_Chain_Configuration;
+		QListWidget* lbxApplied_Filters = nullptr;
+		QListWidget* lbxAvailable_Filters = nullptr;
+
+	private:
+		static std::atomic<CFilters_Window*> mInstance;
+
+	protected:
+		void Setup_UI();
+		void Configure_Filter(QListWidgetItem *item);
+		bool eventFilter(QObject* object, QEvent* event);
+
+	protected slots:
+		void On_Add_Filter();
+		void On_Move_Filter_Up();
+		void On_Move_Filter_Down();
+		void On_Remove_Filter();
+		void On_Configure_Filter();
+		void On_Commit_Filters();
+		void On_Applied_Filter_Dbl_Click(QListWidgetItem* item);
+		void On_Available_Filter_Dbl_Click(QListWidgetItem* item);
+		void On_Applied_Filter_Key_Press(QKeyEvent* keyevent);
+		void On_Filter_Configure_Complete();
+		void On_Filter_Drag_Drop(QModelIndex idx, int start, int end, QModelIndex mdlIdx, int dst);
+
+	public:
+		static CFilters_Window* Show_Instance(scgms::SPersistent_Filter_Chain_Configuration &filter_chain_configuration, QWidget *owner);
+		CFilters_Window(scgms::SPersistent_Filter_Chain_Configuration &filter_chain_configuration, QWidget *owner);
+		virtual ~CFilters_Window();
 };

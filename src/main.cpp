@@ -46,10 +46,9 @@
 #include "ui/main_window.h"
 
 int MainCalling main(int argc, char *argv[]) {
-    
 
 	QApplication application(argc, argv);
-    qGuiApp->setWindowIcon(QIcon(":/app/appicon.png"));
+	qGuiApp->setWindowIcon(QIcon(":/app/appicon.png"));
 	qGuiApp->setApplicationName(StdWStringToQString(dsGPredict3_App_Name));
 	qGuiApp->setOrganizationDomain(StdWStringToQString(dsGPredict3_App_Domain));
 

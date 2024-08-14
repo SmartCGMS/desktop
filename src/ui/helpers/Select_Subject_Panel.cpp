@@ -52,6 +52,7 @@ constexpr int Subject_Selection_Existing = 2;
 
 CSelect_Subject_Panel::CSelect_Subject_Panel(scgms::SFilter_Configuration_Link configuration, scgms::SFilter_Parameter &parameter, QWidget *parent)
 	: CContainer_Edit(parameter), QWidget(parent), mConfiguration(configuration) {
+
 	QVBoxLayout* layout = new QVBoxLayout();
 
 	QRadioButton* radioBtn;
@@ -88,8 +89,7 @@ void CSelect_Subject_Panel::On_Radio_Button_Selected() {
 void CSelect_Subject_Panel::store_parameter() {
 	int64_t subject_id = db::Anonymous_Subject_Identifier;
 	const int selection = mButtonGroup->checkedId();
-	switch (selection)
-	{
+	switch (selection) {
 		case Subject_Selection_Anonymous:
 			subject_id = db::Anonymous_Subject_Identifier;
 			break;
@@ -97,8 +97,7 @@ void CSelect_Subject_Panel::store_parameter() {
 			subject_id = db::New_Subject_Identifier;
 			break;
 		case Subject_Selection_Existing:
-			if (mDb && mDb->isOpen())
-			{
+			if (mDb && mDb->isOpen()) {
 				auto selindexes = mDbSubjects->selectionModel()->selectedIndexes();
 
 				if (selindexes.size() != 0) {
@@ -119,12 +118,13 @@ void CSelect_Subject_Panel::store_parameter() {
 			break;
 	}
 
-	check_rc(mParameter->Set_Int64(subject_id));	
+	check_rc(mParameter->Set_Int64(subject_id));
 }
 
 void CSelect_Subject_Panel::fetch_parameter() {
-	if (!mDb)
+	if (!mDb) {
 		Connect_To_Db();
+	}
 
 	HRESULT rc;
 	const auto db_id = mParameter.as_int(rc);
@@ -141,10 +141,8 @@ void CSelect_Subject_Panel::fetch_parameter() {
 			default:
 				mButtonGroup->button(Subject_Selection_Existing)->click();
 				mDbSubjects->setEnabled(true);
-				if (mSubjectsModel)
-				{
-					for (int data_row = 0; data_row < mSubjectsModel->rowCount(); data_row++)
-					{
+				if (mSubjectsModel) {
+					for (int data_row = 0; data_row < mSubjectsModel->rowCount(); data_row++) {
 						if (mSubjectsModel->data(mSubjectsModel->index(data_row, 0)).toInt() == db_id) {
 							mDbSubjects->selectRow(data_row);
 							break;
@@ -152,12 +150,11 @@ void CSelect_Subject_Panel::fetch_parameter() {
 					}
 				}
 				break;
-			}
+		}
 	}
 }
 
 void CSelect_Subject_Panel::Connect_To_Db() {
-	//auto current_selection = get_parameter();
 
 	mSubjectsModel.reset(nullptr);
 	
@@ -173,7 +170,7 @@ void CSelect_Subject_Panel::Connect_To_Db() {
 	mDb->setDatabaseName(QString::fromStdWString(mConfiguration.Read_String(rsDb_Name)));
 	mDb->setUserName(QString::fromStdWString(mConfiguration.Read_String(rsDb_User_Name)));
 	mDb->setPassword(QString::fromStdWString(mConfiguration.Read_String(rsDb_Password)));
-	
+
 	if (mDb->open()) {
 		QSqlQuery subjects_query{ *mDb.get() };
 
@@ -194,5 +191,4 @@ void CSelect_Subject_Panel::Connect_To_Db() {
 		//set_parameter(current_selection);
 		fetch_parameter();
 	}
-
 }

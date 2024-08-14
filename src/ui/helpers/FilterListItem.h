@@ -47,6 +47,7 @@ class CFilter_List_Item : public QListWidgetItem {
 		const scgms::CSignal_Description mSignal_Descriptors{};
 		const scgms::TFilter_Descriptor mDescriptor;
 		scgms::SFilter_Configuration_Link mConfiguration;
+
 	public:
 		CFilter_List_Item(scgms::SFilter_Configuration_Link configuration);
 		CFilter_List_Item(const scgms::TFilter_Descriptor descriptor);

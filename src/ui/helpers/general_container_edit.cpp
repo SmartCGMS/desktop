@@ -50,28 +50,26 @@
 #include "moc_general_container_edit.cpp"
 
 namespace filter_config_window {
-	
 
 	CContainer_Edit::CContainer_Edit(scgms::SFilter_Parameter parameter) : mParameter(parameter) {
 		//fetch_parameter(); - avoid possibly virtual call from ctor
 	}
 
 	bool CContainer_Edit::check_rc(const HRESULT rc) {
-		
 		if (!Succeeded(rc)) {
 
 			wchar_t *conf_name = nullptr;
 			mParameter->Get_Config_Name(&conf_name);
 			const auto narrowed_name = Narrow_WChar(conf_name);
 
-            const QString qstr = QString::fromWCharArray(dsParameter_Configuration_Failed_RC).arg(conf_name ? narrowed_name.c_str() : "").arg(rc, 0, 16);
+			const QString qstr = QString::fromWCharArray(dsParameter_Configuration_Failed_RC).arg(conf_name ? narrowed_name.c_str() : "").arg(rc, 0, 16);
 			QMessageBox::warning(QApplication::activeWindow(), dsInformation, qstr);
 			return false;
 		}
-		else
+		else {
 			return true;
+		}
 	}
-
 
 	CInteger_Container_Edit::CInteger_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : CContainer_Edit(parameter), QLineEdit(parent) {
 		setValidator(new QIntValidator(this));
@@ -89,8 +87,10 @@ namespace filter_config_window {
 		int64_t int64 = text().toLongLong(&ok);
 		if (ok) {
 			rc = mParameter->Set_Int64(int64);
-		} else
+		}
+		else {
 			rc = E_FAIL;
+		}
 
 		check_rc(rc);
 	}
@@ -102,17 +102,22 @@ namespace filter_config_window {
 	void CWChar_Container_Edit::fetch_parameter() {
 		HRESULT rc;
 		const std::wstring str = mParameter.as_wstring(rc, false);
-		if (Succeeded(rc)) setText(QString::fromStdWString(str));		
-			else if (rc == E_NOT_SET) clear();	//just not set
-				else check_rc(rc); //truly en error
+		if (Succeeded(rc)) {
+			setText(QString::fromStdWString(str));
+		}
+		else if (rc == E_NOT_SET) {
+			clear(); //just not set
+		}
+		else {
+			check_rc(rc); //truly en error
+		}
 	}
 
-	void CWChar_Container_Edit::store_parameter() {		
+	void CWChar_Container_Edit::store_parameter() {
 		check_rc(mParameter.set_wstring(text().toStdWString()));
 	}
 
 	CRatTime_Validator::CRatTime_Validator(QWidget* parent) : QValidator(parent) {
-
 	}
 
 	bool CRatTime_Validator::allowed_chars_only(const QString &input) {
@@ -120,24 +125,40 @@ namespace filter_config_window {
 		int first = 0;
 		int len = input.size();
 
-		if (len == 0) return false;
+		if (len == 0) {
+			return false;
+		}
 
 		//we allow minus only as the very first char
 		if (input[0] == '-') {
 			first++;
 			//len--;
 		}
-		
 
 		for (auto i = first; i < len; i++) {
 			switch (input[i].toLatin1()) {
-				case '$': case '(': case ')':		//support for variables
-				case ' ': case ':': case '.':
-				case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': break;
-				default: return false;
+				case '$':
+				case '(':
+				case ')':
+					//support for variables
+				case ' ':
+				case ':':
+				case '.':
+				case '0':
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+				case '9':
+					break;
+				default:
+					return false;
 			}
 		}
-
 
 		return true;
 	}
@@ -148,7 +169,6 @@ namespace filter_config_window {
 		return result;
 	}
 
-
 	QString CRatTime_Validator::rattime_to_string(double rattime) {
 		return QString::fromStdWString(Rat_Time_To_Default_WStr(rattime));
 	}
@@ -158,28 +178,30 @@ namespace filter_config_window {
 	}
 
 	QValidator::State CRatTime_Validator::validate(QString& input, int& pos) const {
-		if (!allowed_chars_only(input)) return QValidator::Invalid;
+		if (!allowed_chars_only(input)) {
+			return QValidator::Invalid;
+		}
 			
 		auto [is_var, var_name] = scgms::Is_Variable_Name(input.toStdWString());
-		if (is_var)
+		if (is_var) {
 			return QValidator::Acceptable;
+		}
 
 		double tmp;
 		return string_to_rattime(input.simplified(), tmp) ? QValidator::Acceptable : QValidator::Invalid; //do not allow Intermediate as the user may possible enter a non-sense
 	}
-	
 
 	CRatTime_Container_Edit::CRatTime_Container_Edit(scgms::SFilter_Parameter parameter, QWidget* parent) : CContainer_Edit(parameter), QLineEdit(parent), mValidator(new CRatTime_Validator{parent}) {
 		setValidator(mValidator);
 	}
 
-	
 	void CRatTime_Container_Edit::fetch_parameter() {
 		if (mParameter) {
 			HRESULT rc;
 			std::wstring raw_text = mParameter.as_wstring(rc, false);
-			if (check_rc(rc))
-				setText(QString::fromStdWString(raw_text));			
+			if (check_rc(rc)) {
+				setText(QString::fromStdWString(raw_text));
+			}
 		}
 	}
 	
@@ -187,18 +209,16 @@ namespace filter_config_window {
 		check_rc(mParameter.set_wstring(text().toStdWString()));
 	}
 
-
 	double CRatTime_Container_Edit::as_double() {
 		double result;
 		return mValidator->string_to_rattime(text(), result) ? result : std::numeric_limits<double>::quiet_NaN();
 	}
 
 	void CRatTime_Container_Edit::set_double(const double value) {
-		setText(mValidator->rattime_to_string(value));		
+		setText(mValidator->rattime_to_string(value));
 	}
 
-
-	CDouble_Validator::CDouble_Validator(QWidget* parent) : QValidator(parent)  {
+	CDouble_Validator::CDouble_Validator(QWidget* parent) : QValidator(parent) {
 		//
 	}
 
@@ -208,8 +228,9 @@ namespace filter_config_window {
 
 	QValidator::State CDouble_Validator::validate(QString& input, int& pos) const {
 		auto [is_var, var_name] = scgms::Is_Variable_Name(input.toStdWString());
-		if (is_var)
+		if (is_var) {
 			return QValidator::Acceptable;
+		}
 
 		auto [ok, dbl] = text_2_dbl(input);
 		
@@ -220,16 +241,16 @@ namespace filter_config_window {
 		bool ok = false;
 		std::wstring str = text.simplified().toStdWString(); //wstr to allow infinity symbol
 		double converted = str_2_dbl(str.c_str(), ok);
-		if (!ok) 
+		if (!ok) {
 			ok = CRatTime_Validator::string_to_rattime(text, converted);
-		
+		}
 
-		if (!ok)
+		if (!ok) {
 			converted = std::numeric_limits<double>::quiet_NaN();
+		}
 
 		return std::tuple<bool, double>{ok, converted};
 	}
-
 
 	CDouble_Container_Edit::CDouble_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : 
 			CContainer_Edit(parameter), QLineEdit(parent), mValidator(new  CDouble_Validator{ parent }) {
@@ -238,15 +259,16 @@ namespace filter_config_window {
 	}
 
 	void CDouble_Container_Edit::store_parameter() {
-		check_rc(mParameter.set_wstring(text().toStdWString()));		
+		check_rc(mParameter.set_wstring(text().toStdWString()));
 	}
 
 	void CDouble_Container_Edit::fetch_parameter() {
 		if (mParameter) {
 			HRESULT rc;
 			std::wstring raw_text = mParameter.as_wstring(rc, false);
-			if (check_rc(rc))
+			if (check_rc(rc)) {
 				setText(QString::fromStdWString(raw_text));
+			}
 		}
 	}
 	
@@ -264,7 +286,6 @@ namespace filter_config_window {
 	CBoolean_Container_Edit::CBoolean_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) : CContainer_Edit(parameter), QCheckBox(parent) {
 		//
 	}
-	
 
 	void CBoolean_Container_Edit::fetch_parameter() {
 		HRESULT rc;
@@ -280,7 +301,6 @@ namespace filter_config_window {
 
 	}
 
-
 	void CGUID_Validator::fixup(QString& input) const {
 		input = input.simplified();
 	}
@@ -290,8 +310,6 @@ namespace filter_config_window {
 		/*const GUID tmp =*/ WString_To_GUID(input.toStdWString(), ok);
 		return ok ? CGUID_Validator::State::Acceptable : CGUID_Validator::State::Invalid;
 	}
-
-
 
 	CGUIDCombo_Container_Edit::CGUIDCombo_Container_Edit(scgms::SFilter_Parameter parameter, QWidget *parent) :
 		CContainer_Edit(parameter), QComboBox(parent), mValidator(new CGUID_Validator{parent}) {
@@ -316,10 +334,10 @@ namespace filter_config_window {
 				}
 			}
 
-			if (!index_found)
-				setCurrentText(QString::fromStdWString( GUID_To_WString(id) ));
-		}		
-
+			if (!index_found) {
+				setCurrentText(QString::fromStdWString(GUID_To_WString(id)));
+			}
+		}
 	}
 
 	void CGUIDCombo_Container_Edit::store_parameter() {
@@ -335,8 +353,9 @@ namespace filter_config_window {
 		if (!user_intends_invalid_guid) {
 			bool ok;
 			id = WString_To_GUID(current_str, ok);
-			if ((!ok) && (currentIndex() >= 0))	
+			if ((!ok) && (currentIndex() >= 0)) {
 				id = *reinterpret_cast<const GUID*>(currentData().toByteArray().constData());
+			}
 		}
 
 		//const GUID id = currentIndex() >= 0 ? *reinterpret_cast<const GUID*>(currentData().toByteArray().constData()) : WString_To_GUID(currentText().toStdWString());
@@ -346,7 +365,6 @@ namespace filter_config_window {
 	CNull_Container_Edit::CNull_Container_Edit(QWidget *parent) : CContainer_Edit(scgms::SFilter_Parameter{}), QWidget(parent) {
 		//
 	}
-
 
 	void CNull_Container_Edit::fetch_parameter() {
 	}

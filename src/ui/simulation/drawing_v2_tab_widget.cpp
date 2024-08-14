@@ -58,19 +58,18 @@
 #include "moc_drawing_v2_tab_widget.cpp"
 
 CDrawing_v2_Graphics_View::CDrawing_v2_Graphics_View()
-	: QGraphicsView()
-{
+	: QGraphicsView() {
 	//
 }
 
-void CDrawing_v2_Graphics_View::wheelEvent(QWheelEvent * event)
-{
+void CDrawing_v2_Graphics_View::wheelEvent(QWheelEvent * event) {
 	const auto delta = event->angleDelta();
 	const int numSteps = (delta.x() + delta.y()) / 120;
 
 	mNumScheduledScalings += numSteps;
-	if (mNumScheduledScalings * numSteps < 0)
+	if (mNumScheduledScalings * numSteps < 0) {
 		mNumScheduledScalings = numSteps;
+	}
 
 	QTimeLine *anim = new QTimeLine(350, this);
 	anim->setUpdateInterval(20);
@@ -80,22 +79,21 @@ void CDrawing_v2_Graphics_View::wheelEvent(QWheelEvent * event)
 	anim->start();
 }
 
-void CDrawing_v2_Graphics_View::scalingTime(qreal x)
-{
+void CDrawing_v2_Graphics_View::scalingTime(qreal x) {
 	qreal factor = 1.0 + qreal(mNumScheduledScalings) / 300.0;
 	scale(factor, factor);
 }
 
-void CDrawing_v2_Graphics_View::animFinished()
-{
-	if (mNumScheduledScalings < 0)
+void CDrawing_v2_Graphics_View::animFinished() {
+	if (mNumScheduledScalings < 0) {
 		mNumScheduledScalings++;
+	}
 	sender()->~QObject();
 }
 
 CDrawing_v2_Tab_Widget::CDrawing_v2_Tab_Widget(QWidget *parent)
-	: CAbstract_Simulation_Tab_Widget(parent), mItem(nullptr)
-{
+	: CAbstract_Simulation_Tab_Widget(parent), mItem(nullptr) {
+
 	mView = new CDrawing_v2_Graphics_View();
 	mScene = new QGraphicsScene(mView);
 	mView->setScene(mScene);
@@ -115,30 +113,27 @@ CDrawing_v2_Tab_Widget::CDrawing_v2_Tab_Widget(QWidget *parent)
 	connect(this, SIGNAL(On_Redraw()), this, SLOT(Slot_Redraw()), Qt::QueuedConnection);
 }
 
-CDrawing_v2_Tab_Widget::~CDrawing_v2_Tab_Widget()
-{
-	if (mItem)
+CDrawing_v2_Tab_Widget::~CDrawing_v2_Tab_Widget() {
+	if (mItem) {
 		delete mItem;
+	}
 
 	mScene->clear();
 	delete mRenderer;
 }
 
-void CDrawing_v2_Tab_Widget::Update_View_Size()
-{
+void CDrawing_v2_Tab_Widget::Update_View_Size() {
 	mView->resetTransform();
 }
 
-CAbstract_Simulation_Tab_Widget* CDrawing_v2_Tab_Widget::Clone()
-{
+CAbstract_Simulation_Tab_Widget* CDrawing_v2_Tab_Widget::Clone() {
 	CDrawing_v2_Tab_Widget* cloned = new CDrawing_v2_Tab_Widget();
 	cloned->Drawing_Callback(mSvgContents);
 
 	return cloned;
 }
 
-void CDrawing_v2_Tab_Widget::Drawing_Callback(const std::string &svg)
-{
+void CDrawing_v2_Tab_Widget::Drawing_Callback(const std::string &svg) {
 	std::unique_lock<std::mutex> lck(mDrawMtx);
 
 	mSvgContents = svg;
@@ -146,17 +141,14 @@ void CDrawing_v2_Tab_Widget::Drawing_Callback(const std::string &svg)
 	Redraw();
 }
 
-void CDrawing_v2_Tab_Widget::Redraw()
-{
-	if (!mDefered_Work)
-	{
+void CDrawing_v2_Tab_Widget::Redraw() {
+	if (!mDefered_Work) {
 		mDefered_Work = true;
 		emit On_Redraw();
 	}
 }
 
-void CDrawing_v2_Tab_Widget::Slot_Redraw()
-{
+void CDrawing_v2_Tab_Widget::Slot_Redraw() {
 	// lock scope
 	{
 		std::unique_lock<std::mutex> lck(mDrawMtx);
@@ -166,8 +158,9 @@ void CDrawing_v2_Tab_Widget::Slot_Redraw()
 		mDefered_Work = false;
 	}
 
-	if (mItem)
+	if (mItem) {
 		delete mItem;
+	}
 
 	mScene->clear();
 	mView->viewport()->update();
@@ -182,29 +175,29 @@ void CDrawing_v2_Tab_Widget::Slot_Redraw()
 	//mView->fitInView(mItem, Qt::AspectRatioMode::KeepAspectRatio);
 }
 
-void CDrawing_v2_Tab_Widget::Show_Context_Menu(const QPoint& pos)
-{
+void CDrawing_v2_Tab_Widget::Show_Context_Menu(const QPoint& pos) {
 	QPoint globalPos = mapToGlobal(pos);
 
 	QMenu myMenu;
 	myMenu.addAction(dsSave_Image_To_File, [this]() {
 		auto path = QFileDialog::getSaveFileName(this, tr(dsSave_Image_To_File), "image", tr(dsSave_Image_Ext_Spec));
-		if (path.length() != 0)
-		{
+		if (path.length() != 0) {
 			std::ofstream fs(path.toStdString());
 			fs << mSvgContents.c_str();
 		}
 	});
+
 	myMenu.addAction(dsSave_Viewport_To_File, [this]() {
 		auto path = QFileDialog::getSaveFileName(this, tr(dsSave_Viewport_To_File), dsDefault_Viewport_File_Name, tr(dsSave_Viewport_Ext_Spec));
-		if (path.length() != 0)
-		{
+		if (path.length() != 0) {
 			//QPixmap pixMap = QPixmap::grabWidget(mView->viewport());
 			QPixmap pixMap = mView->grab();
 			pixMap.save(path);
 		}
 	});
+
 	myMenu.addSeparator();
+
 	myMenu.addAction(dsReset_Zoom, [this]() {
 		mView->resetTransform();
 	});
@@ -212,8 +205,7 @@ void CDrawing_v2_Tab_Widget::Show_Context_Menu(const QPoint& pos)
 	myMenu.exec(globalPos);
 }
 
-void CDrawing_v2_Tab_Widget::Get_Canvas_Dimensions(int& _width, int& _height)
-{
+void CDrawing_v2_Tab_Widget::Get_Canvas_Dimensions(int& _width, int& _height) {
 	_width = width();
 	_height = height();
 }

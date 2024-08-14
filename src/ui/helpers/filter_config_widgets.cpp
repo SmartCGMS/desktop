@@ -36,20 +36,19 @@
 
 #include "filter_config_widgets.h"
 
-void CModel_Signal_Select_ComboBox::Refresh_Contents()
-{
+void CModel_Signal_Select_ComboBox::Refresh_Contents() {
+
 	// always clear contents
 	clear();
 
-	if (mModelSelector->currentIndex() >= 0)
-	{
+	if (mModelSelector->currentIndex() >= 0) {
+
 		// get selected model GUID
 		scgms::TModel_Descriptor model = scgms::Null_Model_Descriptor;
 		const GUID selectedModelGUID = *reinterpret_cast<const GUID*>(mModelSelector->currentData().toByteArray().constData());
 
 		// retrieve proper model
-		if (scgms::get_model_descriptor_by_id(selectedModelGUID, model))
-		{
+		if (scgms::get_model_descriptor_by_id(selectedModelGUID, model)) {
 			// add model signals to combobox
 			for (size_t i = 0; i < model.number_of_calculated_signals; i++) {
 				const std::wstring sig_name = mSignal_Descriptors.Get_Name(model.calculated_signal_ids[i]);
@@ -60,7 +59,7 @@ void CModel_Signal_Select_ComboBox::Refresh_Contents()
 }
 
 CModel_Signal_Select_ComboBox::CModel_Signal_Select_ComboBox(scgms::SFilter_Parameter parameter, QWidget *parent, QComboBox *modelSelector) :
-	filter_config_window::CGUIDCombo_Container_Edit(parameter, parent), mModelSelector(modelSelector) {	
+	filter_config_window::CGUIDCombo_Container_Edit(parameter, parent), mModelSelector(modelSelector) {
 	Refresh_Contents();
 
 	connect(mModelSelector, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {
@@ -68,15 +67,13 @@ CModel_Signal_Select_ComboBox::CModel_Signal_Select_ComboBox(scgms::SFilter_Para
 	});
 }
 
-
-
-CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(scgms::SFilter_Parameter parameter, QWidget *parent)	: filter_config_window::CGUIDCombo_Container_Edit(parameter, parent) {
+CAvailable_Signal_Select_ComboBox::CAvailable_Signal_Select_ComboBox(scgms::SFilter_Parameter parameter, QWidget *parent) : filter_config_window::CGUIDCombo_Container_Edit(parameter, parent) {
 
 	const scgms::CSignal_Description signal_descriptors{};
 	signal_descriptors.for_each([this](const scgms::TSignal_Descriptor& desc) {
 		addItem(StdWStringToQString(desc.signal_description), QVariant{ QByteArray{reinterpret_cast<const char*>(&desc.id), sizeof(decltype(desc.id))} });
 	});
 
-    model()->sort(0);
-    setCurrentIndex(0);
+	model()->sort(0);
+	setCurrentIndex(0);
 }

@@ -66,90 +66,117 @@ int CModel_Bounds_Panel_internal::CParameters_Table_Model::columnCount(const QMo
 double *CModel_Bounds_Panel_internal::CParameters_Table_Model::Get_Data(const int col) {
 	double *data = nullptr;
 	switch (col) {
-		case 0: data = mLower_Bounds.data(); break;
-		case 1: data = mDefault_Values.data(); break;
-		case 2: data = mUpper_Bounds.data(); break;
-		default: break;
+		case 0:
+			data = mLower_Bounds.data();
+			break;
+		case 1:
+			data = mDefault_Values.data();
+			break;
+		case 2:
+			data = mUpper_Bounds.data();
+			break;
+		default:
+			break;
 	}
 
 	return data;
 }
 
 std::tuple<bool, size_t> CModel_Bounds_Panel_internal::CParameters_Table_Model::UI_Idx_To_Data_Idx(const int ui) const {
-	if (ui > mNames.size())
-		return { false, 0 };
 
+	if (ui > mNames.size()) {
+		return { false, 0 };
+	}
 
 	if (mIndividualized_Segment_Count > 1) {
 		const size_t rows_per_segment = mSegment_Specific_Parameter_Count + 1;	//+1 to denote the heading row
 		
 		if (ui > mNames.size() - mSegment_Agnostic_Parameter_Count) {	//ui points to the common parameters
 			return { true, mDefault_Values.size() - mNames.size() + ui};
-		} else {					
+		}
+		else {
 			const size_t rem = ui % rows_per_segment;
 			return { rem != 0, ui - (ui/ rows_per_segment) - 1};	//-1 to account the first string - "Segment 1"
-		}		
+		}
 	}
-	else
+	else {
 		return { true, static_cast<size_t>(ui) };
+	}
 }
 
 QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::data(const QModelIndex &index, int role) const {
 	auto get_val = [this, &index](const size_t data_row)->double {
 		switch (index.column()) {
-			case 0: return mLower_Bounds[data_row];
-			case 1: return mDefault_Values[data_row];
-			case 2: return mUpper_Bounds[data_row];
-			default: return std::numeric_limits<double>::quiet_NaN();
+			case 0:
+				return mLower_Bounds[data_row];
+			case 1:
+				return mDefault_Values[data_row];
+			case 2:
+				return mUpper_Bounds[data_row];
+			default:
+				return std::numeric_limits<double>::quiet_NaN();
 		}
-	
 	};
 
 	if (role == Qt::DisplayRole || role == Qt::EditRole) {
-		if (static_cast<size_t>(index.row()) >= mNames.size()) return QVariant(std::numeric_limits<double>::quiet_NaN());
+		if (static_cast<size_t>(index.row()) >= mNames.size()) {
+			return QVariant(std::numeric_limits<double>::quiet_NaN());
+		}
 
 		auto [non_empty_line, data_idx] = UI_Idx_To_Data_Idx(index.row());
 
 		if (non_empty_line) {
 			switch (mTypes[data_idx]) {
-				case scgms::NModel_Parameter_Value::mptTime: return filter_config_window::CRatTime_Validator::rattime_to_string(get_val(data_idx));
-				default:									 return QString::fromStdWString(dbl_2_wstr(get_val(data_idx)));
+				case scgms::NModel_Parameter_Value::mptTime:
+					return filter_config_window::CRatTime_Validator::rattime_to_string(get_val(data_idx));
+				default:
+					return QString::fromStdWString(dbl_2_wstr(get_val(data_idx)));
 			}
-		} else
+		}
+		else {
 			return QVariant{};
+		}
 
 		return QVariant(std::numeric_limits<double>::quiet_NaN());
 	}
-	else
+	else {
 		return QVariant{};
+	}
 }
 
 bool CModel_Bounds_Panel_internal::CParameters_Table_Model::setData(const QModelIndex &index, const QVariant &value, int role) {
-	if (static_cast<size_t>(index.row()) >= mNames.size()) return false;
+	if (static_cast<size_t>(index.row()) >= mNames.size()) {
+		return false;
+	}
 
 	bool ok = false;
 	const double val = value.toDouble(&ok);
-	if (!ok) return false;
-	
+	if (!ok) {
+		return false;
+	}
 
 	auto [non_empty_line, data_idx] = UI_Idx_To_Data_Idx(index.row());
 
-	if (non_empty_line)
+	if (non_empty_line) {
 		Get_Data(index.column())[data_idx] = val;
+	}
+
 	return non_empty_line;
 }
 
 QVariant CModel_Bounds_Panel_internal::CParameters_Table_Model::headerData(int section, Qt::Orientation orientation, int role) const {
 	const std::array<const char*, 3> column_names = {dsLower_Bounds, dsDefault_Parameters, dsUpper_Bounds};
 
-	if (role == Qt::DisplayRole) {		
+	if (role == Qt::DisplayRole) {
 		if (orientation == Qt::Horizontal) {
-			if (section >= 0 && static_cast<size_t>(section) < column_names.size())
+			if (section >= 0 && static_cast<size_t>(section) < column_names.size()) {
 				return column_names[section];
+			}
 		}
 		else if (orientation == Qt::Vertical) {
-			if (section >= 0 && static_cast<size_t>(section) < mNames.size())
+			if (section >= 0 && static_cast<size_t>(section) < mNames.size()) {
 				return mNames[section];
+			}
 		}
 	}
 
@@ -160,8 +187,9 @@ Qt::ItemFlags CModel_Bounds_Panel_internal::CParameters_Table_Model::flags(const
 	auto result = QAbstractTableModel::flags(index);
 	
 	auto [non_empty_line, data_idx] = UI_Idx_To_Data_Idx(index.row());
-	if (non_empty_line)
+	if (non_empty_line) {
 		result |= Qt::ItemIsEditable;
+	}
 
 	return result;
 }
@@ -190,47 +218,44 @@ void CModel_Bounds_Panel_internal::CParameters_Table_Model::Load_Parameters(cons
 			valid_config = count == model.total_number_of_parameters;
 		}
 
-
 		//check that the number of parameters is correct => check that they are not corrupted
 		if (valid_config) {
-			
-				mIndividualized_Segment_Count = mSegment_Specific_Parameter_Count > 0 ? total_specific_parameters_in_doubles / mSegment_Specific_Parameter_Count : 0;
+			mIndividualized_Segment_Count = mSegment_Specific_Parameter_Count > 0 ? total_specific_parameters_in_doubles / mSegment_Specific_Parameter_Count : 0;
 
-				bool common_params_str = false;
-				for (size_t i = 0; i < count; i++) {
-					//do we need to push a segment number name?
-					if (mIndividualized_Segment_Count > 1) {
-						if (i < total_specific_parameters_in_doubles) {
-							if (i % mSegment_Specific_Parameter_Count == 0) {
-								QString name{ dsSegment };
-								name += QStringLiteral(" %1").arg(segment_UI_idx);								
-								mNames.push_back(name);
-								segment_UI_idx++;
-							}
-						}
-						else if ((i % mSegment_Specific_Parameter_Count == 0) && !common_params_str) {
-							common_params_str = true;
-							mNames.push_back(QString::fromWCharArray(dsCommon));
-						}
-					} 
-			
+			bool common_params_str = false;
+			for (size_t i = 0; i < count; i++) {
+				//do we need to push a segment number name?
+				if (mIndividualized_Segment_Count > 1) {
 					if (i < total_specific_parameters_in_doubles) {
-						const size_t idx = i % mSegment_Specific_Parameter_Count;
-						mTypes.push_back(model.parameter_types[idx]);
-						mNames.push_back(QStringLiteral("{%1} %2").arg(segment_UI_idx-1).arg(QString::fromWCharArray(model.parameter_ui_names[idx])));
+						if (i % mSegment_Specific_Parameter_Count == 0) {
+							QString name{ dsSegment };
+							name += QStringLiteral(" %1").arg(segment_UI_idx);
+							mNames.push_back(name);
+							segment_UI_idx++;
+						}
 					}
-					else {
-						const size_t idx = i - total_specific_parameters_in_doubles + mSegment_Specific_Parameter_Count;
-						mTypes.push_back(model.parameter_types[idx]);
-						mNames.push_back(QString::fromWCharArray(model.parameter_ui_names[idx]));
+					else if ((i % mSegment_Specific_Parameter_Count == 0) && !common_params_str) {
+						common_params_str = true;
+						mNames.push_back(QString::fromWCharArray(dsCommon));
 					}
+				} 
+		
+				if (i < total_specific_parameters_in_doubles) {
+					const size_t idx = i % mSegment_Specific_Parameter_Count;
+					mTypes.push_back(model.parameter_types[idx]);
+					mNames.push_back(QStringLiteral("{%1} %2").arg(segment_UI_idx-1).arg(QString::fromWCharArray(model.parameter_ui_names[idx])));
 				}
-
-				
-				mLower_Bounds.assign(lower_bounds, lower_bounds + count);
-				mDefault_Values.assign(defaults, defaults + count);
-				mUpper_Bounds.assign(upper_bounds, upper_bounds + count);
+				else {
+					const size_t idx = i - total_specific_parameters_in_doubles + mSegment_Specific_Parameter_Count;
+					mTypes.push_back(model.parameter_types[idx]);
+					mNames.push_back(QString::fromWCharArray(model.parameter_ui_names[idx]));
+				}
 			}
+
+			mLower_Bounds.assign(lower_bounds, lower_bounds + count);
+			mDefault_Values.assign(defaults, defaults + count);
+			mUpper_Bounds.assign(upper_bounds, upper_bounds + count);
+		}
 	}
 
 	emit dataChanged(createIndex(0, 0), createIndex(rowCount() - 1, columnCount() - 1));
@@ -278,13 +303,15 @@ QWidget* CModel_Bounds_Panel_internal::CParameter_Value_Delegate::createEditor(Q
 void CModel_Bounds_Panel_internal::CParameter_Value_Delegate::setEditorData(QWidget *editor, const QModelIndex &index) const {	
 
 	auto get_val = [this, &index](const size_t data_row)->double {
-		//if (static_cast<size_t>(data_idx) >= mMOlde-mTypes.size()) return std::numeric_limits<double>::quiet_NaN();
-
 		switch (index.column()) {
-			case 0: return mModel->mLower_Bounds[data_row];
-			case 1: return mModel->mDefault_Values[data_row];
-			case 2: return mModel->mUpper_Bounds[data_row];
-			default: return std::numeric_limits<double>::quiet_NaN();
+			case 0:
+				return mModel->mLower_Bounds[data_row];
+			case 1:
+				return mModel->mDefault_Values[data_row];
+			case 2:
+				return mModel->mUpper_Bounds[data_row];
+			default:
+				return std::numeric_limits<double>::quiet_NaN();
 		}
 	};
 	
@@ -304,6 +331,7 @@ void CModel_Bounds_Panel_internal::CParameter_Value_Delegate::setModelData(QWidg
 
 CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QComboBox* modelSelector, const GUID& fixed_model, QWidget * parent)
 	: CContainer_Edit(parameter), QWidget(parent), mModelSelector(modelSelector), mFixed_Model(fixed_model) {
+
 	QVBoxLayout* layout = new QVBoxLayout();
 	setLayout(layout);
 
@@ -320,7 +348,6 @@ CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QCo
 	mTableView->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::SelectedClicked | QAbstractItemView::EditKeyPressed);
 
 	mLayout->addWidget(mTableView);
-	   
 	{
 		QHBoxLayout *reset_layout = new QHBoxLayout();
 
@@ -340,7 +367,6 @@ CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QCo
 
 		mLayout->addLayout(reset_layout);
 	}
-	
 
 	contents->setLayout(mLayout);
 
@@ -353,7 +379,7 @@ CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QCo
 		});
 	}
 
-//	fetch_parameter(); - avoid possibly virtual call from ctor
+	//	fetch_parameter(); - avoid possibly virtual call from ctor
 }
 
 void CModel_Bounds_Panel::store_parameter() {
@@ -365,8 +391,9 @@ void CModel_Bounds_Panel::store_parameter() {
 
 void CModel_Bounds_Panel::Reset_Parameters(std::vector<double> &values, std::function<const double*(const scgms::TModel_Descriptor&)> get_bounds) {
 	scgms::TModel_Descriptor model = scgms::Null_Model_Descriptor;
-	if (!Get_Currently_Selected_Model(model))
+	if (!Get_Currently_Selected_Model(model)) {
 		return;
+	}
 
 	const double* bounds = get_bounds(model);
 	
@@ -380,9 +407,7 @@ void CModel_Bounds_Panel::Reset_Parameters(std::vector<double> &values, std::fun
 		copy_start += model.number_of_segment_specific_parameters;
 	}
 
-	std::copy(bounds + model.number_of_segment_specific_parameters, bounds + model.total_number_of_parameters, 
-				values.end() - number_of_segment_common_parametes);
-
+	std::copy(bounds + model.number_of_segment_specific_parameters, bounds + model.total_number_of_parameters, values.end() - number_of_segment_common_parametes);
 
 	mTableView->viewport()->update();
 }
@@ -393,8 +418,10 @@ void CModel_Bounds_Panel::On_Reset_Lower() {
 
 void CModel_Bounds_Panel::On_Reset_Defaults() {
 	scgms::TModel_Descriptor model = scgms::Null_Model_Descriptor;
-	if (!Get_Currently_Selected_Model(model))
+	if (!Get_Currently_Selected_Model(model)) {
 		return;
+	}
+
 	//also trim down the number of segmetns to one
 	mModel->mLower_Bounds.resize(model.total_number_of_parameters);
 	mModel->mDefault_Values.resize(model.total_number_of_parameters);
@@ -404,11 +431,15 @@ void CModel_Bounds_Panel::On_Reset_Defaults() {
 	mTableView->resizeColumnsToContents();
 	mTableView->resizeRowsToContents();
 
-	Reset_Parameters(mModel->mDefault_Values, [](const scgms::TModel_Descriptor& model)->const double* {return model.default_values; });
+	Reset_Parameters(mModel->mDefault_Values, [](const scgms::TModel_Descriptor& model)->const double* {
+		return model.default_values;
+	});
 }
 
 void CModel_Bounds_Panel::On_Reset_Upper() {
-	Reset_Parameters(mModel->mUpper_Bounds, [](const scgms::TModel_Descriptor& model)->const double* {return model.upper_bound; });
+	Reset_Parameters(mModel->mUpper_Bounds, [](const scgms::TModel_Descriptor& model)->const double* {
+		return model.upper_bound;
+	});
 }
 
 bool CModel_Bounds_Panel::Get_Currently_Selected_Model(scgms::TModel_Descriptor& model) {
@@ -416,11 +447,13 @@ bool CModel_Bounds_Panel::Get_Currently_Selected_Model(scgms::TModel_Descriptor&
 
 	// get selected model GUID
 	if (mModelSelector) {
-		if (mModelSelector->currentIndex() >= 0)
+		if (mModelSelector->currentIndex() >= 0) {
 			selectedModelGUID = *reinterpret_cast<const GUID*>(mModelSelector->currentData().toByteArray().constData());
+		}
 	}
-	else
+	else {
 		selectedModelGUID = mFixed_Model;
+	}
 
 	return scgms::get_model_descriptor_by_id(selectedModelGUID, model);
 }
@@ -443,9 +476,12 @@ void CModel_Bounds_Panel::fetch_parameter() {
 			param_count = parameters.size() / 3;
 
 			bool valid_param_size = parameters.size() % 3 == 0;	//OK, looks like we have low, def and upper
-			if (valid_param_size) {//also check, if the number of parameters is actually OK when considering segment specific and segment agnostic parameters
-				if (model.number_of_segment_specific_parameters>0)	//beware, parameter-classification is not mandatory, hence it could be zero
+			//also check, if the number of parameters is actually OK when considering segment specific and segment agnostic parameters
+			if (valid_param_size) {
+				//beware, parameter-classification is not mandatory, hence it could be zero
+				if (model.number_of_segment_specific_parameters > 0) {
 					valid_param_size = (param_count - model.total_number_of_parameters + model.number_of_segment_specific_parameters) % model.number_of_segment_specific_parameters == 0;
+				}
 			}
 
 			if (valid_param_size) {
@@ -453,16 +489,23 @@ void CModel_Bounds_Panel::fetch_parameter() {
 				def = lb + param_count;
 				ub = lb + 2 * param_count;
 			}
-			else
+			else {
 				//signalize the error!
 				QMessageBox::warning(QApplication::activeWindow(), QString::fromWCharArray(dsError), QString::fromWCharArray(dsStored_Parameters_Corrupted_Not_Loaded));
-		} else
-			if (rc != E_NOT_SET)		//ignore if we know that the parameter was not set yet
+			}
+		}
+		else {
+			//ignore if we know that the parameter was not set yet
+			if (rc != E_NOT_SET) {
 				check_rc(rc);
+			}
+		}
 
 		mModel->Load_Parameters(model, lb, def, ub, param_count);
-	} else
+	}
+	else {
 		mModel->Load_Parameters(scgms::Null_Model_Descriptor, nullptr, nullptr, nullptr, 0);
+	}
 
 	mTableView->resizeColumnsToContents();
 	mTableView->resizeRowsToContents();

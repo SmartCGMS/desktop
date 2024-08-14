@@ -71,19 +71,18 @@ static const std::array<const char*, static_cast<size_t>(scgms::TDrawing_Image_T
 } };
 
 CDrawing_Graphics_View::CDrawing_Graphics_View()
-	: QGraphicsView()
-{
+	: QGraphicsView() {
 	//
 }
 
-void CDrawing_Graphics_View::wheelEvent(QWheelEvent * event)
-{
+void CDrawing_Graphics_View::wheelEvent(QWheelEvent * event) {
 	const auto delta = event->angleDelta();
 	const int numSteps = (delta.x() + delta.y()) / 120;
 
 	mNumScheduledScalings += numSteps;
-	if (mNumScheduledScalings * numSteps < 0)
+	if (mNumScheduledScalings * numSteps < 0) {
 		mNumScheduledScalings = numSteps;
+	}
 
 	QTimeLine *anim = new QTimeLine(350, this);
 	anim->setUpdateInterval(20);
@@ -93,22 +92,21 @@ void CDrawing_Graphics_View::wheelEvent(QWheelEvent * event)
 	anim->start();
 }
 
-void CDrawing_Graphics_View::scalingTime(qreal x)
-{
+void CDrawing_Graphics_View::scalingTime(qreal x) {
 	qreal factor = 1.0 + qreal(mNumScheduledScalings) / 300.0;
 	scale(factor, factor);
 }
 
-void CDrawing_Graphics_View::animFinished()
-{
-	if (mNumScheduledScalings < 0)
+void CDrawing_Graphics_View::animFinished() {
+	if (mNumScheduledScalings < 0) {
 		mNumScheduledScalings++;
+	}
 	sender()->~QObject();
 }
 
 CDrawing_Tab_Widget::CDrawing_Tab_Widget(const scgms::TDrawing_Image_Type type, QWidget *parent)
-	: CAbstract_Simulation_Tab_Widget(parent), mType(type), mItem(nullptr), mDiagnosis_Box(nullptr), mCurrent_Diagnosis(scgms::TDiagnosis::Type1)
-{
+	: CAbstract_Simulation_Tab_Widget(parent), mType(type), mItem(nullptr), mDiagnosis_Box(nullptr), mCurrent_Diagnosis(scgms::TDiagnosis::Type1) {
+
 	mView = new CDrawing_Graphics_View();
 	mScene = new QGraphicsScene(mView);
 	mView->setScene(mScene);
@@ -123,8 +121,7 @@ CDrawing_Tab_Widget::CDrawing_Tab_Widget(const scgms::TDrawing_Image_Type type, 
 	setLayout(mainLayout);
 
 	// just parkes' grid has to disambiguate between diagnosis types (for now)
-	if (type == scgms::TDrawing_Image_Type::Parkes)
-	{
+	if (type == scgms::TDrawing_Image_Type::Parkes) {
 		mDiagnosis_Box = new QComboBox(this);
 		mDiagnosis_Box->addItem(dsDiagnosis_T1D, static_cast<int>(scgms::TDiagnosis::Type1));
 		mDiagnosis_Box->addItem(dsDiagnosis_T2D, static_cast<int>(scgms::TDiagnosis::Type2));
@@ -142,33 +139,32 @@ CDrawing_Tab_Widget::CDrawing_Tab_Widget(const scgms::TDrawing_Image_Type type, 
 	connect(this, SIGNAL(On_Redraw()), this, SLOT(Slot_Redraw()), Qt::QueuedConnection);
 }
 
-CDrawing_Tab_Widget::~CDrawing_Tab_Widget()
-{
-	if (mItem)
+CDrawing_Tab_Widget::~CDrawing_Tab_Widget() {
+	if (mItem) {
 		delete mItem;
+	}
 
 	mScene->clear();
 	delete mRenderer;
 }
 
-void CDrawing_Tab_Widget::Update_View_Size()
-{
+void CDrawing_Tab_Widget::Update_View_Size() {
 	mView->resetTransform();
 }
 
-CAbstract_Simulation_Tab_Widget* CDrawing_Tab_Widget::Clone()
-{
+CAbstract_Simulation_Tab_Widget* CDrawing_Tab_Widget::Clone() {
 	CDrawing_Tab_Widget* cloned = new CDrawing_Tab_Widget(mType);
-	for (auto& svg : mSvgContents)
+	for (auto& svg : mSvgContents) {
 		cloned->Drawing_Callback(mType, svg.first, svg.second);
+	}
 
 	return cloned;
 }
 
-void CDrawing_Tab_Widget::Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::TDiagnosis diagnosis, const std::string &svg)
-{
-	if (type != mType)
+void CDrawing_Tab_Widget::Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::TDiagnosis diagnosis, const std::string &svg) {
+	if (type != mType) {
 		return;
+	}
 
 	std::unique_lock<std::mutex> lck(mDrawMtx);
 
@@ -177,21 +173,19 @@ void CDrawing_Tab_Widget::Drawing_Callback(const scgms::TDrawing_Image_Type type
 	Redraw();
 }
 
-void CDrawing_Tab_Widget::Redraw()
-{
-	if (!mDefered_Work)
-	{
+void CDrawing_Tab_Widget::Redraw() {
+	if (!mDefered_Work) {
 		mDefered_Work = true;
 		emit On_Redraw();
 	}
 }
 
-void CDrawing_Tab_Widget::Slot_Redraw()
-{
+void CDrawing_Tab_Widget::Slot_Redraw() {
 	// if the requested diagnosis image is not found, fall back to "Not Specified" - it's the default
 	scgms::TDiagnosis diag = scgms::TDiagnosis::NotSpecified;
-	if (mSvgContents.find(mCurrent_Diagnosis) != mSvgContents.end())
+	if (mSvgContents.find(mCurrent_Diagnosis) != mSvgContents.end()) {
 		diag = mCurrent_Diagnosis;
+	}
 
 	// lock scope
 	{
@@ -202,8 +196,9 @@ void CDrawing_Tab_Widget::Slot_Redraw()
 		mDefered_Work = false;
 	}
 
-	if (mItem)
+	if (mItem) {
 		delete mItem;
+	}
 
 	mScene->clear();
 	mView->viewport()->update();
@@ -218,29 +213,29 @@ void CDrawing_Tab_Widget::Slot_Redraw()
 	//mView->fitInView(mItem, Qt::AspectRatioMode::KeepAspectRatio);
 }
 
-void CDrawing_Tab_Widget::Show_Context_Menu(const QPoint& pos)
-{
+void CDrawing_Tab_Widget::Show_Context_Menu(const QPoint& pos) {
 	QPoint globalPos = mapToGlobal(pos);
 
 	QMenu myMenu;
 	myMenu.addAction(dsSave_Image_To_File, [this]() {
 		auto path = QFileDialog::getSaveFileName(this, tr(dsSave_Image_To_File), Default_Filename_For_Type[static_cast<size_t>(mType)], tr(dsSave_Image_Ext_Spec));
-		if (path.length() != 0)
-		{
+		if (path.length() != 0) {
 			std::ofstream fs(path.toStdString());
 			fs << mSvgContents[mCurrent_Diagnosis].c_str();
 		}
 	});
+
 	myMenu.addAction(dsSave_Viewport_To_File, [this]() {
 		auto path = QFileDialog::getSaveFileName(this, tr(dsSave_Viewport_To_File), dsDefault_Viewport_File_Name, tr(dsSave_Viewport_Ext_Spec));
-		if (path.length() != 0)
-		{
-			//QPixmap pixMap = QPixmap::grabWidget(mView->viewport());	
-			QPixmap pixMap = mView->grab();				
+		if (path.length() != 0) {
+			//QPixmap pixMap = QPixmap::grabWidget(mView->viewport());
+			QPixmap pixMap = mView->grab();
 			pixMap.save(path);
 		}
 	});
+
 	myMenu.addSeparator();
+
 	myMenu.addAction(dsReset_Zoom, [this]() {
 		mView->resetTransform();
 	});
@@ -248,16 +243,17 @@ void CDrawing_Tab_Widget::Show_Context_Menu(const QPoint& pos)
 	myMenu.exec(globalPos);
 }
 
-void CDrawing_Tab_Widget::On_Diagnosis_Changed(const QString& /*item*/)
-{
+void CDrawing_Tab_Widget::On_Diagnosis_Changed(const QString& /*item*/) {
 	int i = mDiagnosis_Box->currentIndex();
-	if (i < 0)
+	if (i < 0) {
 		return;
+	}
 
 	bool ok;
 	int diagnosis = mDiagnosis_Box->itemData(i).toInt(&ok);
-	if (!ok)
+	if (!ok) {
 		return;
+	}
 
 	mCurrent_Diagnosis = static_cast<scgms::TDiagnosis>(diagnosis);
 	Redraw();

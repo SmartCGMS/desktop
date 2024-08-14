@@ -39,7 +39,7 @@
 #include <QtWidgets/QListWidget>
 
 class CAbstract_Simulation_Tab_Widget : public QWidget {
-		Q_OBJECT
+	Q_OBJECT
 	public:
 		explicit CAbstract_Simulation_Tab_Widget(QWidget *parent = 0) noexcept;
 

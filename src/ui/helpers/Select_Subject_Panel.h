@@ -48,9 +48,8 @@
 
 #include <QtWidgets/QButtonGroup>
 
-class CSelect_Subject_Panel : public QWidget, public virtual filter_config_window::CContainer_Edit
-{
-		Q_OBJECT
+class CSelect_Subject_Panel : public QWidget, public virtual filter_config_window::CContainer_Edit {
+	Q_OBJECT
 
 	protected slots:
 		void On_Radio_Button_Selected();
@@ -59,13 +58,13 @@ class CSelect_Subject_Panel : public QWidget, public virtual filter_config_windo
 		const QString mDb_Connection_Name = "CSelect_Subject_Panel_Connection";
 		std::unique_ptr<QSqlDatabase> mDb;
 		std::unique_ptr<QSqlQueryModel> mSubjectsModel;
-//		std::unique_ptr<QSqlQuery> mSubjectsQuery;
 		scgms::SFilter_Configuration_Link mConfiguration;
 
 		QButtonGroup* mButtonGroup;
 		QTableView* mDbSubjects;
 
 		void Connect_To_Db();
+
 	public:
 		CSelect_Subject_Panel(scgms::SFilter_Configuration_Link configuration, scgms::SFilter_Parameter &parameter, QWidget *parent);
 		

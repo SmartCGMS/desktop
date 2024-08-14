@@ -66,7 +66,7 @@ class CGUI_Terminal_Filter;
  * Simulation control and results window
  */
 class CSimulation_Window : public QMdiSubWindow {
-		Q_OBJECT
+	Q_OBJECT
 	private:
 		static std::atomic<CSimulation_Window*> mInstance;
 
@@ -94,7 +94,7 @@ class CSimulation_Window : public QMdiSubWindow {
 
 		std::unique_ptr<CGUI_Terminal_Filter> mTerminal_Filter;
 		
-	protected:					
+	protected:
 		// tab widget for filter outputs
 		QTabWidget* mTabWidget;
 		// progress bar layout
@@ -132,16 +132,6 @@ class CSimulation_Window : public QMdiSubWindow {
 
 		std::vector<QWidget*> mCompletedSolverWidgets;
 
-		void Setup_UI();
-		void Setup_Solve_Button_Menu();
-
-		void resizeEvent(QResizeEvent* evt) override;
-
-		void Update_Tab_View();
-
-		void Close_Tab(int index);
-		void Save_Tab_State(int index);
-
 	signals:
 		void On_Start_Time_Segment(quint64 id);
 		void On_Add_Signal(QUuid id);
@@ -171,9 +161,18 @@ class CSimulation_Window : public QMdiSubWindow {
 		void On_Draw_Shut_Down_State_Change(int state);
 
 	protected:
-		void Inject_Event(const scgms::NDevice_Event_Code &code, const GUID &signal_id, const wchar_t *info, const uint64_t segment_id = scgms::Invalid_Segment_Id);
-	protected:
-		static HRESULT IfaceCalling On_Filter_Configured(scgms::IFilter *filter, const void* data);
+		void Setup_UI();
+		void Setup_Solve_Button_Menu();
+
+		void resizeEvent(QResizeEvent* evt) override;
+
+		void Update_Tab_View();
+
+		void Close_Tab(int index);
+		void Save_Tab_State(int index);
+		void Inject_Event(const scgms::NDevice_Event_Code& code, const GUID& signal_id, const wchar_t* info, const uint64_t segment_id = scgms::Invalid_Segment_Id);
+		static HRESULT IfaceCalling On_Filter_Configured(scgms::IFilter* filter, const void* data);
+
 	public:
 		// factory method for singleton initialization
 		static CSimulation_Window* Show_Instance(refcnt::SReferenced<scgms::IFilter_Chain_Configuration> configuration, QWidget *owner);
@@ -194,7 +193,7 @@ class CSimulation_Window : public QMdiSubWindow {
 		void Update_Solver_Progress();
 
 		void Start_Time_Segment(uint64_t segmentId);
-		void Add_Signal(const GUID& signalId);		
+		void Add_Signal(const GUID& signalId);
 		
 		void Stop_Simulation();
 };

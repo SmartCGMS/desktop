@@ -54,51 +54,56 @@
 
 class CParameters_Optimization_Dialog : public QDialog {
 	Q_OBJECT
-protected:
-	scgms::SFilter_Chain_Configuration mConfiguration;
+	protected:
+		scgms::SFilter_Chain_Configuration mConfiguration;
 	
-	struct TParameters_Info {
-		std::wstring filter_name;
-		size_t filter_index = std::numeric_limits<size_t>::max();
-		std::wstring parameters_name;
-	};
+		struct TParameters_Info {
+			std::wstring filter_name;
+			size_t filter_index = std::numeric_limits<size_t>::max();
+			std::wstring parameters_name;
+		};
 
-	std::vector<TParameters_Info> mParameters_Info;
-	void Populate_Parameters_Info(scgms::SFilter_Chain_Configuration configuration);
-protected:
-	QListView* cmbParameters = nullptr;
-	QTableWidget* lstMetricHistory = nullptr;
-	QComboBox* cmbSolver = nullptr;
-	QLineEdit *edtMax_Generations, *edtPopulation_Size;
-	QLabel *lblSolver_Info;
-	QProgressBar *barProgress;
-	QLabel* progressLabel1, *progressLabel2;
-	QPushButton *btnSolve, *btnStop, *btnClose;
-	QLabel* timestampLabelStart, *timestampLabelEnd;
-	QDateTime startDateTime;
-	solver::TFitness lastMetric = solver::Nan_Fitness;
-	size_t lastProgress = 0;
-	void Setup_UI();
+		std::vector<TParameters_Info> mParameters_Info;
 
-	std::vector<size_t> mSolve_filter_info_indices;
-	std::vector<const wchar_t*> mSolve_filter_parameter_names;
-	GUID mChosen_Solver_Id;
-protected:
-	std::unique_ptr<std::thread> mSolver_Thread, mProgress_Update_Thread;
-	solver::TSolver_Progress mProgress;
-	bool mIs_Solving = false;
+		QListView* cmbParameters = nullptr;
+		QTableWidget* lstMetricHistory = nullptr;
+		QComboBox* cmbSolver = nullptr;
+		QLineEdit *edtMax_Generations, *edtPopulation_Size;
+		QLabel *lblSolver_Info;
+		QProgressBar *barProgress;
+		QLabel* progressLabel1, *progressLabel2;
+		QPushButton *btnSolve, *btnStop, *btnClose;
+		QLabel* timestampLabelStart, *timestampLabelEnd;
+		QDateTime startDateTime;
+		solver::TFitness lastMetric = solver::Nan_Fitness;
+		size_t lastProgress = 0;
 
-	void Stop_Threads();
-	void Stop_Async();
-signals:
-	void Update_Progress_Signal();
-protected slots:
-	void On_Solve();
-	void On_Stop();	
-	void On_Update_Progress();
+		std::vector<size_t> mSolve_filter_info_indices;
+		std::vector<const wchar_t*> mSolve_filter_parameter_names;
+		GUID mChosen_Solver_Id;
+	
+		std::unique_ptr<std::thread> mSolver_Thread, mProgress_Update_Thread;
+		solver::TSolver_Progress mProgress;
+		bool mIs_Solving = false;
 
-	void reject();
-public:
-	CParameters_Optimization_Dialog(scgms::SFilter_Chain_Configuration configuration, QWidget *parent);
-	~CParameters_Optimization_Dialog();
+	protected:
+		void Setup_UI();
+		void Populate_Parameters_Info(scgms::SFilter_Chain_Configuration configuration);
+
+		void Stop_Threads();
+		void Stop_Async();
+
+	signals:
+		void Update_Progress_Signal();
+
+	protected slots:
+		void On_Solve();
+		void On_Stop();	
+		void On_Update_Progress();
+
+		void reject();
+
+	public:
+		CParameters_Optimization_Dialog(scgms::SFilter_Chain_Configuration configuration, QWidget *parent);
+		~CParameters_Optimization_Dialog();
 };

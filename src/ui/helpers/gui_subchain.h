@@ -52,8 +52,7 @@
 // default time in [ms] to update drawing
 constexpr size_t GUI_Subchain_Default_Drawing_Update = 500;
 
-enum class NRedraw_Mode
-{
+enum class NRedraw_Mode {
 	Periodic,		// default - refresh once every GUI_Subchain_Default_Drawing_Update ms
 	Shut_Down_Only,	// only redraw on shut_down
 
@@ -128,7 +127,6 @@ class CGUI_Filter_Subchain {
 		virtual ~CGUI_Filter_Subchain();
 
 		void On_Filter_Configured(scgms::IFilter *filter);
-			
 
 		void Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds, std::vector<GUID>& referenceSignalIds);
 
@@ -141,6 +139,5 @@ class CGUI_Filter_Subchain {
 
 		std::vector<std::vector<std::wstring>> Get_Drawing_v2_Drawings() const;
 };
-
 
 #pragma warning( pop )

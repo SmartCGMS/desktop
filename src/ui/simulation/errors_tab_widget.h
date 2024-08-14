@@ -66,22 +66,22 @@ namespace CErrors_Tab_Widget_internal {
 
 	class CError_Table_Model : public QAbstractTableModel {
 		Q_OBJECT
-	protected:
-		ULONG mErrors_Logical_Clock = 0;
-		std::vector<TSignal_Error_Inspection> mSignal_Errors;
-	public:
-		explicit CError_Table_Model(QObject *parent = 0) noexcept;
+		protected:
+			ULONG mErrors_Logical_Clock = 0;
+			std::vector<TSignal_Error_Inspection> mSignal_Errors;
+		public:
+			explicit CError_Table_Model(QObject *parent = 0) noexcept;
 
-		int rowCount(const QModelIndex &parent = QModelIndex()) const;
-		int columnCount(const QModelIndex &parent = QModelIndex()) const;
-		QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-		QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+			int rowCount(const QModelIndex &parent = QModelIndex()) const;
+			int columnCount(const QModelIndex &parent = QModelIndex()) const;
+			QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
+			QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 		
-		CError_Table_Model* Clone(QObject *parent = 0);
+			CError_Table_Model* Clone(QObject *parent = 0);
 		
-		void On_Filter_Configured(scgms::IFilter *filter);
-		void Update_Errors();
-		void Clear_Filters(bool wipeTable = true);
+			void On_Filter_Configured(scgms::IFilter *filter);
+			void Update_Errors();
+			void Clear_Filters(bool wipeTable = true);
 	};
 
 }
@@ -91,20 +91,21 @@ namespace CErrors_Tab_Widget_internal {
  */
 class CErrors_Tab_Widget : public CAbstract_Simulation_Tab_Widget {
 	Q_OBJECT
-protected:
-	// table view for error metrics
-	QTableView* mTableView;
-	// table model for error metrics
-	CErrors_Tab_Widget_internal::CError_Table_Model* mModel;
-	// stored signal names	
-    const scgms::CSignal_Description mSignal_Descriptions;
-public slots:
-	void Export_CSV_Button_Clicked();
+	protected:
+		// table view for error metrics
+		QTableView* mTableView;
+		// table model for error metrics
+		CErrors_Tab_Widget_internal::CError_Table_Model* mModel;
+		// stored signal names	
+		const scgms::CSignal_Description mSignal_Descriptions;
 
-public:
-	explicit CErrors_Tab_Widget(QWidget *parent = 0) noexcept;
-	virtual CAbstract_Simulation_Tab_Widget* Clone() override; 		
-	void Refresh();	
-	void On_Filter_Configured(scgms::IFilter *filter);
-	void Clear_Filters(bool wipeTable);
+	public slots:
+		void Export_CSV_Button_Clicked();
+
+	public:
+		explicit CErrors_Tab_Widget(QWidget *parent = 0) noexcept;
+		virtual CAbstract_Simulation_Tab_Widget* Clone() override;
+		void Refresh();	
+		void On_Filter_Configured(scgms::IFilter *filter);
+		void Clear_Filters(bool wipeTable);
 };

@@ -54,19 +54,17 @@
 #include <QtWidgets/QCheckBox>
 #include <QtWidgets/QComboBox>
 
-
 #include "moc_filter_config_window.cpp"
 
 #include "helpers/filter_config_widgets.h"
 
-
 CFilter_Config_Window::CFilter_Config_Window(scgms::SFilter_Configuration_Link configuration, QWidget *parent) :
 	QDialog(parent), mConfiguration(configuration), mDescription(configuration.descriptor()) {
 
-
 	Setup_UI(configuration);
-	for (const auto &edit : mContainer_Edits)
+	for (const auto& edit : mContainer_Edits) {
 		edit->fetch_parameter();
+	}
 }
 
 void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configuration) {
@@ -92,48 +90,44 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 		main_layout->setAlignment(Qt::AlignTop);
 		int ui_row = 0;
 		for (int i = 0; i < static_cast<int>(mDescription.parameters_count); i++) {
+
 			//try to obtain the parameter, if is present in the configuration
 			scgms::SFilter_Parameter parameter = configuration.Resolve_Parameter(mDescription.config_parameter_name[i]);
+
 			if ((!parameter) && (mDescription.parameter_type[i] != scgms::NParameter_Type::ptNull)) {
 				//this particular parameter is not configured, hence we need to create it using its default value
 				//unless it is a null parameter
 				parameter = configuration.Add_Parameter(mDescription.parameter_type[i], mDescription.config_parameter_name[i]);
-				if (!parameter) continue;	//no way to add it, so let's just ignore it and do not configure it
+				if (!parameter) {
+					continue;	//no way to add it, so let's just ignore it and do not configure it
+				}
 			}
 
 			auto add_edit_control = [&]() {
 				filter_config_window::CContainer_Edit *container = nullptr;
 
-				switch (mDescription.parameter_type[i])
-				{
+				switch (mDescription.parameter_type[i]) {
 					case scgms::NParameter_Type::ptNull:
 						container = new filter_config_window::CNull_Container_Edit(this);
 						break;
-
 					case scgms::NParameter_Type::ptWChar_Array:
 						container = new filter_config_window::CWChar_Container_Edit{ parameter, this };
 						break;
-
 					case scgms::NParameter_Type::ptDouble:
 						container = new filter_config_window::CDouble_Container_Edit{ parameter, this};
 						break;
-
 					case scgms::NParameter_Type::ptRatTime:
 						container = new filter_config_window::CRatTime_Container_Edit{ parameter, this };
 						break;
-
 					case scgms::NParameter_Type::ptInt64:
 						container = new filter_config_window::CInteger_Container_Edit{ parameter, this };
 						break;
-
 					case scgms::NParameter_Type::ptBool:
 						container = new filter_config_window::CBoolean_Container_Edit{ parameter, this};
 						break;
-					
 					case scgms::NParameter_Type::ptInt64_Array:
 						container = new CSelect_Time_Segment_Id_Panel{ mConfiguration, parameter, this };
 						break;
-
 					case scgms::NParameter_Type::ptSignal_Model_Id:
 						// "lazyload" of model selection; if the filter has model selection, it is very likely that it has signal selection as well
 						if (!model_select) {
@@ -142,20 +136,16 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 
 						container = model_select;
 						break;
-
 					case scgms::NParameter_Type::ptDiscrete_Model_Id:
 						model_select = create_model_select(parameter, true);
 						container = model_select;
 						break;
-
 					case scgms::NParameter_Type::ptMetric_Id:
 						container = new CGUID_Entity_ComboBox<scgms::TMetric_Descriptor, scgms::get_metric_descriptor_list>(parameter, this);
 						break;
-
 					case scgms::NParameter_Type::ptSolver_Id:
 						container = new CGUID_Entity_ComboBox<scgms::TSolver_Descriptor, scgms::get_solver_descriptor_list>(parameter, this);
 						break;
-
 					case scgms::NParameter_Type::ptModel_Produced_Signal_Id:
 						// signal selection always requires model selection field
 						if (!model_select) {
@@ -164,11 +154,9 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 
 						container = new CModel_Signal_Select_ComboBox(parameter, this, dynamic_cast<QComboBox*>(model_select));
 						break;
-
 					case scgms::NParameter_Type::ptSignal_Id:
 						container = new CAvailable_Signal_Select_ComboBox(parameter, this);
 						break;
-
 					case scgms::NParameter_Type::ptDouble_Array:
 						if (scgms::Has_Flags_All(mDescription.flags, scgms::NFilter_Flags::Encapsulated_Model)) {
 							container = new CModel_Bounds_Panel(parameter, nullptr, mDescription.id, this);
@@ -182,20 +170,22 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 							container = new CModel_Bounds_Panel(parameter, dynamic_cast<QComboBox*>(model_select), Invalid_GUID, this);
 						}
 						break;
-
 					case scgms::NParameter_Type::ptSubject_Id:
 						container = new CSelect_Subject_Panel{ mConfiguration, parameter, this };
 						break;
-
 					default:
 						break;
 				}
-				if (container)
-					container->fetch_parameter();
 
-				if (mDescription.parameter_type[i] != scgms::NParameter_Type::ptNull) mContainer_Edits.push_back(container);
-				switch (mDescription.parameter_type[i])
-				{
+				if (container) {
+					container->fetch_parameter();
+				}
+
+				if (mDescription.parameter_type[i] != scgms::NParameter_Type::ptNull) {
+					mContainer_Edits.push_back(container);
+				}
+
+				switch (mDescription.parameter_type[i]) {
 					//special widget, let's add it as a standalone tab
 					case scgms::NParameter_Type::ptInt64_Array:
 					case scgms::NParameter_Type::ptDouble_Array:
@@ -208,11 +198,13 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 					{
 						QLabel *label = new QLabel{ QString::fromWCharArray(mDescription.ui_parameter_name[i]) };
 						// consider null parameter as separator and make some style adjustments
-						if (mDescription.parameter_type[i] == scgms::NParameter_Type::ptNull)
+						if (mDescription.parameter_type[i] == scgms::NParameter_Type::ptNull) {
 							label->setText("<b>" + label->text() + "</b>");
+						}
 
-						if (mDescription.ui_parameter_tooltip && mDescription.ui_parameter_tooltip[i])
+						if (mDescription.ui_parameter_tooltip && mDescription.ui_parameter_tooltip[i]) {
 							label->setToolTip(QString::fromWCharArray(mDescription.ui_parameter_tooltip[i]));
+						}
 
 						main_layout->addWidget(label, ui_row, idxName_col);
 						main_layout->addWidget(dynamic_cast<QWidget*>(container), ui_row, idxEdit_col);
@@ -225,6 +217,7 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 			
 			add_edit_control();
 		}
+
 		main_tab->setLayout(main_layout);
 		tabs->insertTab(0, main_tab, tr(dsMain_Parameters));	//insert makes the main edits to be first
 		tabs->setCurrentIndex(0);
@@ -232,7 +225,6 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 
 	QHBoxLayout *button_layout = new QHBoxLayout{};
 	{
-
 		button_layout->setAlignment(Qt::AlignRight);
 
 		QPushButton *btnOK = new QPushButton{ tr(dsOK) };
@@ -254,15 +246,15 @@ void CFilter_Config_Window::Setup_UI(scgms::SFilter_Configuration_Link configura
 	
 	setLayout(final_layout);
 
-
 	setWindowModality(Qt::ApplicationModal);
 	//set the window to be freed upon closing
 	setAttribute(Qt::WA_DeleteOnClose, true);
 }
 
-void CFilter_Config_Window::Commit_Parameters() {	
-	for (auto &edit : mContainer_Edits) 
+void CFilter_Config_Window::Commit_Parameters() {
+	for (auto& edit : mContainer_Edits) {
 		edit->store_parameter();
+	}
 }
 
 void CFilter_Config_Window::On_OK() {
@@ -275,5 +267,5 @@ void CFilter_Config_Window::On_Cancel() {
 }
 
 void CFilter_Config_Window::On_Apply() {
-	Commit_Parameters();	
+	Commit_Parameters();
 }

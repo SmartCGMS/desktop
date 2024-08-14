@@ -51,17 +51,16 @@ CGUI_Filter_Subchain::CGUI_Filter_Subchain() : mChange_Available(false), mRunnin
 		for (size_t i = 0; i < model.number_of_calculated_signals; i++)
 			mCalculatedSignalGUIDs.insert(model.calculated_signal_ids[i]);
 	}
-	
 }
-
 
 CGUI_Filter_Subchain::~CGUI_Filter_Subchain() {
-	Stop();	
+	Stop();
 }
 
-
 void CGUI_Filter_Subchain::Start() {
-	if (mRunning) Stop();
+	if (mRunning) {
+		Stop();
+	}
 
 	mRunning = true;
 
@@ -69,7 +68,9 @@ void CGUI_Filter_Subchain::Start() {
 }
 
 void CGUI_Filter_Subchain::Stop(bool update_gui) {
-	if (!mRunning) return;
+	if (!mRunning) {
+		return;
+	}
 
 	// terminate updater thread
 	{
@@ -80,11 +81,10 @@ void CGUI_Filter_Subchain::Stop(bool update_gui) {
 		mUpdater_Cv.notify_all();
 	}
 
-	if (mUpdater_Thread)
-		if (mUpdater_Thread->joinable()) {
-			mUpdater_Thread->join();
-			mUpdater_Thread.reset();
-		}
+	if (mUpdater_Thread && mUpdater_Thread->joinable()) {
+		mUpdater_Thread->join();
+		mUpdater_Thread.reset();
+	}
 
 	Relase_Filter_Bindings();
 }
@@ -97,50 +97,45 @@ void CGUI_Filter_Subchain::Relase_Filter_Bindings() {
 	mLog_Filter_Inspection = scgms::SLog_Filter_Inspection{};
 }
 
-void CGUI_Filter_Subchain::Run_Updater()
-{
+void CGUI_Filter_Subchain::Run_Updater() {
 	while (mRunning) {
 
 		// since user may asynchronously request update of any component, we need to lock the mutex before updating
 		std::unique_lock<std::mutex> lck(mUpdater_Mtx);
 
 		// update if there was a change
-		//if (mChange_Available.exchange(false)) {
-		if (mRedraw_Mode == NRedraw_Mode::Periodic)
+		if (mRedraw_Mode == NRedraw_Mode::Periodic) {
 			Update_GUI();
-		//}
+		}
 
 		// TODO: configurable delay, maybe even during simulation?
 		mUpdater_Cv.wait_for(lck, std::chrono::milliseconds(GUI_Subchain_Default_Drawing_Update));
 
-		if (!mRunning && mUpdateOnStop)
+		if (!mRunning && mUpdateOnStop) {
 			Update_GUI();
+		}
 	}
 }
 
-
 void CGUI_Filter_Subchain::On_Filter_Configured(scgms::IFilter *filter) {
-	if (scgms::SDrawing_Filter_Inspection insp = scgms::SDrawing_Filter_Inspection{ scgms::SFilter{filter} })
+	if (scgms::SDrawing_Filter_Inspection insp = scgms::SDrawing_Filter_Inspection{ scgms::SFilter{filter} }) {
 		mDrawing_Filter_Inspection = insp;
+	}
 
-	if (scgms::SDrawing_Filter_Inspection_v2 insp = scgms::SDrawing_Filter_Inspection_v2{ scgms::SFilter{filter} })
-	{
+	if (scgms::SDrawing_Filter_Inspection_v2 insp = scgms::SDrawing_Filter_Inspection_v2{ scgms::SFilter{filter} }) {
 		auto caps = refcnt::Create_Container_shared<scgms::TPlot_Descriptor>(nullptr, nullptr);
-		if (insp->Get_Capabilities(caps.get()) == S_OK && caps->empty() != S_OK)
-		{
+		if (insp->Get_Capabilities(caps.get()) == S_OK && caps->empty() != S_OK) {
 			mAvailable_Plot_Views.emplace_back(caps.begin(), caps.end());
 			mDrawing_Filter_Inspection_v2.push_back(insp);
 		}
 	}
-		
-	if (scgms::SLog_Filter_Inspection insp = scgms::SLog_Filter_Inspection{ scgms::SFilter{filter} })
+
+	if (scgms::SLog_Filter_Inspection insp = scgms::SLog_Filter_Inspection{ scgms::SFilter{filter} }) {
 		mLog_Filter_Inspection = insp;
+	}
 }
 
-
-
-void CGUI_Filter_Subchain::Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds, std::vector<GUID>& referenceSignalIds)
-{
+void CGUI_Filter_Subchain::Request_Redraw(std::vector<uint64_t>& segmentIds, std::vector<GUID>& signalIds, std::vector<GUID>& referenceSignalIds) {
 	std::unique_lock<std::mutex> lck(mUpdater_Mtx);
 
 	// store requested containers and request redraw
@@ -153,8 +148,7 @@ void CGUI_Filter_Subchain::Request_Redraw(std::vector<uint64_t>& segmentIds, std
 	Update_Drawing();
 }
 
-void CGUI_Filter_Subchain::Update_GUI()
-{
+void CGUI_Filter_Subchain::Update_GUI() {
 	Update_Drawing();
 	Update_Log();
 	Update_Error_Metrics();
@@ -164,8 +158,9 @@ void CGUI_Filter_Subchain::Update_GUI()
 void CGUI_Filter_Subchain::Update_Drawing() {
 
 	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
-	if (!simwin)
+	if (!simwin) {
 		return;
+	}
 
 	if (mDrawing_Filter_Inspection && (mForceUpdate || mDrawing_Filter_Inspection->New_Data_Available() == S_OK)) {
 
@@ -211,24 +206,20 @@ void CGUI_Filter_Subchain::Update_Drawing() {
 		opts.signal_count = std::distance(sig_begin, sig_end);
 		opts.segments = seg_begin;
 		opts.segment_count = std::distance(seg_begin, seg_end);
-		
-		for (size_t i = 0; i < mDrawing_Filter_Inspection_v2.size(); i++)
-		{
+
+		for (size_t i = 0; i < mDrawing_Filter_Inspection_v2.size(); i++) {
 			auto& insp = mDrawing_Filter_Inspection_v2[i];
 
-			if (!mForceUpdate && insp->Logical_Clock(&mDrawing_Clock) != S_OK)
+			if (!mForceUpdate && insp->Logical_Clock(&mDrawing_Clock) != S_OK) {
 				continue;
+			}
 
-			for (size_t j = 0; j < mAvailable_Plot_Views[i].size(); j++)
-			{
+			for (size_t j = 0; j < mAvailable_Plot_Views[i].size(); j++) {
 				simwin->Update_Preferred_Drawing_Dimensions(i, j, opts.width, opts.height);
-
 				auto svg = refcnt::Create_Container_shared<char>(nullptr, nullptr);
 
-				if (insp->Draw(&mAvailable_Plot_Views[i][j].id, svg.get(), &opts) == S_OK)
-				{
+				if (insp->Draw(&mAvailable_Plot_Views[i][j].id, svg.get(), &opts) == S_OK) {
 					auto str = refcnt::Char_Container_To_String(svg.get());
-
 					simwin->Drawing_v2_Callback(i, j, str);
 				}
 			}
@@ -236,12 +227,12 @@ void CGUI_Filter_Subchain::Update_Drawing() {
 	}
 }
 
-void CGUI_Filter_Subchain::Update_Log()
-{
+void CGUI_Filter_Subchain::Update_Log() {
 	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
 
-	if (!simwin || !mLog_Filter_Inspection)
+	if (!simwin || !mLog_Filter_Inspection) {
 		return;
+	}
 
 	std::shared_ptr<refcnt::wstr_list> lines;
 	while (mLog_Filter_Inspection.pop(lines)) {
@@ -251,42 +242,42 @@ void CGUI_Filter_Subchain::Update_Log()
 
 void CGUI_Filter_Subchain::Update_Error_Metrics() {
 	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
-	if (!simwin) return;
+	if (!simwin) {
+		return;
+	}
+
 	simwin->Update_Errors();
 }
 
-void CGUI_Filter_Subchain::Hint_Update_Solver_Progress()
-{
+void CGUI_Filter_Subchain::Hint_Update_Solver_Progress() {
 	CSimulation_Window* const simwin = CSimulation_Window::Get_Instance();
-	if (!simwin)
+	if (!simwin) {
 		return;
+	}
 
 	simwin->Update_Solver_Progress();
 }
 
-void CGUI_Filter_Subchain::Set_Preferred_Drawing_Dimensions(const int width, const int height)
-{
+void CGUI_Filter_Subchain::Set_Preferred_Drawing_Dimensions(const int width, const int height) {
 	mDrawing_v2_Width = width;
 	mDrawing_v2_Height = height;
 }
 
-void CGUI_Filter_Subchain::Set_Redraw_Mode(NRedraw_Mode mode)
-{
+void CGUI_Filter_Subchain::Set_Redraw_Mode(NRedraw_Mode mode) {
 	mRedraw_Mode = mode;
 }
 
-std::vector<std::vector<std::wstring>> CGUI_Filter_Subchain::Get_Drawing_v2_Drawings() const
-{
+std::vector<std::vector<std::wstring>> CGUI_Filter_Subchain::Get_Drawing_v2_Drawings() const {
 	std::vector<std::vector<std::wstring>> ret;
 
 	ret.resize(mAvailable_Plot_Views.size());
 
-	for (size_t i = 0; i < mAvailable_Plot_Views.size(); i++)
-	{
+	for (size_t i = 0; i < mAvailable_Plot_Views.size(); i++) {
 		ret[i].resize(mAvailable_Plot_Views[i].size());
 		
-		for (size_t j = 0; j < mAvailable_Plot_Views[i].size(); j++)
+		for (size_t j = 0; j < mAvailable_Plot_Views[i].size(); j++) {
 			ret[i][j] = mAvailable_Plot_Views[i][j].name;
+		}
 	}
 
 	return ret;

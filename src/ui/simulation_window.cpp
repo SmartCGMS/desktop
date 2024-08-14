@@ -68,15 +68,14 @@ constexpr bool Is_Visibility_Panel_Enabled = true;
 
 std::atomic<CSimulation_Window*> CSimulation_Window::mInstance = nullptr;
 
-HRESULT IfaceCalling CGUI_Terminal_Filter::Configure(scgms::IFilter_Configuration* configuration, refcnt::wstr_list* error_description)
-{
+HRESULT IfaceCalling CGUI_Terminal_Filter::Configure(scgms::IFilter_Configuration* configuration, refcnt::wstr_list* error_description) {
 	return S_OK;
 }
 
-HRESULT IfaceCalling CGUI_Terminal_Filter::Execute(scgms::IDevice_Event* event)
-{
-	if (!event)
+HRESULT IfaceCalling CGUI_Terminal_Filter::Execute(scgms::IDevice_Event* event) {
+	if (!event) {
 		return E_INVALIDARG;
+	}
 
 	scgms::TDevice_Event* raw_event;
 	HRESULT rc = event->Raw(&raw_event);
@@ -103,10 +102,8 @@ HRESULT IfaceCalling CGUI_Terminal_Filter::Execute(scgms::IDevice_Event* event)
 	return S_OK;
 }
 
-CSimulation_Window* CSimulation_Window::Show_Instance(refcnt::SReferenced<scgms::IFilter_Chain_Configuration> configuration, QWidget *owner)
-{
-	if (mInstance)
-	{
+CSimulation_Window* CSimulation_Window::Show_Instance(refcnt::SReferenced<scgms::IFilter_Chain_Configuration> configuration, QWidget *owner) {
+	if (mInstance) {
 		mInstance.load()->showMaximized();
 		return mInstance;
 	}
@@ -114,14 +111,16 @@ CSimulation_Window* CSimulation_Window::Show_Instance(refcnt::SReferenced<scgms:
 	CSimulation_Window* tmp = nullptr;
 	bool created = mInstance.compare_exchange_strong(tmp, new CSimulation_Window(configuration, owner));
 
-	if (created)
+	if (created) {
 		mInstance.load()->showMaximized();
+	}
 
 	return mInstance;
 }
 
 CSimulation_Window::CSimulation_Window(refcnt::SReferenced<scgms::IFilter_Chain_Configuration> configuration, QWidget *owner) : 
 	QMdiSubWindow{ owner }, mConfiguration(configuration), mTabWidget(nullptr) {
+
 	Setup_UI();
 
 	mStopButton->setEnabled(false);
@@ -135,13 +134,11 @@ CSimulation_Window::~CSimulation_Window() {
 	mInstance = nullptr;
 }
 
-bool CSimulation_Window::Is_Simulation_In_Progress() const
-{
+bool CSimulation_Window::Is_Simulation_In_Progress() const {
 	return mSimulationInProgress;
 }
 
-void CSimulation_Window::Setup_Solve_Button_Menu()
-{
+void CSimulation_Window::Setup_Solve_Button_Menu() {
 	mSolveSignalMapper = new QSignalMapper(this);
 	connect(mSolveSignalMapper, SIGNAL(mapped(QString)), this, SLOT(On_Solve_Signal(QString)));
 
@@ -155,10 +152,8 @@ void CSimulation_Window::Setup_Solve_Button_Menu()
 	menu->addSeparator();
 
 	auto models = scgms::get_model_descriptor_list();
-	for (const auto& model : models)
-	{
-		for (size_t i = 0; i < model.number_of_calculated_signals; i++)
-		{
+	for (const auto& model : models) {
+		for (size_t i = 0; i < model.number_of_calculated_signals; i++) {
 			auto& action = mSignalSolveActions[model.calculated_signal_ids[i]];
 
 			sig_name = mSignal_Descriptors.Get_Name(model.calculated_signal_ids[i]);
@@ -177,8 +172,9 @@ void CSimulation_Window::Setup_UI() {
 	setWindowIcon(QIcon(":/app/appicon.png"));
 
 	QGridLayout *layout = new QGridLayout();
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 10; i++) {
 		layout->setColumnStretch(i, 1);
+	}
 
 	constexpr int IconSize = 16;
 	constexpr int SimButtonHeight = 32;
@@ -296,12 +292,10 @@ void CSimulation_Window::Setup_UI() {
 	// main tab widget, span to 11 columns for now
 	mTabWidget = new QTabWidget();
 
-	if constexpr (Is_Visibility_Panel_Enabled)
-	{
+	if constexpr (Is_Visibility_Panel_Enabled) {
 		layout->addWidget(mTabWidget, 1, 1, 1, 8);
 	}
-	else
-	{
+	else {
 		segmentsParentBox->hide();
 		layout->addWidget(mTabWidget, 1, 1, 1, 10);
 	}
@@ -391,71 +385,74 @@ void CSimulation_Window::Setup_UI() {
 
 void CSimulation_Window::Show_Tab_Context_Menu(const QPoint &point)
 {
-	if (point.isNull())
+	if (point.isNull()) {
 		return;
+	}
 
 	// "close" is displayed after the dynamically added widgets
 	size_t sumDrawingV2 = 0;
-	for (const auto& v : mDrawing_v2_Widgets)
+	for (const auto& v : mDrawing_v2_Widgets) {
 		sumDrawingV2 += v.size();
+	}
 
 	int tabIndex = mTabWidget->tabBar()->tabAt(point);
 	QMenu menu(this);
-	if (tabIndex >= mBase_Tab_Count + sumDrawingV2)
+	if (tabIndex >= mBase_Tab_Count + sumDrawingV2) {
 		menu.addAction(tr(dsClose_Tab), std::bind(&CSimulation_Window::Close_Tab, this, tabIndex));
-	else
+	}
+	else {
 		menu.addAction(tr(dsSave_Tab_State), std::bind(&CSimulation_Window::Save_Tab_State, this, tabIndex));
+	}
 
 	menu.exec(mTabWidget->tabBar()->mapToGlobal(point));
 }
 
-void CSimulation_Window::Close_Tab(int index)
-{
+void CSimulation_Window::Close_Tab(int index) {
 	CAbstract_Simulation_Tab_Widget* widget = dynamic_cast<CAbstract_Simulation_Tab_Widget*>(mTabWidget->widget(index));
-	if (!widget)
+	if (!widget) {
 		return;
+	}
 
 	mTabWidget->removeTab(index);
 }
 
-void CSimulation_Window::Save_Tab_State(int index)
-{
+void CSimulation_Window::Save_Tab_State(int index) {
 	CAbstract_Simulation_Tab_Widget* widget = dynamic_cast<CAbstract_Simulation_Tab_Widget*>(mTabWidget->widget(index));
-	if (!widget)
+	if (!widget) {
 		return;
+	}
 
 	CAbstract_Simulation_Tab_Widget* cloned = widget->Clone();
-	if (!cloned)
+	if (!cloned) {
 		return;
+	}
 
 	mTabWidget->addTab(cloned, mTabWidget->tabBar()->tabText(index) + dsSaved_State_Tab_Suffix);
 }
 
-void CSimulation_Window::Update_Tab_View()
-{
-	if (mTabWidget)
-	{
+void CSimulation_Window::Update_Tab_View() {
+	if (mTabWidget) {
 		auto tab = dynamic_cast<CAbstract_Simulation_Tab_Widget*>(mTabWidget->currentWidget());
-		if (tab)
+		if (tab) {
 			tab->Update_View_Size();
+		}
 	}
 }
 
-void CSimulation_Window::On_Tab_Change(int index)
-{
+void CSimulation_Window::On_Tab_Change(int index) {
 	Update_Tab_View();
 }
 
-void CSimulation_Window::On_Draw_Shut_Down_State_Change(int state)
-{
-	if (state == Qt::Unchecked)
+void CSimulation_Window::On_Draw_Shut_Down_State_Change(int state) {
+	if (state == Qt::Unchecked) {
 		mGUI_Filter_Subchain.Set_Redraw_Mode(NRedraw_Mode::Periodic);
-	else
+	}
+	else {
 		mGUI_Filter_Subchain.Set_Redraw_Mode(NRedraw_Mode::Shut_Down_Only);
+	}
 }
 
-void CSimulation_Window::resizeEvent(QResizeEvent* evt)
-{
+void CSimulation_Window::resizeEvent(QResizeEvent* evt) {
 	QMdiSubWindow::resizeEvent(evt);
 
 	Update_Tab_View();
@@ -468,8 +465,7 @@ void CSimulation_Window::On_Start() {
 
 	// clean progress bars and progress bar group box
 	QLayoutItem *wItem;
-	while ((wItem = mProgressGroup->layout()->takeAt(0)) != nullptr)
-	{
+	while ((wItem = mProgressGroup->layout()->takeAt(0)) != nullptr) {
 		delete wItem->widget();
 		delete wItem;
 	}
@@ -477,32 +473,33 @@ void CSimulation_Window::On_Start() {
 	mBestMetricLabels.clear();
 
 	QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mProgressGroup->layout());
-	if (lay)
+	if (lay) {
 		lay->addStretch();
+	}
 
 	// clean segments
-	while ((wItem = mSegmentsGroup->layout()->takeAt(0)) != nullptr)
-	{
+	while ((wItem = mSegmentsGroup->layout()->takeAt(0)) != nullptr) {
 		delete wItem->widget();
 		delete wItem;
 	}
 	mSegmentWidgets.clear();
 
 	lay = dynamic_cast<QVBoxLayout*>(mSegmentsGroup->layout());
-	if (lay)
+	if (lay) {
 		lay->addStretch();
+	}
 
 	// clean signals
-	while ((wItem = mSignalsGroup->layout()->takeAt(0)) != nullptr)
-	{
+	while ((wItem = mSignalsGroup->layout()->takeAt(0)) != nullptr) {
 		delete wItem->widget();
 		delete wItem;
 	}
 	mSignalWidgets.clear();
 
 	lay = dynamic_cast<QVBoxLayout*>(mSignalsGroup->layout());
-	if (lay)
+	if (lay) {
 		lay->addStretch();
+	}
 
 	mTerminal_Filter = std::make_unique<CGUI_Terminal_Filter>();
 
@@ -524,27 +521,25 @@ void CSimulation_Window::On_Start() {
 	mStopButton->setEnabled(true);
 	mStartButton->setEnabled(false);
 
-
 	// hide all signal solve actions
-	for (auto& action : mSignalSolveActions)
+	for (auto& action : mSignalSolveActions) {
 		action.second->setVisible(false);
+	}
 
-	if (mFilter_Executor)
-	{
+	if (mFilter_Executor) {
 		mGUI_Filter_Subchain.Start();
 
 		// store old index of selected tab
 		int curIdx = mTabWidget->currentIndex();
 
 		// remove all dynamically added widgets from drawing v2
-		for (auto& i : mDrawing_v2_Widgets)
-		{
-			for (auto& j : i)
-			{
+		for (auto& i : mDrawing_v2_Widgets) {
+			for (auto& j : i) {
 				mTabWidget->removeTab(j.second);
 				delete j.first;
 			}
 		}
+
 		// clear the original vector
 		mDrawing_v2_Widgets.clear();
 
@@ -554,12 +549,10 @@ void CSimulation_Window::On_Start() {
 		// create tabs/widgets
 		auto drawings = mGUI_Filter_Subchain.Get_Drawing_v2_Drawings();
 		mDrawing_v2_Widgets.resize(drawings.size());
-		for (size_t i = 0; i < drawings.size(); i++)
-		{
+		for (size_t i = 0; i < drawings.size(); i++) {
 			mDrawing_v2_Widgets[i].resize(drawings[i].size());
 
-			for (size_t j = 0; j < drawings[i].size(); j++)
-			{
+			for (size_t j = 0; j < drawings[i].size(); j++) {
 				auto tab = new CDrawing_v2_Tab_Widget(mTabWidget);
 
 				mDrawing_v2_Widgets[i][j] = {
@@ -570,8 +563,9 @@ void CSimulation_Window::On_Start() {
 		}
 
 		// restore selected tab index
-		if (curIdx < mTabWidget->count())
+		if (curIdx < mTabWidget->count()) {
 			mTabWidget->setCurrentIndex(curIdx);
+		}
 	}
 }
 
@@ -582,22 +576,27 @@ HRESULT IfaceCalling CSimulation_Window::On_Filter_Configured(scgms::IFilter *fi
 	local_instance->mGUI_Filter_Subchain.On_Filter_Configured(filter);
 	local_instance->mErrorsWidget->On_Filter_Configured(filter);
 
-	if (scgms::SCalculate_Filter_Inspection insp = scgms::SCalculate_Filter_Inspection{ scgms::SFilter{filter} })
+	if (scgms::SCalculate_Filter_Inspection insp = scgms::SCalculate_Filter_Inspection{ scgms::SFilter{filter} }) {
 		local_instance->mSolver_Filters.push_back(insp);
+	}
 
 	return S_OK;
 }
 
 void CSimulation_Window::On_Stop() {
-	if (!mSimulationInProgress) return;
+	if (!mSimulationInProgress) {
+		return;
+	}
 
 	mSimulationInProgress = false;
 	mGUI_Filter_Subchain.Stop(true);
 
 	mErrorsWidget->Clear_Filters(false);
 	
-	for (const auto& solvers : mSolver_Filters)
+	for (const auto& solvers : mSolver_Filters) {
 		solvers->Cancel_Solver();
+	}
+
 	mSolver_Filters.clear();
 
 	Inject_Event(scgms::NDevice_Event_Code::Shut_Down, Invalid_GUID, nullptr);
@@ -614,27 +613,25 @@ void CSimulation_Window::On_Reset_And_Solve_Params() {
 	Inject_Event(scgms::NDevice_Event_Code::Warm_Reset, Invalid_GUID, nullptr);
 }
 
-CSimulation_Window* CSimulation_Window::Get_Instance()
-{
+CSimulation_Window* CSimulation_Window::Get_Instance() {
 	return mInstance;
 }
 
-void CSimulation_Window::Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::TDiagnosis diagnosis, const std::string &image_data)
-{
-	for (CDrawing_Tab_Widget* wg : mDrawingWidgets)
+void CSimulation_Window::Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::TDiagnosis diagnosis, const std::string &image_data) {
+	for (CDrawing_Tab_Widget* wg : mDrawingWidgets) {
 		wg->Drawing_Callback(type, diagnosis, image_data);
+	}
 }
 
-void CSimulation_Window::Drawing_v2_Callback(size_t filterIdx, size_t drawingIdx, const std::string& svg)
-{
-	if (filterIdx >= mDrawing_v2_Widgets.size() || drawingIdx >= mDrawing_v2_Widgets[filterIdx].size())
+void CSimulation_Window::Drawing_v2_Callback(size_t filterIdx, size_t drawingIdx, const std::string& svg) {
+	if (filterIdx >= mDrawing_v2_Widgets.size() || drawingIdx >= mDrawing_v2_Widgets[filterIdx].size()) {
 		return;
+	}
 
 	mDrawing_v2_Widgets[filterIdx][drawingIdx].first->Drawing_Callback(svg);
 }
 
-void CSimulation_Window::Update_Preferred_Drawing_Dimensions(size_t filterIdx, size_t drawingIdx, int& width, int& height)
-{
+void CSimulation_Window::Update_Preferred_Drawing_Dimensions(size_t filterIdx, size_t drawingIdx, int& width, int& height) {
 	//does not work on non-visible elements:
 	//mDrawing_v2_Widgets[filterIdx][drawingIdx].first->Get_Canvas_Dimensions(width, height);
 
@@ -655,18 +652,17 @@ void CSimulation_Window::Log_Callback(std::shared_ptr<refcnt::wstr_list> message
 
 }
 
-void CSimulation_Window::Update_Solver_Progress(const GUID& solver, size_t progress, double bestMetric, scgms::TSolver_Status status)
-{
+void CSimulation_Window::Update_Solver_Progress(const GUID& solver, size_t progress, double bestMetric, scgms::TSolver_Status status) {
 	// do not display disabled solver
-	if (status == scgms::TSolver_Status::Disabled)
+	if (status == scgms::TSolver_Status::Disabled) {
 		return;
+	}
 
 	mSolverProgress[solver] = { progress, bestMetric, status };
 	emit On_Update_Solver_Progress(GUID_To_QUuid(solver));
 }
 
-void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
-{
+void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver) {
 	const GUID solver_id = QUuid_To_GUID(solver);
 
 	auto itr = mProgressBars.find(solver_id);
@@ -678,28 +674,38 @@ void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
 	const scgms::TSolver_Status status = solverProgress.status;
 
 	QString metricString = tr(dsBest_Metric_Label);
-	if (solverProgress.progress != Invalid_Value)
+	if (solverProgress.progress != Invalid_Value) {
 		metricString = metricString.arg(bestMetric);
-	else
+	}
+	else {
 		metricString = metricString.arg(dsBest_Metric_NotAvailable);
-
-	std::string statusStr;
-	switch (status)
-	{
-		case scgms::TSolver_Status::Disabled:					statusStr = dsSolver_Status_Disabled; break;
-		case scgms::TSolver_Status::Idle:						statusStr = dsSolver_Status_Idle; break;
-		case scgms::TSolver_Status::In_Progress:				statusStr = dsSolver_Status_In_Progress; break;
-		case scgms::TSolver_Status::Completed_Improved:			statusStr = dsSolver_Status_Completed_Improved; break;
-		case scgms::TSolver_Status::Completed_Not_Improved:		statusStr = dsSolver_Status_Completed_Not_Improved; break;
-		case scgms::TSolver_Status::Failed:						statusStr = dsSolver_Status_Failed; break;
 	}
 
-	if (itr == mProgressBars.end())
-	{
-		QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mProgressGroup->layout());
-		if (lay)
-		{
+	std::string statusStr;
+	switch (status) {
+		case scgms::TSolver_Status::Disabled:
+			statusStr = dsSolver_Status_Disabled;
+			break;
+		case scgms::TSolver_Status::Idle:
+			statusStr = dsSolver_Status_Idle;
+			break;
+		case scgms::TSolver_Status::In_Progress:
+			statusStr = dsSolver_Status_In_Progress;
+			break;
+		case scgms::TSolver_Status::Completed_Improved:
+			statusStr = dsSolver_Status_Completed_Improved;
+			break;
+		case scgms::TSolver_Status::Completed_Not_Improved:
+			statusStr = dsSolver_Status_Completed_Not_Improved;
+			break;
+		case scgms::TSolver_Status::Failed:
+			statusStr = dsSolver_Status_Failed;
+			break;
+	}
 
+	if (itr == mProgressBars.end()) {
+		QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mProgressGroup->layout());
+		if (lay) {
 			QLabel* plabel = new QLabel{ StdWStringToQString(mSignal_Descriptors.Get_Name(solver_id)) };
 			QLabel* metriclabel = new QLabel(metricString);
 			mBestMetricLabels[solver_id] = metriclabel;
@@ -718,8 +724,7 @@ void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
 			}
 		}
 	}
-	else
-	{
+	else {
 		itr->second->setValue((int)progress);
 
 		mBestMetricLabels[solver_id]->setText(metricString);
@@ -727,34 +732,29 @@ void CSimulation_Window::Slot_Update_Solver_Progress(QUuid solver)
 	}
 
 	// In_Progress = progress bar visible, status hidden
-	if (status != scgms::TSolver_Status::In_Progress)
-	{
+	if (status != scgms::TSolver_Status::In_Progress) {
 		mSolverStatusLabels[solver_id]->show();
 		mProgressBars[solver_id]->hide();
 	}
-	else
-	{
+	else {
 		mSolverStatusLabels[solver_id]->hide();
 		mProgressBars[solver_id]->show();
 	}
 }
 
-void CSimulation_Window::On_Segments_Draw_Request()
-{
+void CSimulation_Window::On_Segments_Draw_Request() {
 	std::vector<uint64_t> segmentsToDraw;
 	std::vector<GUID> signalsToDraw;
 	std::vector<GUID> signalsReferenceIdsToDraw;
 
-	for (const auto& ctrl : mSegmentWidgets)
-	{
-		if (ctrl.second->Is_Checked())
+	for (const auto& ctrl : mSegmentWidgets) {
+		if (ctrl.second->Is_Checked()) {
 			segmentsToDraw.push_back(ctrl.second->Get_Segment_Id());
+		}
 	}
 
-	for (const auto &ctrl : mSignalWidgets)
-	{
-		if (ctrl.second->Is_Checked())
-		{
+	for (const auto &ctrl : mSignalWidgets) {
+		if (ctrl.second->Is_Checked()) {
 			signalsToDraw.push_back(ctrl.second->Get_Signal_Id());
 			signalsReferenceIdsToDraw.push_back(ctrl.second->Get_Reference_Signal_Id());
 		}
@@ -763,70 +763,64 @@ void CSimulation_Window::On_Segments_Draw_Request()
 	mGUI_Filter_Subchain.Request_Redraw(segmentsToDraw, signalsToDraw, signalsReferenceIdsToDraw);
 }
 
-void CSimulation_Window::On_Select_Segments_All()
-{
-	for (auto ctrl : mSegmentWidgets)
+void CSimulation_Window::On_Select_Segments_All() {
+	for (auto ctrl : mSegmentWidgets) {
 		ctrl.second->Set_Checked(true);
+	}
 }
 
-void CSimulation_Window::On_Select_Segments_None()
-{
-	for (auto ctrl : mSegmentWidgets)
+void CSimulation_Window::On_Select_Segments_None() {
+	for (auto ctrl : mSegmentWidgets) {
 		ctrl.second->Set_Checked(false);
+	}
 }
 
-void CSimulation_Window::Start_Time_Segment(uint64_t segmentId)
-{
+void CSimulation_Window::Start_Time_Segment(uint64_t segmentId) {
 	emit On_Start_Time_Segment(segmentId);
 }
 
-void CSimulation_Window::Slot_Start_Time_Segment(quint64 id)
-{
+void CSimulation_Window::Slot_Start_Time_Segment(quint64 id) {
 	auto itr = mSegmentWidgets.find(id);
 
-	if (itr == mSegmentWidgets.end())
-	{
+	if (itr == mSegmentWidgets.end()) {
 		CTime_Segment_Group_Widget* grp = new CTime_Segment_Group_Widget(id);
 
 		mSegmentWidgets[id] = grp;
 
 		QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mSegmentsGroup->layout());
-		if (lay)
-		{
+		if (lay) {
 			// append new segment after existing segments and before stretch
 			lay->insertWidget(static_cast<int>(mSegmentWidgets.size()) - 1, grp);
 		}
 	}
 }
 
-void CSimulation_Window::Add_Signal(const GUID& signalId)
-{
+void CSimulation_Window::Add_Signal(const GUID& signalId) {
 	// possible narrowing conversion (fine, as QUuid internally matches GUID)
 	emit On_Add_Signal(GUID_To_QUuid(signalId));
 }
 
-void CSimulation_Window::Slot_Add_Signal(QUuid id)
-{
+void CSimulation_Window::Slot_Add_Signal(QUuid id) {
 	const GUID signal_id = QUuid_To_GUID(id);
 
 	// do not add special signal markers
-	if (signal_id == scgms::signal_All || signal_id == scgms::signal_Null)
+	if (signal_id == scgms::signal_All || signal_id == scgms::signal_Null) {
 		return;
+	}
 
 	auto itr = mSignalWidgets.find(signal_id);
 
-	if (itr == mSignalWidgets.end())
-	{
+	if (itr == mSignalWidgets.end()) {
 		CSignal_Group_Widget* grp = new CSignal_Group_Widget(signal_id);
 
 		mSignalWidgets[signal_id] = grp;
 		// show "solve" action
-		if (mSignalSolveActions.find(signal_id) != mSignalSolveActions.end())
+		if (mSignalSolveActions.find(signal_id) != mSignalSolveActions.end()) {
 			mSignalSolveActions[signal_id]->setVisible(true);
+		}
 
 		QVBoxLayout* lay = dynamic_cast<QVBoxLayout*>(mSignalsGroup->layout());
-		if (lay)
-		{
+		if (lay) {
 			// append new signal after existing signals and before stretch
 			lay->insertWidget(static_cast<int>(mSignalWidgets.size()) - 1, grp);
 		}
@@ -836,30 +830,34 @@ void CSimulation_Window::Slot_Add_Signal(QUuid id)
 void CSimulation_Window::On_Solve_Signal(QString str) {
 	bool ok;
 	GUID signalId = WString_To_GUID(str.toStdWString(), ok);
-	if (!ok)
+	if (!ok) {
 		return;
+	}
 
 	Inject_Event(scgms::NDevice_Event_Code::Solve_Parameters, signalId, nullptr, scgms::All_Segments_Id);
 }
 
-void CSimulation_Window::Update_Solver_Progress()
-{
-	for (const auto& solvers : mSolver_Filters)
-	{
+void CSimulation_Window::Update_Solver_Progress() {
+
+	for (const auto& solvers : mSolver_Filters) {
 		GUID guid;
 		scgms::TSolver_Status status;
-		if (solvers->Get_Solver_Information(&guid, &status) != S_OK)
+		if (solvers->Get_Solver_Information(&guid, &status) != S_OK) {
 			continue;
+		}
 
 		solver::TSolver_Progress progress;
-		if (solvers->Get_Solver_Progress(&progress) != S_OK)
+		if (solvers->Get_Solver_Progress(&progress) != S_OK) {
 			continue;
+		}
 
 		size_t pct = Invalid_Value;
-		if (progress.max_progress != 0)
+		if (progress.max_progress != 0) {
 			pct = (progress.current_progress * 100) / progress.max_progress;
-		else if (progress.current_progress != 0)
+		}
+		else if (progress.current_progress != 0) {
 			pct = progress.current_progress;
+		}
 
 		Update_Solver_Progress(guid, pct, progress.best_metric[0], status);
 	}
@@ -876,8 +874,9 @@ void CSimulation_Window::Inject_Event(const scgms::NDevice_Event_Code &code, con
 }
 
 void CSimulation_Window::Update_Errors() {
-	if (mErrorsWidget)
+	if (mErrorsWidget) {
 		mErrorsWidget->Refresh();
+	}
 }
 
 void CSimulation_Window::Stop_Simulation() {

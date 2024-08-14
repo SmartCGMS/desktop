@@ -44,8 +44,8 @@
 #include <QtWidgets/QGridLayout>
 
 CSignal_Group_Widget::CSignal_Group_Widget(const GUID& signalId, QWidget* parent)
-	: QGroupBox(parent), mSignal_Id(signalId)
-{
+	: QGroupBox(parent), mSignal_Id(signalId) {
+
 	QGridLayout *layout = new QGridLayout();
 	setLayout(layout);
 
@@ -62,22 +62,18 @@ CSignal_Group_Widget::CSignal_Group_Widget(const GUID& signalId, QWidget* parent
 	layout->addWidget(mCheckBox, 0, 0);
 }
 
-CSignal_Group_Widget::~CSignal_Group_Widget()
-{
+CSignal_Group_Widget::~CSignal_Group_Widget() {
 	//
 }
 
-bool CSignal_Group_Widget::Is_Checked() const
-{
+bool CSignal_Group_Widget::Is_Checked() const {
 	return mCheckBox->isChecked();
 }
 
-const GUID& CSignal_Group_Widget::Get_Signal_Id() const
-{
+const GUID& CSignal_Group_Widget::Get_Signal_Id() const {
 	return mSignal_Id;
 }
 
-const GUID& CSignal_Group_Widget::Get_Reference_Signal_Id() const
-{
+const GUID& CSignal_Group_Widget::Get_Reference_Signal_Id() const {
 	return mReference_Signal_Id;
 }

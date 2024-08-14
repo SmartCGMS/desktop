@@ -59,62 +59,65 @@
 
 class CMain_Window : public QMainWindow {
 	Q_OBJECT
-protected:
-	std::wstring mFilter_Configuration_File_Path;
-	scgms::SPersistent_Filter_Chain_Configuration mFilter_Configuration;
 
-	filesystem::path mStorage_Path;
+	protected:
+		std::wstring mFilter_Configuration_File_Path;
+		scgms::SPersistent_Filter_Chain_Configuration mFilter_Configuration;
 
-	static constexpr size_t Max_Recent_File_Count = 15;	
-	std::vector<filesystem::path> mRecent_Files;
+		filesystem::path mStorage_Path;
 
-private:
-	QMdiArea *pnlMDI_Content = nullptr;
-	QMenu* mniWindow = nullptr;
-	QMenu* mniRecent_Files = nullptr;
-	QAction *actClose_Window = nullptr, *actClose_All_Windows,
-			*actTile_Vertically, *actTile_Horizontally,
-			*actCascade, *actNext_Window,
-			*actPrevious_Window, *actWindow_Menu_Separator;
-	QSignalMapper *mWindowMapper;
+		static constexpr size_t Max_Recent_File_Count = 15;
+		std::vector<filesystem::path> mRecent_Files;
+
+	private:
+		QMdiArea *pnlMDI_Content = nullptr;
+		QMenu* mniWindow = nullptr;
+		QMenu* mniRecent_Files = nullptr;
+		QAction *actClose_Window = nullptr, *actClose_All_Windows,
+				*actTile_Vertically, *actTile_Horizontally,
+				*actCascade, *actNext_Window,
+				*actPrevious_Window, *actWindow_Menu_Separator;
+		QSignalMapper *mWindowMapper;
 	
-	void Setup_UI();
-	void Setup_Storage();
-	void Close_Event(QCloseEvent *event);
-	void Update_Recent_Files();
-	void Save_Recent_Files();
-	void Push_Recent_File(const filesystem::path& path);
+		void Setup_UI();
+		void Setup_Storage();
+		void Close_Event(QCloseEvent *event);
+		void Update_Recent_Files();
+		void Save_Recent_Files();
+		void Push_Recent_File(const filesystem::path& path);
 
-protected:
-	void Check_And_Display_Error_Description(const HRESULT rc, refcnt::Swstr_list errors);	
-	void Open_Experimental_Setup(const std::wstring &file_path);	
-	QString Native_Slash(const std::wstring& path);
-protected:
-	void Tile_Window(std::function<QRect()> rect_fnc);
-private slots:
-	void On_New_Experimental_Setup();
-	void On_Open_Experimental_Setup();
-	void On_Save_Experimental_Setup();
-	void On_Save_Experimental_Setup_As();
-	void On_Quit();
-	void On_Update_Actions();
-	void On_Close_Window();
-	void On_Close_All();
-	void On_Tile_Vertically();
-	void On_Tile_Horizontally();
-	void On_Update_Window_Menu();
-	void On_Help_About();
-	void On_Filters_Window();
-	void On_Simulation_Window();
-	void On_Optimize_Parameters_Dialog();
-	void On_Open_Recent_Experimental_Setup(QAction* action);
+	protected:
+		void Check_And_Display_Error_Description(const HRESULT rc, refcnt::Swstr_list errors);	
+		void Open_Experimental_Setup(const std::wstring &file_path);	
+		QString Native_Slash(const std::wstring& path);
 
-	void Set_Active_Sub_Window(QWidget *window);
-protected:
-	void dragEnterEvent(QDragEnterEvent* event) override;
-	void dragMoveEvent(QDragMoveEvent* event) override;
-	void dragLeaveEvent(QDragLeaveEvent* event) override;
-	void dropEvent(QDropEvent* event) override;
-public:
-	CMain_Window(const std::wstring &experimental_setup_filepath, QWidget *parent = nullptr) noexcept;
+		void Tile_Window(std::function<QRect()> rect_fnc);
+
+	private slots:
+		void On_New_Experimental_Setup();
+		void On_Open_Experimental_Setup();
+		void On_Save_Experimental_Setup();
+		void On_Save_Experimental_Setup_As();
+		void On_Quit();
+		void On_Update_Actions();
+		void On_Close_Window();
+		void On_Close_All();
+		void On_Tile_Vertically();
+		void On_Tile_Horizontally();
+		void On_Update_Window_Menu();
+		void On_Help_About();
+		void On_Filters_Window();
+		void On_Simulation_Window();
+		void On_Optimize_Parameters_Dialog();
+		void On_Open_Recent_Experimental_Setup(QAction* action);
+
+		void Set_Active_Sub_Window(QWidget *window);
+
+	protected:
+		void dragEnterEvent(QDragEnterEvent* event) override;
+		void dragMoveEvent(QDragMoveEvent* event) override;
+		void dragLeaveEvent(QDragLeaveEvent* event) override;
+		void dropEvent(QDropEvent* event) override;
+	public:
+		CMain_Window(const std::wstring &experimental_setup_filepath, QWidget *parent = nullptr) noexcept;
 };

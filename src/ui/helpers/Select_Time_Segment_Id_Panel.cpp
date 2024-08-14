@@ -47,7 +47,7 @@
 
 CSelect_Time_Segment_Id_Panel::CSelect_Time_Segment_Id_Panel(scgms::SFilter_Configuration_Link configuration, scgms::SFilter_Parameter parameter, QWidget * parent)
 	: CContainer_Edit(parameter), QTableView(parent), mConfiguration(configuration) {
-	//
+
 	setSortingEnabled(true);
 }
 
@@ -60,7 +60,7 @@ void CSelect_Time_Segment_Id_Panel::store_parameter() {
 		auto selindexes = selectionModel()->selectedIndexes();
 
 		if (selindexes.size() != 0) {
-		
+
 			auto iterend = selindexes.end();
 			auto iterbegin = selindexes.begin();
 			auto selcol = iterbegin->column();
@@ -79,31 +79,37 @@ void CSelect_Time_Segment_Id_Panel::store_parameter() {
 }
 
 void CSelect_Time_Segment_Id_Panel::fetch_parameter() {
-	if (!mDb) Connect_To_Db(); //try to connect first
+	if (!mDb) {
+		Connect_To_Db(); //try to connect first
+	}
 
 	HRESULT rc;
 	std::vector<int64_t> segment_ids = mParameter.as_int_array(rc);
 
 	if (check_rc(rc)) {
 		auto is_in_selection = [&segment_ids](const int id)->bool {
-			for (const auto segment_id : segment_ids)
-				if (segment_id == id) return true;
+			for (const auto segment_id : segment_ids) {
+				if (segment_id == id) {
+					return true;
+				}
+			}
 			return false;
 		};
 
-		if (mSegmentsModel)
-			for (int data_row = 0;  data_row<mSegmentsModel->rowCount(); data_row++) {
-				if (is_in_selection(mSegmentsModel->data(mSegmentsModel->index(data_row, 0)).toInt()))
+		if (mSegmentsModel) {
+			for (int data_row = 0; data_row < mSegmentsModel->rowCount(); data_row++) {
+				if (is_in_selection(mSegmentsModel->data(mSegmentsModel->index(data_row, 0)).toInt())) {
 					selectRow(data_row);
-			}	
+				}
+			}
+		}
 	}
 }
 
 void CSelect_Time_Segment_Id_Panel::Connect_To_Db() {
-//	auto current_selection = get_parameter();
 
 	mSegmentsModel.reset(nullptr);
-	
+
 	if (mDb) {
 		QString connection;
 		connection = mDb->connectionName();
@@ -111,16 +117,14 @@ void CSelect_Time_Segment_Id_Panel::Connect_To_Db() {
 		QSqlDatabase::removeDatabase(connection);
 	}
 
-	
 	const auto effective_db_name = db::is_file_db(mConfiguration.Read_String(rsDb_Provider)) ? mConfiguration.Read_File_Path(rsDb_Name).wstring() : mConfiguration.Read_String(rsDb_Name);
-
 
 	mDb = std::make_unique<QSqlDatabase>(QSqlDatabase::addDatabase(QString::fromStdWString(mConfiguration.Read_String(rsDb_Provider)), mDb_Connection_Name));
 	mDb->setHostName(QString::fromStdWString(mConfiguration.Read_String(rsDb_Host)));
 	mDb->setDatabaseName(QString::fromStdWString(effective_db_name));
 	mDb->setUserName(QString::fromStdWString(mConfiguration.Read_String(rsDb_User_Name)));
 	mDb->setPassword(QString::fromStdWString(mConfiguration.Read_String(rsDb_Password)));
-	
+
 	if (mDb->open()) {
 
 		QSqlQuery segments_query{ *mDb.get() };

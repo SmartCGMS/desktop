@@ -82,38 +82,39 @@ void CParameters_Optimization_Dialog::Populate_Parameters_Info(scgms::SFilter_Ch
 			// model signal - append signal name
 			if (parameter.type() == scgms::NParameter_Type::ptModel_Produced_Signal_Id) {
 				bool found = false;
-				for (auto& model : models)
-				{
+				for (auto& model : models) {
 					for (size_t i = 0; i < model.number_of_calculated_signals; i++) {
 						HRESULT rc;
-						if (model.calculated_signal_ids[i] == parameter.as_guid(rc))
+						if (model.calculated_signal_ids[i] == parameter.as_guid(rc)) {
 							if (rc == S_OK) {
 								description += L" - ";
 								description += signal_descriptors.Get_Name(model.calculated_signal_ids[i]);
 								found = true;
 								break;
 							}
+						}
 					}
 
-					if (found)
+					if (found) {
 						break;
+					}
 				}
 			}
 			// model - append model description
 			else if (parameter.type() == scgms::NParameter_Type::ptSignal_Model_Id || parameter.type() == scgms::NParameter_Type::ptDiscrete_Model_Id) {
 				for (auto& model : models) {
 					HRESULT rc;
-					if (model.id == parameter.as_guid(rc))
+					if (model.id == parameter.as_guid(rc)) {
 						if (rc == S_OK) {
 							description += L" - ";
 							description += model.description;
 							break;
 						}
+					}
 				}
 			}
 		});
 	};
-
 
 	size_t filter_index = 0;
 	configuration.for_each([this, &filter_index, &complete_description](scgms::SFilter_Configuration_Link link) {
@@ -177,11 +178,11 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 
 			default_solver_pos = cmbSolver->findData(GUID_To_QUuid(default_solver_id));
 
-			if (default_solver_pos != -1)
+			if (default_solver_pos != -1) {
 				cmbSolver->setCurrentIndex(default_solver_pos);
+			}
 		}
-	
-	
+
 		edtMax_Generations = new QLineEdit{ edits };
 		edtMax_Generations->setValidator(new QIntValidator(edits));
 		edtMax_Generations->setText("10000");
@@ -200,8 +201,6 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 			edits_layout->addWidget(new QLabel{ dsMax_Generations, edits }, 2, 0);				edits_layout->addWidget(edtMax_Generations, 2, 1);
 			edits_layout->addWidget(new QLabel{ dsPopulation_Size, edits }, 3, 0);				edits_layout->addWidget(edtPopulation_Size, 3, 1);
 		}
-
-	
 
 		QWidget* progress = new QWidget();
 		{
@@ -246,14 +245,15 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 			connect(btnClose, SIGNAL(clicked()), this, SLOT(close()));
 		}
 
+		auto add_separator = [](QWidget *parent) {
+			QFrame *line;
+			line = new QFrame(parent);
+			line->setFrameShape(QFrame::HLine);
+			line->setFrameShadow(QFrame::Sunken);
+			return line;
+		};
 
-		auto add_separator = [](QWidget *parent) {QFrame *line;
-											 line = new QFrame(parent);
-											 line->setFrameShape(QFrame::HLine);
-											 line->setFrameShadow(QFrame::Sunken);
-											 return line; };
-
-		vertical_layout->addWidget(edits);			
+		vertical_layout->addWidget(edits);
 		vertical_layout->addWidget(new QLabel{ QString::fromUtf8(dsParameters_Optimization_Use).arg(solver::Maximum_Objectives_Count) , this });
 		vertical_layout->addWidget(add_separator(this));
 		vertical_layout->addWidget(progress);
@@ -274,8 +274,9 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 
 		QStringList headers;
 		headers << "Gen." << "Max.";
-		for (size_t i = 0; i < solver::Maximum_Objectives_Count; i++)
+		for (size_t i = 0; i < solver::Maximum_Objectives_Count; i++) {
 			headers << QString::number(i + 1);
+		}
 
 		lstMetricHistory->setShowGrid(true);
 		lstMetricHistory->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -284,8 +285,9 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 		lstMetricHistory->resizeColumnsToContents();
 		lstMetricHistory->verticalHeader()->hide();
 
-		for (size_t i = 0; i < solver::Maximum_Objectives_Count; i++)
+		for (size_t i = 0; i < solver::Maximum_Objectives_Count; i++) {
 			lstMetricHistory->hideColumn(static_cast<int>(i + 2));
+		}
 
 		QWidget* startLbl = new QWidget();
 		{
@@ -325,17 +327,16 @@ void CParameters_Optimization_Dialog::Setup_UI() {
 	connect(this, SIGNAL(Update_Progress_Signal()), this, SLOT(On_Update_Progress()), Qt::BlockingQueuedConnection);
 }
 
-
 void CParameters_Optimization_Dialog::On_Solve() {
 	if (!mIs_Solving) {
 		const QVariant solver_variant = cmbSolver->currentData();
-		if (!solver_variant.isNull())
+		if (!solver_variant.isNull()) {
 			mChosen_Solver_Id = QUuid_To_GUID(solver_variant.toUuid());
+		}
 
 		mSolve_filter_info_indices.clear();
 		mSolve_filter_parameter_names.clear();
 
-		
 		auto model = cmbParameters->selectionModel();
 		QStandardItemModel* casted_model = dynamic_cast<QStandardItemModel*>(model->model());
 		foreach(const QModelIndex & index, model->selectedIndexes()) {
@@ -379,21 +380,23 @@ void CParameters_Optimization_Dialog::On_Solve() {
 					mIs_Solving = false;
 					mProgress.cancelled = TRUE;	//stops mProgress_Update_Thread
 
-					if (res != S_OK)
+					if (res != S_OK) {
 						lblSolver_Info->setText(tr(dsSolver_Status_Failed));
-					else
+					}
+					else {
 						emit Update_Progress_Signal();
+					}
 			});
 
 			mProgress_Update_Thread = std::make_unique<std::thread>([this]() {
 				while (mProgress.cancelled == FALSE) {
-					if (mIs_Solving) emit Update_Progress_Signal();
+					if (mIs_Solving) {
+						emit Update_Progress_Signal();
+					}
 					std::this_thread::sleep_for(std::chrono::milliseconds(500));
 				}
 			});
-		
 		}
-		
 	}
 }
 
@@ -408,25 +411,25 @@ void CParameters_Optimization_Dialog::On_Update_Progress() {
 			progressLabel2->setText(QString("%1 %").arg(progressValue));
 			lblSolver_Info->setText(QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric[0]));
 
-			if (lastProgress != mProgress.current_progress)
-			{
+			if (lastProgress != mProgress.current_progress) {
 				lastProgress = mProgress.current_progress;
 
-				if (mProgress.current_progress > 0)
-				{
+				if (mProgress.current_progress > 0) {
 					const auto msPerUnit = (QDateTime::currentDateTime().toMSecsSinceEpoch() - startDateTime.toMSecsSinceEpoch()) / mProgress.current_progress;
 					const QDateTime etaEnd = startDateTime.addMSecs(msPerUnit * mProgress.max_progress);
 
 					timestampLabelEnd->setText(QString("%1 (ETA)").arg(etaEnd.toLocalTime().toString()));
 				}
-				else
+				else {
 					timestampLabelEnd->setText("N/A");
+				}
 			}
 
 			bool changed = false;
 			for (size_t i = 0; i < solver::Maximum_Objectives_Count; i++) {
-				if (Is_Any_NaN(mProgress.best_metric[i]))
+				if (Is_Any_NaN(mProgress.best_metric[i])) {
 					continue;
+				}
 				if (Is_Any_NaN(lastMetric[i]) || lastMetric[i] != mProgress.best_metric[i]) {
 					changed = true;
 					break;
@@ -445,16 +448,20 @@ void CParameters_Optimization_Dialog::On_Update_Progress() {
 				lstMetricHistory->setItem(i, 1, new QTableWidgetItem(QString::number(mProgress.max_progress)));
 				for (size_t j = 0; j < solver::Maximum_Objectives_Count; j++) {
 					lstMetricHistory->setItem(i, static_cast<int>(2 + j), new QTableWidgetItem(QString::number(mProgress.best_metric[j])));
-					if (!Is_Any_NaN(mProgress.best_metric[j]))
+					if (!Is_Any_NaN(mProgress.best_metric[j])) {
 						lstMetricHistory->showColumn(static_cast<int>(j + 2));
+					}
 				}
 
 				lstMetricHistory->resizeColumnsToContents();
 				lstMetricHistory->scrollToBottom();
 			}
-		} else
+		}
+		else {
 			lblSolver_Info->setText(QString(tr(dsSolver_Status_In_Progress)));
-	} else {
+		}
+	}
+	else {
 		progressLabel1->setText(QString("N/A"));
 		progressLabel2->setText(QString("0 %"));
 		lblSolver_Info->setText(QString(tr(dsSolver_Status_Stopped)) + ", "+ QString(tr(dsBest_Metric_Label)).arg(mProgress.best_metric[0]));
@@ -468,8 +475,8 @@ void CParameters_Optimization_Dialog::On_Stop() {
 	On_Update_Progress();
 }
 
-void CParameters_Optimization_Dialog::reject()
-{
+void CParameters_Optimization_Dialog::reject() {
+
 	if (mIs_Solving) {
 		QMessageBox::StandardButton resBtn = QMessageBox::Yes;
 		resBtn = QMessageBox::question(this, tr("Solver still running"), tr("The solver is still running. Do you want to stop the solver and reject results?\n"), QMessageBox::Cancel | QMessageBox::Yes, QMessageBox::Yes);
@@ -479,16 +486,15 @@ void CParameters_Optimization_Dialog::reject()
 			QDialog::reject();
 		}
 	}
-	else
+	else {
 		QDialog::reject();
+	}
 }
-
 
 void CParameters_Optimization_Dialog::Stop_Threads() {
 	auto wait_for_thread = [](std::unique_ptr<std::thread> &thread) {
-		if (thread) {
-			if (thread->joinable())
-				thread->join();
+		if (thread && thread->joinable()) {
+			thread->join();
 			thread.reset();
 		}
 	};
@@ -510,14 +516,15 @@ void CParameters_Optimization_Dialog::Stop_Async() {
 	progress.show();
 
 	QList<QPushButton*> L = progress.findChildren<QPushButton*>();
-	if (L.size() > 0)
+	if (L.size() > 0) {
 		L[0]->setDisabled(true);
+	}
 
 	auto r = std::async(std::launch::async, [this]() {
 		mProgress.cancelled = TRUE;
 		mIs_Solving = false;
 		Stop_Threads();
-		});
+	});
 
 	while (r.wait_for(std::chrono::milliseconds(10)) == std::future_status::timeout) {
 		mProgress.cancelled = TRUE;

@@ -58,9 +58,8 @@
 /*
  * Custom child of QGraphicsView to achieve zoom functionality
  */
-class CDrawing_Graphics_View : public QGraphicsView
-{
-		Q_OBJECT
+class CDrawing_Graphics_View : public QGraphicsView {
+	Q_OBJECT
 
 	protected slots:
 		void scalingTime(qreal x);
@@ -78,9 +77,8 @@ class CDrawing_Graphics_View : public QGraphicsView
 /*
  * Drawing widget class
  */
-class CDrawing_Tab_Widget : public CAbstract_Simulation_Tab_Widget
-{
-		Q_OBJECT
+class CDrawing_Tab_Widget : public CAbstract_Simulation_Tab_Widget {
+	Q_OBJECT
 
 	protected:
 		// maintained output type

@@ -137,14 +137,12 @@ void CFilters_Window::Setup_UI() {
 
 	lbxAvailable_Filters->sortItems();
 
-
 	//add the  applied filters
 	mFilter_Chain_Configuration.for_each([this](scgms::SFilter_Configuration_Link link) {
 		CFilter_List_Item *tmp = new CFilter_List_Item(link);
 		tmp->Refresh();
 		lbxApplied_Filters->addItem(tmp);
 	});
-
 
 	QPushButton *btnAdd_Filter = new QPushButton{tr(dsAdd)};
 
@@ -186,8 +184,9 @@ bool CFilters_Window::eventFilter(QObject* object, QEvent* event) {
 		On_Applied_Filter_Key_Press(ke);
 		return true;
 	}
-	else
+	else {
 		return false;
+	}
 }
 
 void CFilters_Window::On_Add_Filter() {
@@ -199,10 +198,8 @@ void CFilters_Window::On_Add_Filter() {
 	}
 }
 
-void CFilters_Window::On_Move_Filter_Up()
-{
-	for (int i = 1; i < lbxApplied_Filters->count(); i++)
-	{
+void CFilters_Window::On_Move_Filter_Up() {
+	for (int i = 1; i < lbxApplied_Filters->count(); i++) {
 		if (lbxApplied_Filters->item(i)->isSelected()) {
 			lbxApplied_Filters->insertItem(i, lbxApplied_Filters->takeItem(i - 1));
 			mFilter_Chain_Configuration->move(static_cast<size_t>(i), static_cast<size_t>(i) - 1);
@@ -210,10 +207,8 @@ void CFilters_Window::On_Move_Filter_Up()
 	}
 }
 
-void CFilters_Window::On_Move_Filter_Down()
-{
-	for (int i = lbxApplied_Filters->count() - 2; i >= 0; i--)
-	{
+void CFilters_Window::On_Move_Filter_Down() {
+	for (int i = lbxApplied_Filters->count() - 2; i >= 0; i--) {
 		if (lbxApplied_Filters->item(i)->isSelected()) {
 			lbxApplied_Filters->insertItem(i, lbxApplied_Filters->takeItem(i + 1));
 			mFilter_Chain_Configuration->move(static_cast<size_t>(i), static_cast<size_t>(i) + 1);
@@ -221,16 +216,16 @@ void CFilters_Window::On_Move_Filter_Down()
 	}
 }
 
-void CFilters_Window::On_Remove_Filter()
-{
+void CFilters_Window::On_Remove_Filter() {
 	const auto selection = lbxApplied_Filters->selectedItems();
 	for (auto* item : selection) {
 		//1. delete the item from the configuration
 		const auto row_index = lbxApplied_Filters->row(item);
 
-		if (Succeeded(mFilter_Chain_Configuration->remove(row_index)))
-			//2. and delete the item from the list if everythign went OK
+		if (Succeeded(mFilter_Chain_Configuration->remove(row_index))) {
+			//2. and delete the item from the list if everything went OK
 			delete lbxApplied_Filters->takeItem(row_index);
+		}
 	}
 }
 
@@ -263,10 +258,12 @@ void CFilters_Window::On_Configure_Filter() {
 	bool success = (selection.size() == 1);
 
 	//	success
-	if (success)
+	if (success) {
 		Configure_Filter(selection[0]);
-	else
+	}
+	else {
 		QMessageBox::information(this, tr(dsInformation), tr(dsSelect_Just_One_Item));
+	}
 }
 
 void CFilters_Window::On_Commit_Filters() {
@@ -274,20 +271,15 @@ void CFilters_Window::On_Commit_Filters() {
 	CSimulation_Window* simWindow = CSimulation_Window::Get_Instance();
 
 	// disallow commit when simulation is in progress
-	if (simWindow && simWindow->Is_Simulation_In_Progress())
-	{
+	if (simWindow && simWindow->Is_Simulation_In_Progress()) {
 		QMessageBox::information(this, tr(dsInformation), tr(dsSimulation_Is_In_Progress));
 		return;
 	}
-
-	
 }
 
 void CFilters_Window::On_Filter_Configure_Complete() {
-	for (int i = 0; i < lbxApplied_Filters->count(); i++)
-	{
+	for (int i = 0; i < lbxApplied_Filters->count(); i++) {
 		auto item = reinterpret_cast<CFilter_List_Item*>(lbxApplied_Filters->item(i));
-
 		item->Refresh();
 	}
 }
