@@ -75,7 +75,9 @@ ENDIF()
 
 CONFIGURE_TARGET_OUTPUT(${PROJ} "")
 
-TARGET_LINK_LIBRARIES(${PROJ} Qt::Core Qt::Sql Qt::Widgets Qt::Svg Qt::Gui scgms-common)
+SCGMS_LINK_COMMON_LIBRARIES(${PROJ})
+
+TARGET_LINK_LIBRARIES(${PROJ} Qt::Core Qt::Sql Qt::Widgets Qt::Svg Qt::Gui)
 # Qt6 additionally splits Svg implementation into SvgWidgets; Qt5 has it all together in Svg
 IF(Qt_MAJOR_VERSION EQUAL 6)
 	TARGET_LINK_LIBRARIES(${PROJ} Qt::SvgWidgets)
