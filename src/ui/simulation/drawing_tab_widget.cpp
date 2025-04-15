@@ -105,7 +105,7 @@ void CDrawing_Graphics_View::animFinished() {
 }
 
 CDrawing_Tab_Widget::CDrawing_Tab_Widget(const scgms::TDrawing_Image_Type type, QWidget *parent)
-	: CAbstract_Simulation_Tab_Widget(parent), mType(type), mItem(nullptr), mDiagnosis_Box(nullptr), mCurrent_Diagnosis(scgms::TDiagnosis::Type1) {
+	: CAbstract_Simulation_Tab_Widget(parent), mType(type), mItem(nullptr), mDiagnosis_Box(nullptr), mCurrent_Diagnosis(scgms::NDiagnosis::Type1) {
 
 	mView = new CDrawing_Graphics_View();
 	mScene = new QGraphicsScene(mView);
@@ -123,9 +123,9 @@ CDrawing_Tab_Widget::CDrawing_Tab_Widget(const scgms::TDrawing_Image_Type type, 
 	// just parkes' grid has to disambiguate between diagnosis types (for now)
 	if (type == scgms::TDrawing_Image_Type::Parkes) {
 		mDiagnosis_Box = new QComboBox(this);
-		mDiagnosis_Box->addItem(dsDiagnosis_T1D, static_cast<int>(scgms::TDiagnosis::Type1));
-		mDiagnosis_Box->addItem(dsDiagnosis_T2D, static_cast<int>(scgms::TDiagnosis::Type2));
-		mDiagnosis_Box->addItem(dsDiagnosis_Gestational, static_cast<int>(scgms::TDiagnosis::Gestational));
+		mDiagnosis_Box->addItem(dsDiagnosis_T1D, static_cast<int>(scgms::NDiagnosis::Type1));
+		mDiagnosis_Box->addItem(dsDiagnosis_T2D, static_cast<int>(scgms::NDiagnosis::Type2));
+		mDiagnosis_Box->addItem(dsDiagnosis_Gestational, static_cast<int>(scgms::NDiagnosis::Gestational));
 		// this should relocate the widget on top of the drawing to top left corner somewhere
 		auto geom = mDiagnosis_Box->geometry();
 		mDiagnosis_Box->setGeometry(20, 20, geom.width(), geom.height());
@@ -161,7 +161,7 @@ CAbstract_Simulation_Tab_Widget* CDrawing_Tab_Widget::Clone() {
 	return cloned;
 }
 
-void CDrawing_Tab_Widget::Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::TDiagnosis diagnosis, const std::string &svg) {
+void CDrawing_Tab_Widget::Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::NDiagnosis diagnosis, const std::string &svg) {
 	if (type != mType) {
 		return;
 	}
@@ -182,7 +182,7 @@ void CDrawing_Tab_Widget::Redraw() {
 
 void CDrawing_Tab_Widget::Slot_Redraw() {
 	// if the requested diagnosis image is not found, fall back to "Not Specified" - it's the default
-	scgms::TDiagnosis diag = scgms::TDiagnosis::NotSpecified;
+	scgms::NDiagnosis diag = scgms::NDiagnosis::Unknown;
 	if (mSvgContents.find(mCurrent_Diagnosis) != mSvgContents.end()) {
 		diag = mCurrent_Diagnosis;
 	}
@@ -255,6 +255,6 @@ void CDrawing_Tab_Widget::On_Diagnosis_Changed(const QString& /*item*/) {
 		return;
 	}
 
-	mCurrent_Diagnosis = static_cast<scgms::TDiagnosis>(diagnosis);
+	mCurrent_Diagnosis = static_cast<scgms::NDiagnosis>(diagnosis);
 	Redraw();
 }

@@ -617,7 +617,7 @@ CSimulation_Window* CSimulation_Window::Get_Instance() {
 	return mInstance;
 }
 
-void CSimulation_Window::Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::TDiagnosis diagnosis, const std::string &image_data) {
+void CSimulation_Window::Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::NDiagnosis diagnosis, const std::string &image_data) {
 	for (CDrawing_Tab_Widget* wg : mDrawingWidgets) {
 		wg->Drawing_Callback(type, diagnosis, image_data);
 	}

@@ -183,7 +183,7 @@ class CSimulation_Window : public QMdiSubWindow {
 
 		bool Is_Simulation_In_Progress() const;
 
-		void Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::TDiagnosis diagnosis, const std::string &svg);
+		void Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::NDiagnosis diagnosis, const std::string &svg);
 		void Drawing_v2_Callback(size_t filterIdx, size_t drawingIdx, const std::string& svg);
 		void Update_Preferred_Drawing_Dimensions(size_t filterIdx, size_t drawingIdx, int& width, int& height);
 

@@ -96,7 +96,7 @@ class CDrawing_Tab_Widget : public CAbstract_Simulation_Tab_Widget {
 		QComboBox* mDiagnosis_Box;
 
 		// contents of SVG to be drawn
-		std::map<scgms::TDiagnosis, std::string> mSvgContents;
+		std::map<scgms::NDiagnosis, std::string> mSvgContents;
 		// draw mutex
 		std::mutex mDrawMtx;
 
@@ -104,7 +104,7 @@ class CDrawing_Tab_Widget : public CAbstract_Simulation_Tab_Widget {
 		bool mDefered_Work = false;
 
 		// currently selected diagnosis
-		scgms::TDiagnosis mCurrent_Diagnosis;
+		scgms::NDiagnosis mCurrent_Diagnosis;
 
 	signals:
 		void On_Redraw();
@@ -123,7 +123,7 @@ class CDrawing_Tab_Widget : public CAbstract_Simulation_Tab_Widget {
 		virtual CAbstract_Simulation_Tab_Widget* Clone() override;
 
 		// when a new drawing is available
-		void Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::TDiagnosis diagnosis, const std::string &svg);
+		void Drawing_Callback(const scgms::TDrawing_Image_Type type, const scgms::NDiagnosis diagnosis, const std::string &svg);
 
 		void Redraw();
 };

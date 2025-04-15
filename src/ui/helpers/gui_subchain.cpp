@@ -167,13 +167,13 @@ void CGUI_Filter_Subchain::Update_Drawing() {
 		auto svg = refcnt::Create_Container_shared<char>(nullptr, nullptr);
 
 		for (size_t type = 0; type < (size_t)scgms::TDrawing_Image_Type::count; type++) {
-			if (mDrawing_Filter_Inspection->Draw((scgms::TDrawing_Image_Type)type, scgms::TDiagnosis::NotSpecified, svg.get(), mDraw_Segment_Ids.get(), mDraw_Signal_Ids.get()) == S_OK) {
-				simwin->Drawing_Callback((scgms::TDrawing_Image_Type)type, scgms::TDiagnosis::NotSpecified, refcnt::Char_Container_To_String(svg.get()));
+			if (mDrawing_Filter_Inspection->Draw((scgms::TDrawing_Image_Type)type, scgms::NDiagnosis::Unknown, svg.get(), mDraw_Segment_Ids.get(), mDraw_Signal_Ids.get()) == S_OK) {
+				simwin->Drawing_Callback((scgms::TDrawing_Image_Type)type, scgms::NDiagnosis::Unknown, refcnt::Char_Container_To_String(svg.get()));
 			}
 		}
 
-		if (mDrawing_Filter_Inspection->Draw(scgms::TDrawing_Image_Type::Parkes, scgms::TDiagnosis::Type2, svg.get(), mDraw_Segment_Ids.get(), mDraw_Signal_Ids.get()) == S_OK) {
-			simwin->Drawing_Callback(scgms::TDrawing_Image_Type::Parkes, scgms::TDiagnosis::Type2, refcnt::Char_Container_To_String(svg.get()));
+		if (mDrawing_Filter_Inspection->Draw(scgms::TDrawing_Image_Type::Parkes, scgms::NDiagnosis::Type2, svg.get(), mDraw_Segment_Ids.get(), mDraw_Signal_Ids.get()) == S_OK) {
+			simwin->Drawing_Callback(scgms::TDrawing_Image_Type::Parkes, scgms::NDiagnosis::Type2, refcnt::Char_Container_To_String(svg.get()));
 		}
 	}
 
