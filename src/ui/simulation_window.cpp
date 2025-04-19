@@ -527,8 +527,6 @@ void CSimulation_Window::On_Start() {
 	}
 
 	if (mFilter_Executor) {
-		mGUI_Filter_Subchain.Start();
-
 		// store old index of selected tab
 		int curIdx = mTabWidget->currentIndex();
 
@@ -566,6 +564,8 @@ void CSimulation_Window::On_Start() {
 		if (curIdx < mTabWidget->count()) {
 			mTabWidget->setCurrentIndex(curIdx);
 		}
+
+		mGUI_Filter_Subchain.Start();
 	}
 }
 
