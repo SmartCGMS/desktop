@@ -60,6 +60,7 @@ int CModel_Bounds_Panel_internal::CParameters_Table_Model::rowCount(const QModel
 }
 
 int CModel_Bounds_Panel_internal::CParameters_Table_Model::columnCount(const QModelIndex &parent) const {
+	// lower bound, default parameters, upper bound
 	return 3;
 }
 
@@ -89,14 +90,14 @@ std::tuple<bool, size_t> CModel_Bounds_Panel_internal::CParameters_Table_Model::
 	}
 
 	if (mIndividualized_Segment_Count > 1) {
-		const size_t rows_per_segment = mSegment_Specific_Parameter_Count + 1;	//+1 to denote the heading row
+		const size_t rows_per_segment = mSegment_Specific_Parameter_Count + 1;	// +1 to denote the heading row
 		
-		if (ui > mNames.size() - mSegment_Agnostic_Parameter_Count) {	//ui points to the common parameters
+		if (ui > mNames.size() - mSegment_Agnostic_Parameter_Count) {	// ui points to the common parameters
 			return { true, mDefault_Values.size() - mNames.size() + ui};
 		}
 		else {
 			const size_t rem = ui % rows_per_segment;
-			return { rem != 0, ui - (ui/ rows_per_segment) - 1};	//-1 to account the first string - "Segment 1"
+			return { rem != 0, ui - (ui/ rows_per_segment) - 1};	// -1 to account the first string - "Segment 1"
 		}
 	}
 	else {
@@ -206,16 +207,16 @@ void CModel_Bounds_Panel_internal::CParameters_Table_Model::Load_Parameters(cons
 	if (model.id != Invalid_GUID) {
 		mSegment_Agnostic_Parameter_Count = model.total_number_of_parameters - model.number_of_segment_specific_parameters;
 		mSegment_Specific_Parameter_Count = model.number_of_segment_specific_parameters;
-		size_t total_specific_parameters_in_doubles = model.number_of_segment_specific_parameters > 0 ? count - mSegment_Agnostic_Parameter_Count : 0;
+		const size_t total_specific_parameters_in_doubles = model.number_of_segment_specific_parameters > 0 ? count - mSegment_Agnostic_Parameter_Count : 0;
 
 		size_t segment_UI_idx = 1;
 
 		bool valid_config = false;
 		if (mSegment_Specific_Parameter_Count > 0) {
-			valid_config = (total_specific_parameters_in_doubles % mSegment_Specific_Parameter_Count) == 0;
+			valid_config = ((total_specific_parameters_in_doubles % mSegment_Specific_Parameter_Count) == 0);
 		}
 		else {
-			valid_config = count == model.total_number_of_parameters;
+			valid_config = (count == model.total_number_of_parameters);
 		}
 
 		//check that the number of parameters is correct => check that they are not corrupted
@@ -278,7 +279,7 @@ std::vector<double> CModel_Bounds_Panel_internal::CParameters_Table_Model::Store
 
 CModel_Bounds_Panel_internal::CParameter_Value_Delegate::CParameter_Value_Delegate(CModel_Bounds_Panel_internal::CParameters_Table_Model* model, QObject* parent) :
 	QItemDelegate(parent), mModel(model) {
-
+	//
 }
 
 QWidget* CModel_Bounds_Panel_internal::CParameter_Value_Delegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option,	const QModelIndex &index) const {
@@ -379,7 +380,7 @@ CModel_Bounds_Panel::CModel_Bounds_Panel(scgms::SFilter_Parameter parameter, QCo
 		});
 	}
 
-	//	fetch_parameter(); - avoid possibly virtual call from ctor
+	//fetch_parameter(); - avoid possibly virtual call from ctor
 }
 
 void CModel_Bounds_Panel::store_parameter() {
@@ -397,7 +398,7 @@ void CModel_Bounds_Panel::Reset_Parameters(std::vector<double> &values, std::fun
 
 	const double* bounds = get_bounds(model);
 	
-	//setup the segment-common/agnostic parameters	
+	// setup the segment-common/agnostic parameters
 	const size_t number_of_segment_common_parametes = model.total_number_of_parameters - model.number_of_segment_specific_parameters;
 	const size_t first_common_parameter_in_values = values.size() - number_of_segment_common_parametes;
 
@@ -412,8 +413,35 @@ void CModel_Bounds_Panel::Reset_Parameters(std::vector<double> &values, std::fun
 	mTableView->viewport()->update();
 }
 
+void CModel_Bounds_Panel::Reset_All_Parameters() {
+	scgms::TModel_Descriptor model = scgms::Null_Model_Descriptor;
+	if (!Get_Currently_Selected_Model(model)) {
+		return;
+	}
+
+	// also trim down the number of segments to one
+	mModel->mLower_Bounds.resize(model.total_number_of_parameters);
+	mModel->mDefault_Values.resize(model.total_number_of_parameters);
+	mModel->mUpper_Bounds.resize(model.total_number_of_parameters);
+
+	mTableView->resizeColumnsToContents();
+	mTableView->resizeRowsToContents();
+
+	Reset_Parameters(mModel->mLower_Bounds, [](const scgms::TModel_Descriptor& model) -> const double* {
+		return model.lower_bound;
+	});
+
+	Reset_Parameters(mModel->mDefault_Values, [](const scgms::TModel_Descriptor& model) -> const double* {
+		return model.default_values;
+	});
+
+	Reset_Parameters(mModel->mUpper_Bounds, [](const scgms::TModel_Descriptor& model) -> const double* {
+		return model.upper_bound;
+	});
+}
+
 void CModel_Bounds_Panel::On_Reset_Lower() {
-	Reset_Parameters(mModel->mLower_Bounds, [](const scgms::TModel_Descriptor& model)->const double* {return model.lower_bound; });
+	Reset_Parameters(mModel->mLower_Bounds, [](const scgms::TModel_Descriptor& model) -> const double* {return model.lower_bound; });
 }
 
 void CModel_Bounds_Panel::On_Reset_Defaults() {
@@ -422,22 +450,21 @@ void CModel_Bounds_Panel::On_Reset_Defaults() {
 		return;
 	}
 
-	//also trim down the number of segmetns to one
+	// also trim down the number of segments to one
 	mModel->mLower_Bounds.resize(model.total_number_of_parameters);
 	mModel->mDefault_Values.resize(model.total_number_of_parameters);
 	mModel->mUpper_Bounds.resize(model.total_number_of_parameters);
 
-
 	mTableView->resizeColumnsToContents();
 	mTableView->resizeRowsToContents();
 
-	Reset_Parameters(mModel->mDefault_Values, [](const scgms::TModel_Descriptor& model)->const double* {
+	Reset_Parameters(mModel->mDefault_Values, [](const scgms::TModel_Descriptor& model) -> const double* {
 		return model.default_values;
 	});
 }
 
 void CModel_Bounds_Panel::On_Reset_Upper() {
-	Reset_Parameters(mModel->mUpper_Bounds, [](const scgms::TModel_Descriptor& model)->const double* {
+	Reset_Parameters(mModel->mUpper_Bounds, [](const scgms::TModel_Descriptor& model) -> const double* {
 		return model.upper_bound;
 	});
 }
@@ -462,23 +489,23 @@ void CModel_Bounds_Panel::fetch_parameter() {
 
 	scgms::TModel_Descriptor model = scgms::Null_Model_Descriptor;
 	if (Get_Currently_Selected_Model(model)) {
-		//fetch default parameters
+		// fetch default parameters
 		double* lb = const_cast<double*>(model.lower_bound);
 		double* def = const_cast<double*>(model.default_values);
 		double* ub = const_cast<double*>(model.upper_bound);
 		size_t param_count = model.total_number_of_parameters;
 
-		//and try to load custom ones
+		// and try to load custom ones
 		HRESULT rc;
 		std::vector<double> parameters = mParameter.as_double_array(rc);
-		
+
 		if (Succeeded(rc)) {
 			param_count = parameters.size() / 3;
 
-			bool valid_param_size = parameters.size() % 3 == 0;	//OK, looks like we have low, def and upper
-			//also check, if the number of parameters is actually OK when considering segment specific and segment agnostic parameters
+			bool valid_param_size = (parameters.size() % 3 == 0);	// OK, looks like we have low, def and upper
+			// also check, if the number of parameters is actually OK when considering segment specific and segment agnostic parameters
 			if (valid_param_size) {
-				//beware, parameter-classification is not mandatory, hence it could be zero
+				// beware, parameter-classification is not mandatory, hence it could be zero
 				if (model.number_of_segment_specific_parameters > 0) {
 					valid_param_size = (param_count - model.total_number_of_parameters + model.number_of_segment_specific_parameters) % model.number_of_segment_specific_parameters == 0;
 				}
@@ -490,8 +517,12 @@ void CModel_Bounds_Panel::fetch_parameter() {
 				ub = lb + 2 * param_count;
 			}
 			else {
-				//signalize the error!
+				// signalize the error!
 				QMessageBox::warning(QApplication::activeWindow(), QString::fromWCharArray(dsError), QString::fromWCharArray(dsStored_Parameters_Corrupted_Not_Loaded));
+
+				// revert to original parameter count, as the parameters set are not valid (most probably from a previously set model)
+				param_count = model.total_number_of_parameters;
+				Reset_All_Parameters();
 			}
 		}
 		else {

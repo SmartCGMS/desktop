@@ -121,6 +121,8 @@ class CModel_Bounds_Panel : public QWidget, public virtual filter_config_window:
 
 		void Reset_Parameters(std::vector<double> &values, std::function<const double*(const scgms::TModel_Descriptor&)> get_bounds);
 
+		void Reset_All_Parameters();
+
 	protected slots:
 		void On_Reset_Lower();
 		void On_Reset_Defaults();
