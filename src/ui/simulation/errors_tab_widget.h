@@ -59,8 +59,8 @@ namespace CErrors_Tab_Widget_internal {
 	struct TSignal_Error_Inspection{
 		std::wstring description;
 		scgms::SSignal_Error_Inspection signal_error;
-		scgms::TSignal_Stats recent_abs_error;
-		scgms::TSignal_Stats recent_rel_error;
+		scgms::TSignal_Stats recent_abs_error{ 0, 0, 0, 0, 0, 0, {} };
+		scgms::TSignal_Stats recent_rel_error{ 0, 0, 0, 0, 0, 0, {} };
 		double r5 = 0.0, r10 = 0.0, r25 = 0.0, r50 = 0.0;	//inverse ECDF for relative errors
 	};
 
