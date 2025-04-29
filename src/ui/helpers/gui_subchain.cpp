@@ -234,7 +234,7 @@ void CGUI_Filter_Subchain::Update_Log() {
 		return;
 	}
 
-	std::shared_ptr<refcnt::wstr_list> lines;
+	refcnt::SReferenced<refcnt::wstr_list> lines;
 	while (mLog_Filter_Inspection.pop(lines)) {
 		simwin->Log_Callback(lines);
 	}

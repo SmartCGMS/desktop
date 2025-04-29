@@ -576,7 +576,7 @@ HRESULT IfaceCalling CSimulation_Window::On_Filter_Configured(scgms::IFilter *fi
 	local_instance->mGUI_Filter_Subchain.On_Filter_Configured(filter);
 	local_instance->mErrorsWidget->On_Filter_Configured(filter);
 
-	if (scgms::SCalculate_Filter_Inspection insp = scgms::SCalculate_Filter_Inspection{ scgms::SFilter{filter} }) {
+	if (scgms::SCalculate_Filter_Inspection insp = scgms::SCalculate_Filter_Inspection{ filter }) {
 		local_instance->mSolver_Filters.push_back(insp);
 	}
 
@@ -640,7 +640,7 @@ void CSimulation_Window::Update_Preferred_Drawing_Dimensions(size_t filterIdx, s
 	height = mTabWidget->currentWidget()->height() * 0.95;
 }
 
-void CSimulation_Window::Log_Callback(std::shared_ptr<refcnt::wstr_list> messages) {
+void CSimulation_Window::Log_Callback(refcnt::SReferenced<refcnt::wstr_list> messages) {
 	refcnt::wstr_container **begin, **end;
 	if (messages) {
 		if (messages->get(&begin, &end) == S_OK) {

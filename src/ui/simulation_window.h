@@ -187,7 +187,7 @@ class CSimulation_Window : public QMdiSubWindow {
 		void Drawing_v2_Callback(size_t filterIdx, size_t drawingIdx, const std::string& svg);
 		void Update_Preferred_Drawing_Dimensions(size_t filterIdx, size_t drawingIdx, int& width, int& height);
 
-		void Log_Callback(std::shared_ptr<refcnt::wstr_list> messages);
+		void Log_Callback(refcnt::SReferenced<refcnt::wstr_list> messages);
 		void Update_Solver_Progress(const GUID& solver, size_t progress, double bestMetric, scgms::TSolver_Status status);
 		void Update_Errors();
 		void Update_Solver_Progress();

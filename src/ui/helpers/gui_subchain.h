@@ -109,9 +109,9 @@ class CGUI_Filter_Subchain {
 		//  thread function for managing periodic updates (drawing)
 		void Run_Updater();
 
-		std::shared_ptr<refcnt::IVector_Container<uint64_t>> mDraw_Segment_Ids;
-		std::shared_ptr<refcnt::IVector_Container<GUID>> mDraw_Signal_Ids;
-		std::shared_ptr<refcnt::IVector_Container<GUID>> mDraw_Reference_Signal_Ids;
+		refcnt::SReferenced<refcnt::IVector_Container<uint64_t>> mDraw_Segment_Ids;
+		refcnt::SReferenced<refcnt::IVector_Container<GUID>> mDraw_Signal_Ids;
+		refcnt::SReferenced<refcnt::IVector_Container<GUID>> mDraw_Reference_Signal_Ids;
 
 		void Update_GUI();
 
