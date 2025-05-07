@@ -172,6 +172,10 @@ void CGUI_Filter_Subchain::Update_Drawing() {
 			}
 		}
 
+		if (mDrawing_Filter_Inspection->Draw(scgms::TDrawing_Image_Type::Parkes, scgms::NDiagnosis::Type1, svg.get(), mDraw_Segment_Ids.get(), mDraw_Signal_Ids.get()) == S_OK) {
+			simwin->Drawing_Callback(scgms::TDrawing_Image_Type::Parkes, scgms::NDiagnosis::Type1, refcnt::Char_Container_To_String(svg.get()));
+		}
+
 		if (mDrawing_Filter_Inspection->Draw(scgms::TDrawing_Image_Type::Parkes, scgms::NDiagnosis::Type2, svg.get(), mDraw_Segment_Ids.get(), mDraw_Signal_Ids.get()) == S_OK) {
 			simwin->Drawing_Callback(scgms::TDrawing_Image_Type::Parkes, scgms::NDiagnosis::Type2, refcnt::Char_Container_To_String(svg.get()));
 		}
